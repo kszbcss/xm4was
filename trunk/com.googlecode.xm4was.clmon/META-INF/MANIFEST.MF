@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: XM4WAS Class Loader Monitor
+Bundle-SymbolicName: com.googlecode.xm4was.clmon;singleton:=true
+Bundle-Version: 0.1.0.SNAPSHOT
+Bundle-Activator: com.googlecode.xm4was.clmon.Activator
+Eclipse-AutoStart: true
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Import-Package: com.ibm.wsspi.bootstrap.osgi,
+ org.osgi.framework
