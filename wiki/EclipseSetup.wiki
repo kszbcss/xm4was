@@ -1,0 +1,18 @@
+#summary Setting up the Eclipse workspace
+
+= Prerequisites =
+
+A local installation of !WebSphere 7.0.
+
+= Creating a target platform definition for WAS =
+
+  # In the Eclipse preferences, select _Plug-in Development_ > _Target Platform_.
+  # Click _Add_.
+  # Select _Nothing: Start with an empty target definition_ and click _Next_.
+  # Enter the name for the target platform: _WAS 7.0_.
+  # In the _Locations_ tab, click _Add_.
+  # Select _Directory_ and click _Next_.
+  # Set the _Location_ to the `plugins` directory of the WAS installation and click _Finish_.
+  # In the _Content_ tab, deselect any previously installed version of the XM4WAS plugins (if applicable).
+  # Click _Finish_.
+  # Select the _WAS 7.0_ definition to make it the active target platform for the workspace.
