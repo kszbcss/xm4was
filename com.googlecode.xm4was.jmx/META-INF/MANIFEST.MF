@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: XM4WAS JMX Connector
+Bundle-SymbolicName: com.googlecode.xm4was.jmx;singleton:=true
+Bundle-Version: 0.1.0.SNAPSHOT
+Bundle-Activator: com.googlecode.xm4was.jmx.Activator
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Import-Package: com.googlecode.xm4was.commons,
+ com.ibm.ejs.ras,
+ com.ibm.websphere.management,
+ com.ibm.wsspi.bootstrap.osgi,
+ com.ibm.wsspi.runtime.component,
+ org.osgi.framework
+Eclipse-AutoStart: true
+Require-Bundle: com.ibm.wsspi.extension
