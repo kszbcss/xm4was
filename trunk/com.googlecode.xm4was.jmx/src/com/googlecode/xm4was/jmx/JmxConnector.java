@@ -14,6 +14,7 @@ import javax.management.remote.JMXServiceURL;
 import javax.naming.Context;
 
 import com.googlecode.xm4was.commons.AbstractWsComponent;
+import com.googlecode.xm4was.commons.TrConstants;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.management.AdminServiceFactory;
@@ -21,16 +22,12 @@ import com.ibm.websphere.management.AdminServiceFactory;
 // * Security concerns in http://blogs.oracle.com/lmalventosa/entry/mimicking_the_out_of_the
 // * Thread pool?
 public class JmxConnector extends AbstractWsComponent {
-    private static final TraceComponent TC = Tr.register(JmxConnector.class, "XM4WAS", null);
+    private static final TraceComponent TC = Tr.register(JmxConnector.class, TrConstants.GROUP, null);
     
     private int port;
 	private Registry registry;
 	private JMXConnectorServer server;
 	
-	public String getName() {
-		return "XM_JmxConnector";
-	}
-
 	@Override
     protected void doInitialize() throws Exception {
 	    port = 1099;
