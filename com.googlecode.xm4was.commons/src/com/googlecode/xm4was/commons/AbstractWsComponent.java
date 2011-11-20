@@ -10,7 +10,11 @@ import com.ibm.wsspi.runtime.component.WsComponent;
 public abstract class AbstractWsComponent implements WsComponent {
 	private String state;
 
-	public final String getState() {
+    public final String getName() {
+        return "XM_" + getClass().getSimpleName();
+    }
+
+    public final String getState() {
 		return state;
 	}
 
