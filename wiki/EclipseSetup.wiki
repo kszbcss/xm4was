@@ -16,3 +16,9 @@ A local installation of !WebSphere 7.0.
   # In the _Content_ tab, deselect any previously installed version of the XM4WAS plugins (if applicable).
   # Click _Finish_.
   # Select the _WAS 7.0_ definition to make it the active target platform for the workspace.
+
+= Deploying the plugins directly to WebSphere =
+
+The plugins can be deployed directly into !WebSphere by exporting them as _Deployable plug-ins and fragments_. The _Destination_ must be set to the WAS installation directory; Eclipse will automatically deploy the plugins to the `plugins` sub-directory.
+
+When redeploying, execute the `osgiCfgInit` (see [http://publib.boulder.ibm.com/infocenter/wasinfo/v7r0/topic/com.ibm.websphere.base.doc/info/aes/ae/rxml_osgicfginit_script.html here]) script in the WAS profile used for testing before starting the server. Otherwise not all changes will be taken into account.
