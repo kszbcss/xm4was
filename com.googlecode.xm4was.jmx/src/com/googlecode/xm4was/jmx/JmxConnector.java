@@ -29,61 +29,61 @@ public class JmxConnector extends AbstractWsComponent {
     
     private boolean enabled;
     private int port;
-	private Registry registry;
-	private JMXConnectorServer server;
-	
-	@Override
+    private Registry registry;
+    private JMXConnectorServer server;
+    
+    @Override
     protected void doInitialize() throws Exception {
-	    // TODO: need to add this as a dependency
-	    EndPointMgr epMgr = WsServiceRegistry.getService(this, EndPointMgr.class);
-	    EndPointInfo ep = epMgr.getNodeEndPoints("@").getServerEndPoints("@").getEndPointInfo("JRMP_CONNECTOR_ADDRESS");
-	    if (ep == null) {
-	        enabled = false;
-	    } else {
-	        enabled = true;
-	        // TODO: take into account host?
-	        port = ep.getPort();
-	    }
+        // TODO: need to add this as a dependency
+        EndPointMgr epMgr = WsServiceRegistry.getService(this, EndPointMgr.class);
+        EndPointInfo ep = epMgr.getNodeEndPoints("@").getServerEndPoints("@").getEndPointInfo("JRMP_CONNECTOR_ADDRESS");
+        if (ep == null) {
+            enabled = false;
+        } else {
+            enabled = true;
+            // TODO: take into account host?
+            port = ep.getPort();
+        }
     }
 
     @Override
-	protected void doStart() throws Exception {
+    protected void doStart() throws Exception {
         if (enabled) {
             JMXServiceURL url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://localhost:" + port + "/jmxrmi");
             Tr.info(TC, "Starting the JRMP JMX connector on " + url);
-    		registry = LocateRegistry.createRegistry(port);
-    		Map<String,Object> env = new HashMap<String,Object>();
-    		env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.rmi.registry.RegistryContextFactory");
-    		env.put(Context.PROVIDER_URL, "rmi://server:" + port);
-    		// env.put("jmx.remote.x.login.config", "WSLogin");
+            registry = LocateRegistry.createRegistry(port);
+            Map<String,Object> env = new HashMap<String,Object>();
+            env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.rmi.registry.RegistryContextFactory");
+            env.put(Context.PROVIDER_URL, "rmi://server:" + port);
+            // env.put("jmx.remote.x.login.config", "WSLogin");
     
-    		// SslRMIClientSocketFactory csf = new SslRMIClientSocketFactory();
-    		// SslRMIServerSocketFactory ssf = new SslRMIServerSocketFactory();
-    		// env.put(RMIConnectorServer.RMI_CLIENT_SOCKET_FACTORY_ATTRIBUTE, csf);
-    		// env.put(RMIConnectorServer.RMI_SERVER_SOCKET_FACTORY_ATTRIBUTE, ssf); 
-    		server = JMXConnectorServerFactory.newJMXConnectorServer(url, env,
-    				AdminServiceFactory.getMBeanFactory().getMBeanServer());
-    		server.start();
+            // SslRMIClientSocketFactory csf = new SslRMIClientSocketFactory();
+            // SslRMIServerSocketFactory ssf = new SslRMIServerSocketFactory();
+            // env.put(RMIConnectorServer.RMI_CLIENT_SOCKET_FACTORY_ATTRIBUTE, csf);
+            // env.put(RMIConnectorServer.RMI_SERVER_SOCKET_FACTORY_ATTRIBUTE, ssf); 
+            server = JMXConnectorServerFactory.newJMXConnectorServer(url, env,
+                    AdminServiceFactory.getMBeanFactory().getMBeanServer());
+            server.start();
         } else {
             Tr.info(TC, "The JRMP JMX connector is not enabled.");
         }
-	}
+    }
 
-	@Override
-	protected void doStop() {
+    @Override
+    protected void doStop() {
         if (enabled) {
-    		try {
-    			server.stop();
-    		} catch (IOException e1) {
-    			// TODO Auto-generated catch block
-    			e1.printStackTrace();
-    		}
-    		try {
-    			UnicastRemoteObject.unexportObject(registry, true);
-    		} catch (NoSuchObjectException e) {
-    			// TODO Auto-generated catch block
-    			e.printStackTrace();
-    		}
+            try {
+                server.stop();
+            } catch (IOException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+            try {
+                UnicastRemoteObject.unexportObject(registry, true);
+            } catch (NoSuchObjectException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
-	}
+    }
 }
