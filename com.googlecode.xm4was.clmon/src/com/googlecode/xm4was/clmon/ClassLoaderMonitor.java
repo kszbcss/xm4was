@@ -8,11 +8,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
 
+import com.googlecode.xm4was.commons.AbstractWsComponent;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
-import com.ibm.ws.exception.ComponentDisabledException;
-import com.ibm.ws.exception.ConfigurationError;
-import com.ibm.ws.exception.ConfigurationWarning;
 import com.ibm.ws.exception.RuntimeError;
 import com.ibm.ws.exception.RuntimeWarning;
 import com.ibm.ws.runtime.deploy.DeployedApplication;
@@ -21,10 +19,9 @@ import com.ibm.ws.runtime.deploy.DeployedObject;
 import com.ibm.ws.runtime.deploy.DeployedObjectEvent;
 import com.ibm.ws.runtime.deploy.DeployedObjectListener;
 import com.ibm.ws.runtime.service.ApplicationMgr;
-import com.ibm.wsspi.runtime.component.WsComponent;
 import com.ibm.wsspi.runtime.service.WsServiceRegistry;
 
-public class ClassLoaderMonitor implements WsComponent, DeployedObjectListener {
+public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedObjectListener {
     private static final TraceComponent TC = Tr.register(ClassLoaderMonitor.class, "CustomServices", null);
     
     /**
@@ -43,7 +40,6 @@ public class ClassLoaderMonitor implements WsComponent, DeployedObjectListener {
     private static final int STATS_MAX_DELAY = 30000;
     
     private ApplicationMgr applicationMgr;
-    private String state;
     private int createCount;
     private int stopCount;
     private int destroyedCount;
@@ -52,20 +48,8 @@ public class ClassLoaderMonitor implements WsComponent, DeployedObjectListener {
     private List<ClassLoaderInfo> classLoaderInfos;
     private Timer timer;
     
-    public String getName() {
-        return ClassLoaderMonitor.class.getName();
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public void initialize(Object object) throws ComponentDisabledException, ConfigurationWarning, ConfigurationError {
-        state = INITIALIZED;
-    }
-
-    public void start() throws RuntimeError, RuntimeWarning {
-        state = STARTING;
+    @Override
+    protected void doStart() throws Exception {
         try {
             applicationMgr = WsServiceRegistry.getService(this, ApplicationMgr.class);
         } catch (Exception ex) {
@@ -81,21 +65,15 @@ public class ClassLoaderMonitor implements WsComponent, DeployedObjectListener {
             }
         }, 1000, 1000);
         Tr.info(TC, "Class loader monitor started");
-        state = STARTED;
     }
 
-    public void stop() {
-        state = STOPPING;
+    @Override
+    protected void doStop() {
         applicationMgr.removeDeployedObjectListener(this);
         timer.cancel();
         Tr.info(TC, "Class loader monitor stopped");
-        state = STOPPED;
     }
     
-    public void destroy() {
-        state = DESTROYED;
-    }
-
     synchronized void monitor() {
         Iterator<ClassLoaderInfo> it = classLoaderInfos.iterator();
         Map<String,Integer> leakStats = new TreeMap<String,Integer>();
