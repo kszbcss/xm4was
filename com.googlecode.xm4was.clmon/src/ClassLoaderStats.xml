@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Stats SYSTEM "stats.dtd">
+<Stats type="ClassLoaderStats">
+    <description>Class Loader Stats</description>
+    <CountStatistic ID="1" name="CreateCount">
+        <level>high</level>
+        <unit>None</unit>
+        <description>The number of application and module class loaders created.</description>
+        <updateOnRequest>true</updateOnRequest>
+    </CountStatistic>
+    <CountStatistic ID="2" name="StopCount">
+        <level>high</level>
+        <unit>None</unit>
+        <description>The number of class loaders for modules that have been stopped.</description>
+        <updateOnRequest>true</updateOnRequest>
+    </CountStatistic>
+    <CountStatistic ID="3" name="DestroyedCount">
+        <level>high</level>
+        <unit>None</unit>
+        <description>The number of application and module class loaders that have been destroyed (garbage collected).</description>
+        <updateOnRequest>true</updateOnRequest>
+    </CountStatistic>
+    <CountStatistic ID="4" name="LeakedCount">
+        <level>high</level>
+        <unit>None</unit>
+        <description>The number of leaked class loaders.</description>
+        <updateOnRequest>true</updateOnRequest>
+    </CountStatistic>
+</Stats>

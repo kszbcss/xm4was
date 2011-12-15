@@ -19,6 +19,9 @@ import com.ibm.ws.runtime.deploy.DeployedObject;
 import com.ibm.ws.runtime.deploy.DeployedObjectEvent;
 import com.ibm.ws.runtime.deploy.DeployedObjectListener;
 import com.ibm.ws.runtime.service.ApplicationMgr;
+import com.ibm.wsspi.pmi.factory.StatsFactory;
+import com.ibm.wsspi.pmi.factory.StatsFactoryException;
+import com.ibm.wsspi.pmi.factory.StatsInstance;
 import com.ibm.wsspi.runtime.service.WsServiceRegistry;
 
 public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedObjectListener {
@@ -47,6 +50,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
     private long lastUpdated;
     private List<ClassLoaderInfo> classLoaderInfos;
     private Timer timer;
+    private StatsInstance statsInstance;
     
     @Override
     protected void doStart() throws Exception {
@@ -64,11 +68,23 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
                 monitor();
             }
         }, 1000, 1000);
+        ClassLoader savedTCCL = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(ClassLoaderMonitor.class.getClassLoader());
+        try {
+            statsInstance = StatsFactory.createStatsInstance("ClassLoaderStats", "ClassLoaderStats.xml", null, new ClassLoaderStatisticActions(this));
+        } finally {
+            Thread.currentThread().setContextClassLoader(savedTCCL);
+        }
         Tr.info(TC, "Class loader monitor started");
     }
 
     @Override
     protected void doStop() {
+        try {
+            StatsFactory.removeStatsInstance(statsInstance);
+        } catch (StatsFactoryException ex) {
+            Tr.error(TC, "Failed to remove PMI statistics: " + ex.getMessage());
+        }
         applicationMgr.removeDeployedObjectListener(this);
         timer.cancel();
         Tr.info(TC, "Class loader monitor stopped");
@@ -147,5 +163,17 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
                 }
             }
         }
+    }
+
+    public synchronized int getCreateCount() {
+        return createCount;
+    }
+
+    public synchronized int getStopCount() {
+        return stopCount;
+    }
+
+    public synchronized int getDestroyedCount() {
+        return destroyedCount;
     }
 }
