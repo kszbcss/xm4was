@@ -8,7 +8,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
 
+import com.googlecode.xm4was.clmon.resources.Messages;
 import com.googlecode.xm4was.commons.AbstractWsComponent;
+import com.googlecode.xm4was.commons.TrConstants;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.ws.exception.RuntimeError;
@@ -25,7 +27,7 @@ import com.ibm.wsspi.pmi.factory.StatsInstance;
 import com.ibm.wsspi.runtime.service.WsServiceRegistry;
 
 public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedObjectListener {
-    private static final TraceComponent TC = Tr.register(ClassLoaderMonitor.class, "CustomServices", null);
+    private static final TraceComponent TC = Tr.register(ClassLoaderMonitor.class, TrConstants.GROUP, Messages.class.getName());
     
     /**
      * Delay between the last update of the class loader statistics and the moment these statistics
@@ -75,7 +77,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         } finally {
             Thread.currentThread().setContextClassLoader(savedTCCL);
         }
-        Tr.info(TC, "Class loader monitor started");
+        Tr.info(TC, Messages._0001I);
     }
 
     @Override
@@ -87,7 +89,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         }
         applicationMgr.removeDeployedObjectListener(this);
         timer.cancel();
-        Tr.info(TC, "Class loader monitor stopped");
+        Tr.info(TC, Messages._0002I);
     }
     
     synchronized void monitor() {
@@ -121,7 +123,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         }
         if (lastUpdated > lastDumped && ((timestamp - lastUpdated > STATS_MIN_DELAY) || (timestamp - lastDumped > STATS_MAX_DELAY))) {
             lastDumped = timestamp;
-            Tr.info(TC, "Class loader stats: created=" + createCount + "; stopped=" + stopCount + "; destroyed=" + destroyedCount + "; leakStats=" + leakStats);
+            Tr.info(TC, Messages._0003I, new Object[] { String.valueOf(createCount), String.valueOf(stopCount), String.valueOf(destroyedCount), leakStats.toString() });
         }
     }
 
