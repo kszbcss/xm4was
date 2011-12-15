@@ -1,0 +1,5 @@
+#summary Internationalization
+
+= Log message =
+
+Log messages must be defined using a `ListResourceBundle` and the implementing class must be placed in a package that is exported by the bundle. Resource bundles defined using property files will not work.
