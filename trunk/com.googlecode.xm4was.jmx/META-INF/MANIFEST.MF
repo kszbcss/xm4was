@@ -16,3 +16,4 @@ Import-Package: com.googlecode.xm4was.commons,
  org.osgi.framework
 Eclipse-AutoStart: true
 Require-Bundle: com.ibm.wsspi.extension
+Export-Package: com.googlecode.xm4was.jmx.resources

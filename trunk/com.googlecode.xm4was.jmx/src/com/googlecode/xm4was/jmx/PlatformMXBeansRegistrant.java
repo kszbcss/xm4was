@@ -13,6 +13,7 @@ import javax.management.ObjectName;
 
 import com.googlecode.xm4was.commons.AbstractWsComponent;
 import com.googlecode.xm4was.commons.TrConstants;
+import com.googlecode.xm4was.jmx.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.management.AdminServiceFactory;
@@ -22,7 +23,7 @@ import com.ibm.ws.management.PlatformMBeanServer;
  * Registers the platform MXBeans with WebSphere's MBean server.
  */
 public class PlatformMXBeansRegistrant extends AbstractWsComponent {
-    private static final TraceComponent TC = Tr.register(PlatformMXBeansRegistrant.class, TrConstants.GROUP, null);
+    private static final TraceComponent TC = Tr.register(PlatformMXBeansRegistrant.class, TrConstants.GROUP, Messages.class.getName());
 
     /**
      * The MBean server where the platform MXBeans are registered. This will be <code>null</code> if
@@ -82,7 +83,7 @@ public class PlatformMXBeansRegistrant extends AbstractWsComponent {
             registerMBean(mbean, new ObjectName(ManagementFactory.MEMORY_POOL_MXBEAN_DOMAIN_TYPE
                     + ",name=" + mbean.getName()));
         }
-        Tr.info(TC, "Registered " + registeredMBeans.size() + " platform MXBeans");
+        Tr.info(TC, Messages._0101I, new Object[] { String.valueOf(registeredMBeans.size()) });
         if (TC.isEntryEnabled()) {
             Tr.exit(TC, "doStart");
         }
@@ -100,7 +101,7 @@ public class PlatformMXBeansRegistrant extends AbstractWsComponent {
                 Tr.error(TC, "Failed to unregister MBean " + name + ": " + ex.getMessage());
             }
         }
-        Tr.info(TC, "Unregistered " + registeredMBeans.size() + " platform MXBeans");
+        Tr.info(TC, Messages._0102I, new Object[] { String.valueOf(registeredMBeans.size()) });
         registeredMBeans.clear();
         if (TC.isEntryEnabled()) {
             Tr.exit(TC, "doStop");
