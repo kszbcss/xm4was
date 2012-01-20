@@ -15,6 +15,7 @@ import javax.naming.Context;
 
 import com.googlecode.xm4was.commons.AbstractWsComponent;
 import com.googlecode.xm4was.commons.TrConstants;
+import com.googlecode.xm4was.jmx.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.management.AdminServiceFactory;
@@ -25,7 +26,7 @@ import com.ibm.wsspi.runtime.service.WsServiceRegistry;
 // * Security concerns in http://blogs.oracle.com/lmalventosa/entry/mimicking_the_out_of_the
 // * Thread pool?
 public class JmxConnector extends AbstractWsComponent {
-    private static final TraceComponent TC = Tr.register(JmxConnector.class, TrConstants.GROUP, null);
+    private static final TraceComponent TC = Tr.register(JmxConnector.class, TrConstants.GROUP, Messages.class.getName());
     
     private boolean enabled;
     private int port;
@@ -50,7 +51,7 @@ public class JmxConnector extends AbstractWsComponent {
     protected void doStart() throws Exception {
         if (enabled) {
             JMXServiceURL url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://localhost:" + port + "/jmxrmi");
-            Tr.info(TC, "Starting the JRMP JMX connector on " + url);
+            Tr.info(TC, Messages._0001I, new Object[] { url.toString() });
             registry = LocateRegistry.createRegistry(port);
             Map<String,Object> env = new HashMap<String,Object>();
             env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.rmi.registry.RegistryContextFactory");
@@ -65,7 +66,7 @@ public class JmxConnector extends AbstractWsComponent {
                     AdminServiceFactory.getMBeanFactory().getMBeanServer());
             server.start();
         } else {
-            Tr.info(TC, "The JRMP JMX connector is not enabled.");
+            Tr.info(TC, Messages._0002I);
         }
     }
 
