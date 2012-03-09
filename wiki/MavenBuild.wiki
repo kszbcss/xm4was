@@ -1,0 +1,16 @@
+#summary Building using Maven
+
+= Prerequisites =
+
+  * A local installation of !WebSphere 7.0.
+  * Maven 3.
+
+= Load !WebSphere bundles into the local Maven repository =
+
+!WebSphere uses the same OSGi runtime (Equinox) as Eclipse. Therefore maven-eclipse-plugin can be used to install the OSGi bundles of the !WebSphere runtime into the local Maven repository so that they will be available during the build:
+
+{{{
+mvn eclipse:to-maven -DeclipseDir=<was_install_dir>
+}}}
+
+`<was_install_dir>` is the WAS 7.0 installation directory (e.g. `/opt/IBM/WebSphere/AppServer`).
