@@ -1,0 +1,19 @@
+#summary jmx-client-connector
+
+= Synopsis =
+
+Connects a standard JMX client to a !WebSphere server using the protocols (RMI or SOAP) supported by the !AdminClient API.
+
+= Rationale =
+
+There are two ways supported by IBM to connect to a !WebSphere server using JMX:
+  * Using the proprietary !AdminClient API. This API supports multiple protocols, in particular RMI/IIOP and SOAP.
+  * Using the JSR-160 RMI connector which implements the standard JMX API. This connector uses a different protocol (namely the protocol defined by JSR-160), although the underlying communication protocol is still IIOP (when connecting to a !WebSphere server).
+
+This means that it is not possible to connect a standard JMX client (i.e. a client that only uses the JMX API and no vendor extensions or proprietary APIs) to !WebSphere using any protocol other than JSR-160.
+
+There are a couple of issues with that:
+  * 
+  * 
+
+In addition, all connectors (including !AdminClient) require setting up a couple of property files. This is even more difficult on Sun JREs.
