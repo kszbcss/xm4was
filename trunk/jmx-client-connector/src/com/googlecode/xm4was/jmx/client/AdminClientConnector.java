@@ -7,8 +7,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.lang.reflect.Proxy;
 import java.rmi.RemoteException;
-import java.security.AccessController;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
@@ -29,6 +29,8 @@ import javax.security.auth.Subject;
 import com.ibm.websphere.management.AdminClient;
 import com.ibm.websphere.management.AdminClientFactory;
 import com.ibm.websphere.management.exception.ConnectorException;
+import com.ibm.websphere.security.WSSecurityException;
+import com.ibm.websphere.security.auth.WSSubject;
 
 public class AdminClientConnector implements JMXConnector {
     private enum State { UNCONNECTED, CONNECTED, CLOSED };
@@ -147,6 +149,17 @@ public class AdminClientConnector implements JMXConnector {
 //                        "Failed to connect: " + ex.toString(),
 //                        ex));
                 throw new RemoteException("Unable to connect", ex);
+            }
+            try {
+                Subject subject = WSSubject.getRunAsSubject();
+                if (subject != null) {
+                    WSSubject.setRunAsSubject(null);
+                    adminClient = (AdminClient)Proxy.newProxyInstance(getClass().getClassLoader(),
+                            new Class<?>[] { AdminClient.class },
+                            new SecureAdminClientInvocationHandler(adminClient, subject));
+                }
+            } catch (WSSecurityException ex) {
+                log.log(Level.WARNING, "Failed to configure AdminClient security", ex);
             }
             mbsConnection = new AdminClientMBeanServerConnection(adminClient);
             state = State.CONNECTED;
