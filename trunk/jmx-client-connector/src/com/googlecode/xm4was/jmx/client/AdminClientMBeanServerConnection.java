@@ -1,4 +1,4 @@
-package connector;
+package com.googlecode.xm4was.jmx.client;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
