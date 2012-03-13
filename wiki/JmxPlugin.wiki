@@ -1,0 +1,12 @@
+#summary com.googlecode.xm4was.jmx
+
+= Synopsis =
+
+Registers the platform MXBean in !WebSphere's MBean server and optionally adds a JRMP JMX connector.
+
+
+
+= Known issues and limitations =
+
+  * The platform MXBeans are not secured. A user who is able to connect to the !WebSphere MBean server will have access to all operations of these MBeans (even if he is not in the `monitor` or `operator` administrative role).
+  * The JRMP JMX connector should not be enabled on an administrative agent (deployment manager or node agent) because it is affected by the same flaw as the JSR-160 RMI connector described in JmxClientConnector.
