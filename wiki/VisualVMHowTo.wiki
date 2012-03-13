@@ -2,7 +2,7 @@
 
 = Prerequisites =
 
-  * An installation of [http://visualvm.java.net/ VisualVM]. The procedure described in this document has been tested with VisualVM 1.3.3, but should work for older versions as well.
+  * An installation of [http://visualvm.java.net/ VisualVM]. The procedure described in this document has been tested with VisualVM 1.3.2 and 1.3.3, but should work for older versions as well.
 
 = Adding the XM4WAS JMX client connector JARs (Required) =
 
@@ -23,3 +23,7 @@ Open the `etc/visualvm.conf` file and add the following option to the `default_o
 {{{
 -J-Djmx.remote.protocol.provider.pkgs=com.googlecode.xm4was.jmx.client
 }}}
+
+= Known issues =
+
+  * CPU sampling is not available with VisualVM 1.3.3, but works with 1.3.2.
