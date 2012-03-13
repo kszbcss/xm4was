@@ -28,6 +28,10 @@ Open the `etc/visualvm.conf` file and add the following option to the `default_o
 
 VisualVM is typically used to monitor the JVM. However, the platform MXBeans that give access to the relevant data are not registered in !WebSphere's MBean server. Install the [JmxPlugin com.googlecode.xm4was.jmx plugin] to register these MBeans and to enable JVM monitoring in VisualVM.
 
+This should enable CPU, heap, class and thread monitoring as shown in the following screenshot:
+
+http://xm4was.googlecode.com/svn/wiki/visualvm-monitor-was.png
+
 = Known issues =
 
   * CPU sampling is not available with VisualVM 1.3.3, but works with 1.3.2.
