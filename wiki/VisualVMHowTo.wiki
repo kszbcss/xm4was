@@ -38,6 +38,12 @@ http://xm4was.googlecode.com/svn/wiki/visualvm-monitor-was.png
 
 http://xm4was.googlecode.com/svn/wiki/visualvm-mbeans-was.png
 
+= Creating connections to !WebSphere =
+
+To add a !WebSphere instance to VisualVM, simply create a remote JMX connection that uses a JMX service URL with of one of the forms described in the [JmxClientConnector documentation] of jmx-client-connector:
+
+http://xm4was.googlecode.com/svn/wiki/visualvm-add-jmx-connection.png
+
 = Known issues =
 
   * CPU sampling is not available with VisualVM 1.3.3, but works with 1.3.2.
