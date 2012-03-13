@@ -17,3 +17,42 @@ There are a couple of issues with that:
   * The server side code for the JSR-160 connector in !WebSphere is based on code in the JRE which implements the remote notification listener feature literally as described in section 13.4 of the JMX 1.4 specification. This means that when the first remote notification listener is registered, the connector will internally register a notification listener on each and every MBean. This is problematic if one connects to a deployment manager or node agent because the MBean servers in these !WebSphere instances federate the MBean servers of downstream servers (e.g. the MBean server in the deployment manager gives access to all MBeans in all !WebSphere instances in the cell). The result is that the connector will register listeners on all MBeans in every downstream server. As a side effect, the downstream servers will start propagate all JMX notifications to upstream servers, even if there is no client consuming them. This may cause unnecessary consumption of CPU and network resources.
 
 In addition, both types of client connectors (!AdminClient and JSR-160) require setting up a couple of property files (`ssl.client.props` and `sas.client.props`) to be able to connect to a secured !WebSphere server. This often requires some tweaking and becomes even more difficult when attempting to run these connectors on a Sun/Oracle JRE.
+
+jmx-client-connector solves these issues in the following way:
+  * It provides a bridge between the standard JMX API (namely `javax.management.remote.JMXConnectorProvider`) and the !AdminClient API. This makes it possible to use protocols supported by !AdminClient with a standard JMX client.
+  * It simplifies configuration by automatically creating default `ssl.client.props`, `sas.client.props` and `soap.client.props` files appropriate for IBM and Sun/Oracle JREs.
+
+= Usage =
+
+== Supported JMX service URLs ==
+
+The JMX service URLs for jmx-client-connector have the following form:
+
+{{{
+service:jmx:<protocol>://<host>:<port>/
+}}}
+
+Supported protocols are `wsrmi` and `wssoap`. The following table shows the relationship between the protocol identifier used by jmx-client-connector, the protocol name used by !AdminClient and the port to choose from the !WebSphere configuration:
+
+|| Protocol (jmx-client-connector) || Protocol (!AdminClient) || !WebSphere port ||
+|| `wsrmi` || `RMI` || `ORB_LISTENER_ADDRESS` or `BOOTSTRAP_ADDRESS` ||
+|| `wssoap` || `SOAP` || `SOAP_CONNECTOR_ADDRESS` ||
+
+E.g. for a local !WebSphere server configured with the default ports, the possible JMX service URLs would be as follows:
+
+{{{
+service:jmx:wsrmi://localhost:2809/
+service:jmx:wssoap://localhost:8880/
+}}}
+
+== Required system properties ==
+
+The `jmx.remote.protocol.provider.pkgs` system property must be set so that JMX can locate the connector:
+
+{{{
+jmx.remote.protocol.provider.pkgs=com.googlecode.xm4was.jmx.client
+}}}
+
+TODO:
+  * `java.naming.factory.initial=com.ibm.websphere.naming.WsnInitialContextFactory` on Sun?
+  * com.ibm.SSL.ConfigURL and com.ibm.CORBA.ConfigURL are optional
