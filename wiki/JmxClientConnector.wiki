@@ -13,7 +13,7 @@ There are two ways supported by IBM to connect to a !WebSphere server using JMX:
 This means that it is not possible to connect a standard JMX client (i.e. a client that only uses the JMX API and no vendor extensions or proprietary APIs) to !WebSphere using any protocol other than JSR-160.
 
 There are a couple of issues with that:
-  * 
-  * 
+  * IIOP often causes issues if there are firewalls between the client and the server (which is often the case when connecting management or monitoring tools using JMX). On the other hand, SOAP is much more "network friendly".
+  * The server side code for the JSR-160 connector in !WebSphere is based on code in the JRE which implements the remote notification listener feature literally as described in section 13.4 of the JMX 1.4 specification. This means that when the first remote notification listener is registered, the connector will internally register a notification listener on each and every MBean. This is problematic if one connects to a deployment manager or node agent because the MBean servers in these !WebSphere instances federate the MBean servers of downstream servers (e.g. the MBean server in the deployment manager gives access to all MBeans in all !WebSphere instances in the cell). The result is that the connector will register listeners on all MBeans in every downstream server. As a side effect, the downstream servers will start propagate all JMX notifications to upstream servers, even if there is no client consuming them. This may cause unnecessary consumption of CPU and network resources.
 
-In addition, all connectors (including !AdminClient) require setting up a couple of property files. This is even more difficult on Sun JREs.
+In addition, both types of client connectors (!AdminClient and JSR-160) require setting up a couple of property files (`ssl.client.props` and `sas.client.props`) to be able to connect to a secured !WebSphere server. This often requires some tweaking and becomes even more difficult when attempting to run these connectors on a Sun/Oracle JRE.
