@@ -9,6 +9,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.lang.reflect.Proxy;
 import java.rmi.RemoteException;
+import java.security.Provider;
+import java.security.Security;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
@@ -72,7 +74,12 @@ public class AdminClientConnector implements JMXConnector {
             System.setProperty("com.ibm.CORBA.ConfigURL", url);
         }
         
-//        Security.insertProviderAt(new IBMJCE(), 2);
+        // This is necessary on Sun JREs to enable automatic creation of key.jks.
+        try {
+            Security.addProvider((Provider)Class.forName("com.ibm.crypto.provider.IBMJCE").newInstance());
+        } catch (Exception ex) {
+            log.log(Level.WARNING, "Failed to add IBMJCE security provider", ex);
+        }
     }
     
     private static void createPropsFile(File dir, String name, Map<String,String> overriddenProps) throws IOException {
