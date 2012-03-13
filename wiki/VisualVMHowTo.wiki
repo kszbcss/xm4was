@@ -1,0 +1,17 @@
+#summary How to configure VisualVM to connect to WebSphere
+
+= Prerequisites =
+
+  * An installation of [http://visualvm.java.net/ VisualVM]. The procedure described in this document has been tested with VisualVM 1.3.3, but should work for older versions as well.
+
+= Step 1: Adding required JARs =
+
+Add the following JARs to the `platform/lib` folder in the VisualVM installation directory:
+  * `jmx-client-connector-<version>.jar` from the XM4WAS distribution.
+  * The following JARs from a WAS 7.0 installation:
+    * `runtimes/com.ibm.ws.admin.client_7.0.0.jar`
+    * `runtimes/com.ibm.ws.ejb.thinclient_7.0.0.jar`
+    * `runtimes/com.ibm.ws.orb_7.0.0.jar`
+    * `java/jre/lib/ibmpkcs.jar`
+    * `java/jre/lib/ext/ibmkeycert.jar`
+    * `java/jre/lib/ext/ibmjceprovider.jar`
