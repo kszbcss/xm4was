@@ -24,6 +24,10 @@ Open the `etc/visualvm.conf` file and add the following option to the `default_o
 -J-Djmx.remote.protocol.provider.pkgs=com.googlecode.xm4was.jmx.client
 }}}
 
+= Installing the com.googlecode.xm4was.jmx plugin (Optional) =
+
+VisualVM is typically used to monitor the JVM. However, the platform MXBeans that give access to the relevant data are not registered in !WebSphere's MBean server. Install the [JmxPlugin com.googlecode.xm4was.jmx plugin] to register these MBeans and to enable JVM monitoring in VisualVM.
+
 = Known issues =
 
   * CPU sampling is not available with VisualVM 1.3.3, but works with 1.3.2.
