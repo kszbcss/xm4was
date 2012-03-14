@@ -75,4 +75,3 @@ The first two JARs contain the IBM ORB which is required by !AdminClient. `ibmpk
 = Known issues and limitations =
 
   * Configuration files are created in `${user.home}/.xm4was` which is not the correct location on Windows.
-  * The code uses `System.out.println` for logging.
