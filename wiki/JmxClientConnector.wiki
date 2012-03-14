@@ -71,3 +71,7 @@ This is enough when running the connector on an IBM JRE. When running on a Sun/O
   * `java/jre/lib/ext/ibmjceprovider.jar`
 
 The first two JARs contain the IBM ORB which is required by !AdminClient. `ibmpkcs.jar` and `ibmkeycert.jar` are required to automatically add entries to the trust store (`trust.jks`). Finally, `ibmjceprovider.jar` is required to automatically create the `key.jks` file.
+
+= Known issues and limitations =
+
+  * The connector currently writes trace files to the current directly.
