@@ -47,4 +47,3 @@ http://xm4was.googlecode.com/svn/wiki/visualvm-add-jmx-connection.png
 = Known issues =
 
   * CPU sampling is not available with VisualVM 1.3.3, but works with 1.3.2.
-  * The configuration has not yet been tested with SOAP.
