@@ -4,6 +4,14 @@
 
 A local installation of !WebSphere 7.0.
 
+= Add the WAS 7.0 JDK =
+
+  # In the Eclipse preferences, select _Java_ > _Installed JREs_.
+  # Click _Add_.
+  # Select _Standard VM_ and click _Next_.
+  # Set the _JRE home_ to the location of the WAS 7.0 JDK. This is the `java` folder under the !WebSphere installation directory (e.g. `/opt/IBM/WebSphere/AppServer/java`).
+  # Set the _JRE name_ to `WAS 7.0` and click _Finish_.
+
 = Creating a target platform definition for WAS =
 
   # In the Eclipse preferences, select _Plug-in Development_ > _Target Platform_.
