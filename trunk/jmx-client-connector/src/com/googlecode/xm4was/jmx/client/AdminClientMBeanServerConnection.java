@@ -2,6 +2,9 @@ package com.googlecode.xm4was.jmx.client;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import javax.management.Attribute;
@@ -29,6 +32,7 @@ import com.ibm.websphere.management.exception.ConnectorException;
 
 public class AdminClientMBeanServerConnection implements MBeanServerConnection {
     private final AdminClient adminClient;
+    private final List<NotificationListenerProxy> listenerProxies = new LinkedList<NotificationListenerProxy>();
     
     public AdminClientMBeanServerConnection(AdminClient adminClient) {
         this.adminClient = adminClient;
@@ -40,15 +44,88 @@ public class AdminClientMBeanServerConnection implements MBeanServerConnection {
     
     public void addNotificationListener(ObjectName name, NotificationListener listener, NotificationFilter filter, Object handback) throws InstanceNotFoundException, IOException {
         try {
-            adminClient.addNotificationListener(name, listener, filter, handback);
+            NotificationListenerProxy listenerProxy = new NotificationListenerProxy(name, listener, filter, handback);
+            adminClient.addNotificationListener(name, listenerProxy, filter, handback);
+            synchronized (listenerProxies) {
+                listenerProxies.add(listenerProxy);
+            }
         } catch (ConnectorException ex) {
             throw mapException(ex);
+        }
+    }
+
+    public void removeNotificationListener(ObjectName name, NotificationListener listener) throws InstanceNotFoundException, ListenerNotFoundException, IOException {
+        // From the JMX specs: "If the listener is registered more than once, perhaps with different
+        // filters or callbacks, this method will remove all those registrations."
+        List<NotificationListenerProxy> listenerProxiesToRemove = new ArrayList<NotificationListenerProxy>();
+        synchronized (listenerProxies) {
+            for (NotificationListenerProxy listenerProxy : listenerProxies) {
+                if (listenerProxy.getName().equals(name) && listenerProxy.getListener() == listener) {
+                    listenerProxiesToRemove.add(listenerProxy);
+                }
+            }
+        }
+        if (listenerProxiesToRemove.isEmpty()) {
+            throw new ListenerNotFoundException("No matching listeners found");
+        } else {
+            try {
+                for (NotificationListenerProxy listenerProxy : listenerProxiesToRemove) {
+                    adminClient.removeNotificationListener(name, listenerProxy);
+                    synchronized (listenerProxies) {
+                        listenerProxies.remove(listenerProxy);
+                    }
+                }
+            } catch (ConnectorException ex) {
+                throw mapException(ex);
+            }
+        }
+    }
+
+    public void removeNotificationListener(ObjectName name, NotificationListener listener, NotificationFilter filter, Object handback) throws InstanceNotFoundException, ListenerNotFoundException, IOException {
+        // From the JMX specs: "If there is more than one such listener, only one is removed."
+        NotificationListenerProxy listenerProxyToRemove = null;
+        synchronized (listenerProxies) {
+            for (NotificationListenerProxy listenerProxy : listenerProxies) {
+                if (listenerProxy.getName().equals(name) && listenerProxy.getListener() == listener
+                        && listenerProxy.getFilter() == filter && listenerProxy.getHandback() == handback) {
+                    listenerProxyToRemove = listenerProxy;
+                    break;
+                }
+            }
+        }
+        if (listenerProxyToRemove == null) {
+            throw new ListenerNotFoundException("No matching listener found");
+        } else {
+            try {
+                adminClient.removeNotificationListener(name, listenerProxyToRemove);
+                synchronized (listenerProxies) {
+                    listenerProxies.remove(listenerProxyToRemove);
+                }
+            } catch (ConnectorException ex) {
+                throw mapException(ex);
+            }
         }
     }
 
     public void addNotificationListener(ObjectName name, ObjectName listener, NotificationFilter filter, Object handback) throws InstanceNotFoundException, IOException {
         try {
             adminClient.addNotificationListener(name, listener, filter, handback);
+        } catch (ConnectorException ex) {
+            throw mapException(ex);
+        }
+    }
+
+    public void removeNotificationListener(ObjectName name, ObjectName listener) throws InstanceNotFoundException, ListenerNotFoundException, IOException {
+        try {
+            adminClient.removeNotificationListener(name, listener);
+        } catch (ConnectorException ex) {
+            throw mapException(ex);
+        }
+    }
+
+    public void removeNotificationListener(ObjectName name, ObjectName listener, NotificationFilter filter, Object handback) throws InstanceNotFoundException, ListenerNotFoundException, IOException {
+        try {
+            adminClient.removeNotificationListener(name, listener, filter, handback);
         } catch (ConnectorException ex) {
             throw mapException(ex);
         }
@@ -160,34 +237,6 @@ public class AdminClientMBeanServerConnection implements MBeanServerConnection {
         } catch (ConnectorException ex) {
             throw mapException(ex);
         }
-    }
-
-    public void removeNotificationListener(ObjectName name, ObjectName listener) throws InstanceNotFoundException, ListenerNotFoundException, IOException {
-        try {
-            adminClient.removeNotificationListener(name, listener);
-        } catch (ConnectorException ex) {
-            throw mapException(ex);
-        }
-    }
-
-    public void removeNotificationListener(ObjectName name, NotificationListener listener) throws InstanceNotFoundException, ListenerNotFoundException, IOException {
-        try {
-            adminClient.removeNotificationListener(name, listener);
-        } catch (ConnectorException ex) {
-            throw mapException(ex);
-        }
-    }
-
-    public void removeNotificationListener(ObjectName name, ObjectName listener, NotificationFilter filter, Object handback) throws InstanceNotFoundException, ListenerNotFoundException, IOException {
-        try {
-            adminClient.removeNotificationListener(name, listener, filter, handback);
-        } catch (ConnectorException ex) {
-            throw mapException(ex);
-        }
-    }
-
-    public void removeNotificationListener(ObjectName name, NotificationListener listener, NotificationFilter filter, Object handback) throws InstanceNotFoundException, ListenerNotFoundException, IOException {
-        throw new UnsupportedOperationException();
     }
 
     public void setAttribute(ObjectName name, Attribute attribute) throws InstanceNotFoundException, AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException, IOException {
