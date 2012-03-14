@@ -50,6 +50,8 @@ http://xm4was.googlecode.com/svn/wiki/signer-exchange.png
 
 This is not supported with SOAP. In that case, the certificate must be added manually. Alternatively, add an RMI connection first so that the certificate is added automatically (the same certificate is used for RMI and SOAP).
 
+Another important thing to keep in mind when using SOAP is that the proxy settings configured in VisualVM also apply to the SOAP connection to WebSphere.
+
 = Known issues =
 
   * CPU sampling is not available with VisualVM 1.3.3, but works with 1.3.2.
