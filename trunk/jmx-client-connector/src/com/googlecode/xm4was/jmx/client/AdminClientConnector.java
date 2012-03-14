@@ -33,6 +33,7 @@ import com.ibm.websphere.management.AdminClientFactory;
 import com.ibm.websphere.management.exception.ConnectorException;
 import com.ibm.websphere.security.WSSecurityException;
 import com.ibm.websphere.security.auth.WSSubject;
+import com.ibm.ws.orb.GlobalORBFactory;
 
 public class AdminClientConnector implements JMXConnector {
     private enum State { UNCONNECTED, CONNECTED, CLOSED };
@@ -85,6 +86,14 @@ public class AdminClientConnector implements JMXConnector {
             Security.addProvider((Provider)Class.forName("com.ibm.crypto.provider.IBMJCE").newInstance());
         } catch (Exception ex) {
             log.log(Level.WARNING, "Failed to add IBMJCE security provider", ex);
+        }
+        
+        if (GlobalORBFactory.globalORB() == null) {
+            Properties orbProps = new Properties();
+            orbProps.setProperty("org.omg.CORBA.ORBClass", "com.ibm.CORBA.iiop.ORB");
+            // This prevents the ORB from creating orbtrc files
+            orbProps.setProperty("com.ibm.CORBA.Debug.Output", File.separatorChar == '/' ? "/dev/null" : "NUL");
+            GlobalORBFactory.init(new String[0], orbProps);
         }
     }
     
