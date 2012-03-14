@@ -49,7 +49,6 @@ public class AdminClientConnector implements JMXConnector {
     private MBeanServerConnection mbsConnection;
     
     static {
-        // TODO: handle SOAP case!
         File userHome = new File(System.getProperty("user.home"));
         File propsDir = new File(userHome, ".xm4was");
         if (!propsDir.exists()) {
@@ -129,8 +128,9 @@ public class AdminClientConnector implements JMXConnector {
     }
     
     public AdminClientConnector(JMXServiceURL serviceURL, Map<String,?> environment) {
-        System.out.println("Connecting to " + serviceURL);
-        System.out.println("environment=" + environment);
+        if (log.isLoggable(Level.FINE)) {
+            log.log(Level.FINE, "Creating connector for " + serviceURL + "; environment=" + environment);
+        }
         properties = new Properties();
         String protocol = serviceURL.getProtocol();
         if (protocol.equals("wssoap")) {
@@ -148,28 +148,32 @@ public class AdminClientConnector implements JMXConnector {
             properties.setProperty(AdminClient.USERNAME, credentials[0]);
             properties.setProperty(AdminClient.PASSWORD, credentials[1]);
         }
-        System.out.println("properties=" + properties);
+        if (log.isLoggable(Level.FINE)) {
+            // Don't display the password in the log file
+            Properties debugProps = new Properties(properties);
+            if (debugProps.containsKey(AdminClient.PASSWORD)) {
+                debugProps.setProperty(AdminClient.PASSWORD, "******");
+            }
+            log.log(Level.FINE, "AdminClient properties: " + debugProps);
+        }
     }
     
     public synchronized void connect() throws IOException {
-        System.out.println(">>> connect");
+        log.log(Level.FINE, ">>> connect");
         if (state == State.CLOSED) {
             throw new IOException("Connector closed");
         } else if (state == State.UNCONNECTED) {
             connectionId = UUID.randomUUID().toString();
             try {
-                System.out.println("Creating AdminClient");
                 adminClient = AdminClientFactory.createAdminClient(properties);
-                System.out.println("AdminClient created");
             } catch (ConnectorException ex) {
-                ex.printStackTrace(System.out);
-//                connectionBroadcaster.sendNotification(new JMXConnectionNotification(
-//                        JMXConnectionNotification.FAILED,
-//                        this,
-//                        connectionId,
-//                        clientNotifSeqNo++,
-//                        "Failed to connect: " + ex.toString(),
-//                        ex));
+                connectionBroadcaster.sendNotification(new JMXConnectionNotification(
+                        JMXConnectionNotification.FAILED,
+                        this,
+                        connectionId,
+                        clientNotifSeqNo++,
+                        "Failed to connect: " + ex.toString(),
+                        ex));
                 throw new RemoteException("Unable to connect", ex);
             }
             try {
@@ -185,7 +189,6 @@ public class AdminClientConnector implements JMXConnector {
             }
             mbsConnection = new AdminClientMBeanServerConnection(adminClient);
             state = State.CONNECTED;
-            System.out.println("Sending notification");
             connectionBroadcaster.sendNotification(new JMXConnectionNotification(
                     JMXConnectionNotification.OPENED,
                     this,
@@ -194,7 +197,7 @@ public class AdminClientConnector implements JMXConnector {
                     "Successful connection",
                     null));
         }
-        System.out.println("<<< connect");
+        log.log(Level.FINE, "<<< connect");
     }
 
     public void connect(Map<String,?> env) throws IOException {
@@ -221,7 +224,7 @@ public class AdminClientConnector implements JMXConnector {
     }
 
     public synchronized MBeanServerConnection getMBeanServerConnection() throws IOException {
-        System.out.println(">>> getMBeanServerConnection");
+        log.log(Level.FINE, ">>> getMBeanServerConnection");
         if (state != State.CONNECTED) {
             throw new IOException("Not connected");
         } else {
@@ -230,9 +233,7 @@ public class AdminClientConnector implements JMXConnector {
     }
 
     public synchronized MBeanServerConnection getMBeanServerConnection(Subject delegationSubject) throws IOException {
-        // TODO Auto-generated method stub
-        System.out.println("Called unsupported method getMBeanServerConnection");
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     public void addConnectionNotificationListener(NotificationListener listener, NotificationFilter filter, Object handback) {
