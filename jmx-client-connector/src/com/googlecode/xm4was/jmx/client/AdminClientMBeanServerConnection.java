@@ -38,9 +38,7 @@ public class AdminClientMBeanServerConnection implements MBeanServerConnection {
         return new RemoteException(ex.getMessage(), ex);
     }
     
-    public void addNotificationListener(ObjectName name,
-            NotificationListener listener, NotificationFilter filter,
-            Object handback) throws InstanceNotFoundException, IOException {
+    public void addNotificationListener(ObjectName name, NotificationListener listener, NotificationFilter filter, Object handback) throws InstanceNotFoundException, IOException {
         try {
             adminClient.addNotificationListener(name, listener, filter, handback);
         } catch (ConnectorException ex) {
@@ -48,9 +46,7 @@ public class AdminClientMBeanServerConnection implements MBeanServerConnection {
         }
     }
 
-    public void addNotificationListener(ObjectName name, ObjectName listener,
-            NotificationFilter filter, Object handback)
-            throws InstanceNotFoundException, IOException {
+    public void addNotificationListener(ObjectName name, ObjectName listener, NotificationFilter filter, Object handback) throws InstanceNotFoundException, IOException {
         try {
             adminClient.addNotificationListener(name, listener, filter, handback);
         } catch (ConnectorException ex) {
@@ -58,39 +54,23 @@ public class AdminClientMBeanServerConnection implements MBeanServerConnection {
         }
     }
 
-    public ObjectInstance createMBean(String className, ObjectName name)
-            throws ReflectionException, InstanceAlreadyExistsException,
-            MBeanRegistrationException, MBeanException,
-            NotCompliantMBeanException, IOException {
+    public ObjectInstance createMBean(String className, ObjectName name) throws ReflectionException, InstanceAlreadyExistsException, MBeanRegistrationException, MBeanException, NotCompliantMBeanException, IOException {
         throw new UnsupportedOperationException();
     }
 
-    public ObjectInstance createMBean(String className, ObjectName name,
-            ObjectName loaderName) throws ReflectionException,
-            InstanceAlreadyExistsException, MBeanRegistrationException,
-            MBeanException, NotCompliantMBeanException,
-            InstanceNotFoundException, IOException {
+    public ObjectInstance createMBean(String className, ObjectName name, ObjectName loaderName) throws ReflectionException, InstanceAlreadyExistsException, MBeanRegistrationException, MBeanException, NotCompliantMBeanException, InstanceNotFoundException, IOException {
         throw new UnsupportedOperationException();
     }
 
-    public ObjectInstance createMBean(String className, ObjectName name,
-            Object[] params, String[] signature) throws ReflectionException,
-            InstanceAlreadyExistsException, MBeanRegistrationException,
-            MBeanException, NotCompliantMBeanException, IOException {
+    public ObjectInstance createMBean(String className, ObjectName name, Object[] params, String[] signature) throws ReflectionException, InstanceAlreadyExistsException, MBeanRegistrationException, MBeanException, NotCompliantMBeanException, IOException {
         throw new UnsupportedOperationException();
     }
 
-    public ObjectInstance createMBean(String className, ObjectName name,
-            ObjectName loaderName, Object[] params, String[] signature)
-            throws ReflectionException, InstanceAlreadyExistsException,
-            MBeanRegistrationException, MBeanException,
-            NotCompliantMBeanException, InstanceNotFoundException, IOException {
+    public ObjectInstance createMBean(String className, ObjectName name, ObjectName loaderName, Object[] params, String[] signature) throws ReflectionException, InstanceAlreadyExistsException, MBeanRegistrationException, MBeanException, NotCompliantMBeanException, InstanceNotFoundException, IOException {
         throw new UnsupportedOperationException();
     }
 
-    public Object getAttribute(ObjectName name, String attribute)
-            throws MBeanException, AttributeNotFoundException,
-            InstanceNotFoundException, ReflectionException, IOException {
+    public Object getAttribute(ObjectName name, String attribute) throws MBeanException, AttributeNotFoundException, InstanceNotFoundException, ReflectionException, IOException {
         try {
             return adminClient.getAttribute(name, attribute);
         } catch (ConnectorException ex) {
@@ -98,8 +78,7 @@ public class AdminClientMBeanServerConnection implements MBeanServerConnection {
         }
     }
 
-    public AttributeList getAttributes(ObjectName name, String[] attributes)
-            throws InstanceNotFoundException, ReflectionException, IOException {
+    public AttributeList getAttributes(ObjectName name, String[] attributes) throws InstanceNotFoundException, ReflectionException, IOException {
         try {
             return adminClient.getAttributes(name, attributes);
         } catch (ConnectorException ex) {
@@ -127,9 +106,7 @@ public class AdminClientMBeanServerConnection implements MBeanServerConnection {
         }
     }
 
-    public MBeanInfo getMBeanInfo(ObjectName name)
-            throws InstanceNotFoundException, IntrospectionException,
-            ReflectionException, IOException {
+    public MBeanInfo getMBeanInfo(ObjectName name) throws InstanceNotFoundException, IntrospectionException, ReflectionException, IOException {
         try {
             return adminClient.getMBeanInfo(name);
         } catch (ConnectorException ex) {
@@ -137,8 +114,7 @@ public class AdminClientMBeanServerConnection implements MBeanServerConnection {
         }
     }
 
-    public ObjectInstance getObjectInstance(ObjectName name)
-            throws InstanceNotFoundException, IOException {
+    public ObjectInstance getObjectInstance(ObjectName name) throws InstanceNotFoundException, IOException {
         try {
             return adminClient.getObjectInstance(name);
         } catch (ConnectorException ex) {
@@ -146,10 +122,7 @@ public class AdminClientMBeanServerConnection implements MBeanServerConnection {
         }
     }
 
-    public Object invoke(ObjectName name, String operationName,
-            Object[] params, String[] signature)
-            throws InstanceNotFoundException, MBeanException,
-            ReflectionException, IOException {
+    public Object invoke(ObjectName name, String operationName, Object[] params, String[] signature) throws InstanceNotFoundException, MBeanException, ReflectionException, IOException {
         try {
             return adminClient.invoke(name, operationName, params, signature);
         } catch (ConnectorException ex) {
@@ -157,8 +130,7 @@ public class AdminClientMBeanServerConnection implements MBeanServerConnection {
         }
     }
 
-    public boolean isInstanceOf(ObjectName name, String className)
-            throws InstanceNotFoundException, IOException {
+    public boolean isInstanceOf(ObjectName name, String className) throws InstanceNotFoundException, IOException {
         try {
             return adminClient.isInstanceOf(name, className);
         } catch (ConnectorException ex) {
@@ -174,8 +146,7 @@ public class AdminClientMBeanServerConnection implements MBeanServerConnection {
         }
     }
 
-    public Set<ObjectInstance> queryMBeans(ObjectName name, QueryExp query)
-            throws IOException {
+    public Set<ObjectInstance> queryMBeans(ObjectName name, QueryExp query) throws IOException {
         try {
             return adminClient.queryMBeans(name, query);
         } catch (ConnectorException ex) {
@@ -183,8 +154,7 @@ public class AdminClientMBeanServerConnection implements MBeanServerConnection {
         }
     }
 
-    public Set<ObjectName> queryNames(ObjectName name, QueryExp query)
-            throws IOException {
+    public Set<ObjectName> queryNames(ObjectName name, QueryExp query) throws IOException {
         try {
             return adminClient.queryNames(name, query);
         } catch (ConnectorException ex) {
@@ -192,9 +162,7 @@ public class AdminClientMBeanServerConnection implements MBeanServerConnection {
         }
     }
 
-    public void removeNotificationListener(ObjectName name, ObjectName listener)
-            throws InstanceNotFoundException, ListenerNotFoundException,
-            IOException {
+    public void removeNotificationListener(ObjectName name, ObjectName listener) throws InstanceNotFoundException, ListenerNotFoundException, IOException {
         try {
             adminClient.removeNotificationListener(name, listener);
         } catch (ConnectorException ex) {
@@ -202,9 +170,7 @@ public class AdminClientMBeanServerConnection implements MBeanServerConnection {
         }
     }
 
-    public void removeNotificationListener(ObjectName name,
-            NotificationListener listener) throws InstanceNotFoundException,
-            ListenerNotFoundException, IOException {
+    public void removeNotificationListener(ObjectName name, NotificationListener listener) throws InstanceNotFoundException, ListenerNotFoundException, IOException {
         try {
             adminClient.removeNotificationListener(name, listener);
         } catch (ConnectorException ex) {
@@ -212,10 +178,7 @@ public class AdminClientMBeanServerConnection implements MBeanServerConnection {
         }
     }
 
-    public void removeNotificationListener(ObjectName name,
-            ObjectName listener, NotificationFilter filter, Object handback)
-            throws InstanceNotFoundException, ListenerNotFoundException,
-            IOException {
+    public void removeNotificationListener(ObjectName name, ObjectName listener, NotificationFilter filter, Object handback) throws InstanceNotFoundException, ListenerNotFoundException, IOException {
         try {
             adminClient.removeNotificationListener(name, listener, filter, handback);
         } catch (ConnectorException ex) {
@@ -223,17 +186,11 @@ public class AdminClientMBeanServerConnection implements MBeanServerConnection {
         }
     }
 
-    public void removeNotificationListener(ObjectName name,
-            NotificationListener listener, NotificationFilter filter,
-            Object handback) throws InstanceNotFoundException,
-            ListenerNotFoundException, IOException {
+    public void removeNotificationListener(ObjectName name, NotificationListener listener, NotificationFilter filter, Object handback) throws InstanceNotFoundException, ListenerNotFoundException, IOException {
         throw new UnsupportedOperationException();
     }
 
-    public void setAttribute(ObjectName name, Attribute attribute)
-            throws InstanceNotFoundException, AttributeNotFoundException,
-            InvalidAttributeValueException, MBeanException,
-            ReflectionException, IOException {
+    public void setAttribute(ObjectName name, Attribute attribute) throws InstanceNotFoundException, AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException, IOException {
         try {
             adminClient.setAttribute(name, attribute);
         } catch (ConnectorException ex) {
@@ -241,8 +198,7 @@ public class AdminClientMBeanServerConnection implements MBeanServerConnection {
         }
     }
 
-    public AttributeList setAttributes(ObjectName name, AttributeList attributes)
-            throws InstanceNotFoundException, ReflectionException, IOException {
+    public AttributeList setAttributes(ObjectName name, AttributeList attributes) throws InstanceNotFoundException, ReflectionException, IOException {
         try {
             return adminClient.setAttributes(name, attributes);
         } catch (ConnectorException ex) {
@@ -250,9 +206,7 @@ public class AdminClientMBeanServerConnection implements MBeanServerConnection {
         }
     }
 
-    public void unregisterMBean(ObjectName name)
-            throws InstanceNotFoundException, MBeanRegistrationException,
-            IOException {
+    public void unregisterMBean(ObjectName name) throws InstanceNotFoundException, MBeanRegistrationException, IOException {
         throw new UnsupportedOperationException();
     }
 }
