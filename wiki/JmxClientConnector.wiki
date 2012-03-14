@@ -2,7 +2,7 @@
 
 = Synopsis =
 
-Connects a standard JMX client to a !WebSphere server using the protocols (RMI or SOAP) supported by the !AdminClient API.
+Connects a standard JMX client to a !WebSphere server using the protocols (RMI or SOAP) supported by the !AdminClient API. It is known to work with JConsole and [VisualVMHowTo VisualVM].
 
 = Rationale =
 
