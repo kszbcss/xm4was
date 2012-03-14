@@ -58,6 +58,7 @@ public class AdminClientConnector implements JMXConnector {
                 createPropsFile(propsDir, "ibm.ssl.client.props", sslClientOverridenProps);
                 createPropsFile(propsDir, "sun.ssl.client.props", sslClientOverridenProps);
                 createPropsFile(propsDir, "sas.client.props", null);
+                createPropsFile(propsDir, "soap.client.props", null);
             } catch (IOException ex) {
                 log.log(Level.SEVERE, "Unable to initialize config directory " + propsDir, ex);
             }
@@ -72,6 +73,11 @@ public class AdminClientConnector implements JMXConnector {
             String url = new File(propsDir, "sas.client.props").toURI().toString();
             log.info("Using default CORBA configuration " + url);
             System.setProperty("com.ibm.CORBA.ConfigURL", url);
+        }
+        if (System.getProperty("com.ibm.SOAP.ConfigURL") == null) {
+            String url = new File(propsDir, "soap.client.props").toURI().toString();
+            log.info("Using default SOAP configuration " + url);
+            System.setProperty("com.ibm.SOAP.ConfigURL", url);
         }
         
         // This is necessary on Sun JREs to enable automatic creation of key.jks.
