@@ -13,4 +13,4 @@
 mvn eclipse:to-maven -DeclipseDir=<was_install_dir>
 }}}
 
-`<was_install_dir>` is the WAS 7.0 installation directory (e.g. `/opt/IBM/WebSphere/AppServer`).
+`<was_install_dir>` is the WAS 7.0 installation directory (e.g. `/opt/IBM/WebSphere/AppServer`). Note that this command must *not* be executed from the XM4WAS source directory. Instead it should be executed from any directory that doesn't contain a `pom.xml` file.
