@@ -651,6 +651,7 @@
         <module>com.googlecode.xm4was.clmon</module>
         <module>com.googlecode.xm4was.commons</module>
         <module>com.googlecode.xm4was.jmx</module>
+        <module>com.googlecode.xm4was.logging</module>
         <module>jmx-client-connector</module>
     </modules>
 </project>
