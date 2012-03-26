@@ -27,16 +27,26 @@ import com.ibm.websphere.management.AdminServiceFactory;
 public class LoggingService extends AbstractWsComponent {
     private static final TraceComponent TC = Tr.register(LoggingService.class, TrConstants.GROUP, Messages.class.getName());
 
-    private LoggingServiceHandler handler;
-    private MBeanServer mbs;
-    private ObjectName objectName;
-    
     @Override
     protected void doStart() throws Exception {
-        mbs = AdminServiceFactory.getMBeanFactory().getMBeanServer();
-        handler = new LoggingServiceHandler();
+        addStopAction(new Runnable() {
+            @Override
+            public void run() {
+                Tr.info(TC, Messages._0002I);
+            }
+        });
+        
+        final MBeanServer mbs = AdminServiceFactory.getMBeanFactory().getMBeanServer();
+        final LoggingServiceHandler handler = new LoggingServiceHandler();
         Tr.debug(TC, "Registering handler on root logger");
         Logger.getLogger("").addHandler(handler);
+        addStopAction(new Runnable() {
+            @Override
+            public void run() {
+                Tr.debug(TC, "Removing handler from root logger");
+                Logger.getLogger("").removeHandler(handler);
+            }
+        });
         
         try {
             RequiredModelMBean mbean = new RequiredModelMBean();
@@ -85,34 +95,21 @@ public class LoggingService extends AbstractWsComponent {
             Hashtable<String,String> keyProperties = new Hashtable<String,String>();
             keyProperties.put("type", "LoggingService");
             keyProperties.put("name", "LoggingService");
-            ObjectName objectName = new ObjectName(JmxConstants.DOMAIN, keyProperties);
+            final ObjectName objectName = new ObjectName(JmxConstants.DOMAIN, keyProperties);
             mbs.registerMBean(mbean, objectName);
-            // Only store the ObjectName if registration was successful
-            this.objectName = objectName;
+            addStopAction(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        mbs.unregisterMBean(objectName);
+                    } catch (JMException ex) {
+                        Tr.error(TC, Messages._0004E, ex);
+                    }
+                }
+            });
         } catch (JMException ex) {
-            Tr.error(TC, "Unable to register MBean", ex);
+            Tr.error(TC, Messages._0003E, ex);
         }
         Tr.info(TC, Messages._0001I);
-    }
-
-    @Override
-    protected void doStop() {
-        if (handler != null) {
-            Tr.debug(TC, "Removing handler from root logger");
-            Logger.getLogger("").removeHandler(handler);
-            handler = null;
-        }
-        if (mbs != null) {
-            if (objectName != null) {
-                try {
-                    mbs.unregisterMBean(objectName);
-                } catch (JMException ex) {
-                    Tr.error(TC, "Unable to unregister MBean", ex);
-                }
-                objectName = null;
-            }
-            mbs = null;
-        }
-        Tr.info(TC, Messages._0002I);
     }
 }

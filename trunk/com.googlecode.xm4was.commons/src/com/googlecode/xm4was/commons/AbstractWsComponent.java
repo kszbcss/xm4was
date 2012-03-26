@@ -1,5 +1,10 @@
 package com.googlecode.xm4was.commons;
 
+import java.util.Stack;
+
+import com.googlecode.xm4was.commons.resources.Messages;
+import com.ibm.ejs.ras.Tr;
+import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.ws.exception.ComponentDisabledException;
 import com.ibm.ws.exception.ConfigurationError;
 import com.ibm.ws.exception.ConfigurationWarning;
@@ -8,7 +13,10 @@ import com.ibm.ws.exception.RuntimeWarning;
 import com.ibm.wsspi.runtime.component.WsComponent;
 
 public abstract class AbstractWsComponent implements WsComponent {
+    private static final TraceComponent TC = Tr.register(AbstractWsComponent.class, TrConstants.GROUP, Messages.class.getName());
+    
     private String state;
+    private final Stack<Runnable> stopActions = new Stack<Runnable>();
 
     public final String getName() {
         return "XM_" + getClass().getSimpleName();
@@ -45,15 +53,25 @@ public abstract class AbstractWsComponent implements WsComponent {
     protected void doStart() throws Exception {
     }
     
+    protected final void addStopAction(Runnable action) {
+        if (state != STARTING) {
+            throw new IllegalStateException();
+        }
+        stopActions.push(action);
+    }
+    
     public final void stop() {
         state = STOPPING;
-        doStop();
+        while (!stopActions.isEmpty()) {
+            try {
+                stopActions.pop().run();
+            } catch (Throwable ex) {
+                Tr.error(TC, Messages._0001E, ex);
+            }
+        }
         state = STOPPED;
     }
 
-    protected void doStop() {
-    }
-    
     public final void destroy() {
         state = DESTROYING;
         doDestroy();

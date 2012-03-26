@@ -44,54 +44,69 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
      */
     private static final int STATS_MAX_DELAY = 30000;
     
-    private ApplicationMgr applicationMgr;
     private int createCount;
     private int stopCount;
     private int destroyedCount;
     private long lastDumped;
     private long lastUpdated;
     private List<ClassLoaderInfo> classLoaderInfos;
-    private Timer timer;
-    private StatsInstance statsInstance;
     
     @Override
     protected void doStart() throws Exception {
+        addStopAction(new Runnable() {
+            public void run() {
+                Tr.info(TC, Messages._0002I);
+            }
+        });
+        
+        final ApplicationMgr applicationMgr;
         try {
             applicationMgr = WsServiceRegistry.getService(this, ApplicationMgr.class);
         } catch (Exception ex) {
             throw new RuntimeError(ex);
         }
         applicationMgr.addDeployedObjectListener(this);
+        addStopAction(new Runnable() {
+            public void run() {
+                applicationMgr.removeDeployedObjectListener(ClassLoaderMonitor.this);
+            }
+        });
+        
         classLoaderInfos = new LinkedList<ClassLoaderInfo>();
-        timer = new Timer("Class Loader Monitor");
+        final Timer timer = new Timer("Class Loader Monitor");
+        addStopAction(new Runnable() {
+            public void run() {
+                timer.cancel();
+            }
+        });
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
                 monitor();
             }
         }, 1000, 1000);
+        
         ClassLoader savedTCCL = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(ClassLoaderMonitor.class.getClassLoader());
+        final StatsInstance statsInstance;
         try {
             statsInstance = StatsFactory.createStatsInstance("ClassLoaderStats", "ClassLoaderStats.xml", null, new ClassLoaderStatisticActions(this));
         } finally {
             Thread.currentThread().setContextClassLoader(savedTCCL);
         }
+        addStopAction(new Runnable() {
+            public void run() {
+                try {
+                    StatsFactory.removeStatsInstance(statsInstance);
+                } catch (StatsFactoryException ex) {
+                    Tr.error(TC, Messages._0004E, ex);
+                }
+            }
+        });
+        
         Tr.info(TC, Messages._0001I);
     }
 
-    @Override
-    protected void doStop() {
-        try {
-            StatsFactory.removeStatsInstance(statsInstance);
-        } catch (StatsFactoryException ex) {
-            Tr.error(TC, "Failed to remove PMI statistics: " + ex.getMessage());
-        }
-        applicationMgr.removeDeployedObjectListener(this);
-        timer.cancel();
-        Tr.info(TC, Messages._0002I);
-    }
-    
     synchronized void monitor() {
         Iterator<ClassLoaderInfo> it = classLoaderInfos.iterator();
         Map<String,Integer> leakStats = new TreeMap<String,Integer>();
