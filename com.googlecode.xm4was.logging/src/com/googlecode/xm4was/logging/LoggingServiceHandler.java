@@ -45,8 +45,16 @@ public class LoggingServiceHandler extends Handler {
                     moduleName = null;
                     componentName = null;
                 } else {
-                    componentName = cmd.getName();
-                    ModuleMetaData mmd = cmd.getModuleMetaData();
+                    // For servlet context listeners, the component meta data is the same as the
+                    // module meta data. If we are in this case, we leave the component name empty.
+                    ModuleMetaData mmd;
+                    if (cmd instanceof ModuleMetaData) {
+                        componentName = null;
+                        mmd = (ModuleMetaData)cmd;
+                    } else {
+                        componentName = cmd.getName();
+                        mmd = cmd.getModuleMetaData();
+                    }
                     if (mmd == null) {
                         applicationName = null;
                         moduleName = null;
