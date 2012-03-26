@@ -59,6 +59,11 @@ public class PlatformMXBeansRegistrant extends AbstractWsComponent {
                     + wasMBeanServer.getClass().getName());
             mbs = wasMBeanServer;
         }
+        addStopAction(new Runnable() {
+            public void run() {
+                unregisterMBeans();
+            }
+        });
         registerMBean(ManagementFactory.getClassLoadingMXBean(),
                 new ObjectName(ManagementFactory.CLASS_LOADING_MXBEAN_NAME));
         registerMBean(ManagementFactory.getMemoryMXBean(),
@@ -89,10 +94,9 @@ public class PlatformMXBeansRegistrant extends AbstractWsComponent {
         }
     }
 
-    @Override
-    protected void doStop() {
+    void unregisterMBeans() {
         if (TC.isEntryEnabled()) {
-            Tr.entry(TC, "doStop");
+            Tr.entry(TC, "unregisterMBeans");
         }
         for (ObjectName name : registeredMBeans) {
             try {
@@ -104,7 +108,7 @@ public class PlatformMXBeansRegistrant extends AbstractWsComponent {
         Tr.info(TC, Messages._0102I, new Object[] { String.valueOf(registeredMBeans.size()) });
         registeredMBeans.clear();
         if (TC.isEntryEnabled()) {
-            Tr.exit(TC, "doStop");
+            Tr.exit(TC, "unregisterMBeans");
         }
     }
 

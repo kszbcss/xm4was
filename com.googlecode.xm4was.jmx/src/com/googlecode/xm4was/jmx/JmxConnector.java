@@ -53,6 +53,16 @@ public class JmxConnector extends AbstractWsComponent {
             JMXServiceURL url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://localhost:" + port + "/jmxrmi");
             Tr.info(TC, Messages._0001I, new Object[] { url.toString() });
             registry = LocateRegistry.createRegistry(port);
+            addStopAction(new Runnable() {
+                public void run() {
+                    try {
+                        UnicastRemoteObject.unexportObject(registry, true);
+                    } catch (NoSuchObjectException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            });
             Map<String,Object> env = new HashMap<String,Object>();
             env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.rmi.registry.RegistryContextFactory");
             env.put(Context.PROVIDER_URL, "rmi://server:" + port);
@@ -65,26 +75,18 @@ public class JmxConnector extends AbstractWsComponent {
             server = JMXConnectorServerFactory.newJMXConnectorServer(url, env,
                     AdminServiceFactory.getMBeanFactory().getMBeanServer());
             server.start();
+            addStopAction(new Runnable() {
+                public void run() {
+                    try {
+                        server.stop();
+                    } catch (IOException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                }
+            });
         } else {
             Tr.info(TC, Messages._0002I);
-        }
-    }
-
-    @Override
-    protected void doStop() {
-        if (enabled) {
-            try {
-                server.stop();
-            } catch (IOException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            }
-            try {
-                UnicastRemoteObject.unexportObject(registry, true);
-            } catch (NoSuchObjectException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
         }
     }
 }
