@@ -8,6 +8,7 @@ Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Import-Package: com.googlecode.xm4was.commons,
  com.ibm.ejs.ras,
  com.ibm.websphere.management,
+ com.ibm.websphere.models.config.ipc,
  com.ibm.ws.management,
  com.ibm.ws.runtime.service,
  com.ibm.wsspi.bootstrap.osgi,
