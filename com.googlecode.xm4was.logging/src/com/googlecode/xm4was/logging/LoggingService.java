@@ -26,7 +26,6 @@ public class LoggingService extends AbstractWsComponent {
     @Override
     protected void doStart() throws Exception {
         addStopAction(new Runnable() {
-            @Override
             public void run() {
                 Tr.info(TC, Messages._0002I);
             }
@@ -36,7 +35,6 @@ public class LoggingService extends AbstractWsComponent {
         Tr.debug(TC, "Registering handler on root logger");
         Logger.getLogger("").addHandler(handler);
         addStopAction(new Runnable() {
-            @Override
             public void run() {
                 Tr.debug(TC, "Removing handler from root logger");
                 Logger.getLogger("").removeHandler(handler);

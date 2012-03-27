@@ -15,7 +15,6 @@ import javax.management.modelmbean.RequiredModelMBean;
 
 import com.googlecode.xm4was.commons.AbstractWsComponent;
 import com.ibm.ws.webservices.engine.transport.channel.OutboundConnectionCache;
-import com.ibm.ws.websvcs.transport.http.SOAPOverHTTPSender;
 import com.ibm.wsspi.pmi.factory.StatsFactory;
 import com.ibm.wsspi.pmi.factory.StatsGroup;
 
@@ -28,7 +27,8 @@ public class OutboundConnectionCacheComponent extends AbstractWsComponent {
         // The JAX-WS cache is part of the Axis2 OSGi bundle, but is not exported. We get the class loader
         // from an exported class.
         try {
-            setupOutboundConnectionCacheMonitor(group, SOAPOverHTTPSender.class.getClassLoader().loadClass(
+            setupOutboundConnectionCacheMonitor(group, OutboundConnectionCacheComponent.class.getClassLoader().loadClass(
+                    "com.ibm.ws.websvcs.transport.http.SOAPOverHTTPSender").getClassLoader().loadClass(
                     "com.ibm.ws.websvcs.transport.channel.OutboundConnectionCache"), "JAX-WS");
         } catch (ClassNotFoundException ex) {
             // This means that there is no JAX-WS runtime; just continue.

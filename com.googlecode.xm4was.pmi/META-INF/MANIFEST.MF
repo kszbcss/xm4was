@@ -4,7 +4,7 @@ Bundle-Name: XM4WAS PMI Metrics
 Bundle-SymbolicName: com.googlecode.xm4was.pmi;singleton:=true
 Bundle-Version: 0.1.0.qualifier
 Bundle-Activator: com.googlecode.xm4was.pmi.Activator
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Eclipse-AutoStart: true
 Require-Bundle: com.ibm.wsspi.extension
 Import-Package: com.googlecode.xm4was.commons,
@@ -12,7 +12,7 @@ Import-Package: com.googlecode.xm4was.commons,
  com.ibm.websphere.management,
  com.ibm.websphere.pmi.stat,
  com.ibm.ws.webservices.engine.transport.channel,
- com.ibm.ws.websvcs.transport.http,
+ com.ibm.ws.websvcs.transport.http;resolution:=optional,
  com.ibm.wsspi.bootstrap.osgi,
  com.ibm.wsspi.pmi.factory,
  com.ibm.wsspi.pmi.stat,
