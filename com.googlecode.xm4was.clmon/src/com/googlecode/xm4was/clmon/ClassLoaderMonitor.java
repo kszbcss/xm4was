@@ -21,9 +21,6 @@ import com.ibm.ws.runtime.deploy.DeployedObject;
 import com.ibm.ws.runtime.deploy.DeployedObjectEvent;
 import com.ibm.ws.runtime.deploy.DeployedObjectListener;
 import com.ibm.ws.runtime.service.ApplicationMgr;
-import com.ibm.wsspi.pmi.factory.StatsFactory;
-import com.ibm.wsspi.pmi.factory.StatsFactoryException;
-import com.ibm.wsspi.pmi.factory.StatsInstance;
 import com.ibm.wsspi.runtime.service.WsServiceRegistry;
 
 public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedObjectListener {
@@ -86,23 +83,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
             }
         }, 1000, 1000);
         
-        ClassLoader savedTCCL = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(ClassLoaderMonitor.class.getClassLoader());
-        final StatsInstance statsInstance;
-        try {
-            statsInstance = StatsFactory.createStatsInstance("ClassLoaderStats", "ClassLoaderStats.xml", null, new ClassLoaderStatisticActions(this));
-        } finally {
-            Thread.currentThread().setContextClassLoader(savedTCCL);
-        }
-        addStopAction(new Runnable() {
-            public void run() {
-                try {
-                    StatsFactory.removeStatsInstance(statsInstance);
-                } catch (StatsFactoryException ex) {
-                    Tr.error(TC, Messages._0004E, ex);
-                }
-            }
-        });
+        createStatsInstance("ClassLoaderStats", "/xm4was/ClassLoaderStats.xml", null, new ClassLoaderStatisticActions(this));
         
         Tr.info(TC, Messages._0001I);
     }

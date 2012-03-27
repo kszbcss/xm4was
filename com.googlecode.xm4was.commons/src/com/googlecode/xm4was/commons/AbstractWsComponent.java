@@ -1,15 +1,27 @@
 package com.googlecode.xm4was.commons;
 
+import java.util.Hashtable;
 import java.util.Stack;
+
+import javax.management.JMException;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.management.modelmbean.RequiredModelMBean;
 
 import com.googlecode.xm4was.commons.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
+import com.ibm.websphere.management.AdminServiceFactory;
 import com.ibm.ws.exception.ComponentDisabledException;
 import com.ibm.ws.exception.ConfigurationError;
 import com.ibm.ws.exception.ConfigurationWarning;
 import com.ibm.ws.exception.RuntimeError;
 import com.ibm.ws.exception.RuntimeWarning;
+import com.ibm.wsspi.pmi.factory.StatisticActions;
+import com.ibm.wsspi.pmi.factory.StatsFactory;
+import com.ibm.wsspi.pmi.factory.StatsFactoryException;
+import com.ibm.wsspi.pmi.factory.StatsGroup;
+import com.ibm.wsspi.pmi.factory.StatsInstance;
 import com.ibm.wsspi.runtime.component.WsComponent;
 
 public abstract class AbstractWsComponent implements WsComponent {
@@ -79,5 +91,59 @@ public abstract class AbstractWsComponent implements WsComponent {
     }
 
     protected void doDestroy() {
+    }
+    
+    protected final ObjectName registerMBean(RequiredModelMBean mbean, Hashtable<String,String> keyProperties) throws JMException {
+        final MBeanServer mbs = AdminServiceFactory.getMBeanFactory().getMBeanServer();
+        final ObjectName objectName = mbs.registerMBean(mbean, new ObjectName(JmxConstants.DOMAIN, keyProperties)).getObjectName();
+        addStopAction(new Runnable() {
+            public void run() {
+                try {
+                    mbs.unregisterMBean(objectName);
+                } catch (JMException ex) {
+                    Tr.error(TC, Messages._0003E, ex);
+                }
+            }
+        });
+        return objectName;
+    }
+    
+    protected final StatsGroup createStatsGroup(String groupName, String statsTemplate, ObjectName mBean) throws StatsFactoryException {
+        ClassLoader savedTCCL = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+        StatsGroup statsGroup;
+        try {
+            statsGroup = StatsFactory.createStatsGroup(groupName, statsTemplate, mBean);
+        } finally {
+            Thread.currentThread().setContextClassLoader(savedTCCL);
+        }
+        addStopAction(new RemoveStatsGroupAction(statsGroup));
+        return statsGroup;
+    }
+    
+    protected final StatsInstance createStatsInstance(String instanceName, String statsTemplate, ObjectName mBean, StatisticActions listener) throws StatsFactoryException {
+        ClassLoader savedTCCL = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+        StatsInstance statsInstance;
+        try {
+            statsInstance = StatsFactory.createStatsInstance(instanceName, statsTemplate, mBean, listener);
+        } finally {
+            Thread.currentThread().setContextClassLoader(savedTCCL);
+        }
+        addStopAction(new RemoveStatsInstanceAction(statsInstance));
+        return statsInstance;
+    }
+    
+    protected final StatsInstance createStatsInstance(String instanceName, StatsGroup parentGroup, ObjectName mBean, StatisticActions listener) throws StatsFactoryException {
+        ClassLoader savedTCCL = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+        StatsInstance statsInstance;
+        try {
+            statsInstance = StatsFactory.createStatsInstance(instanceName, parentGroup, mBean, listener);
+        } finally {
+            Thread.currentThread().setContextClassLoader(savedTCCL);
+        }
+        addStopAction(new RemoveStatsInstanceAction(statsInstance));
+        return statsInstance;
     }
 }

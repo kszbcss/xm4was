@@ -10,7 +10,6 @@ Eclipse-AutoStart: true
 Import-Package: com.googlecode.xm4was.commons,
  com.ibm.ejs.ras,
  com.ibm.websphere.logging,
- com.ibm.websphere.management,
  com.ibm.ws.logging,
  com.ibm.ws.runtime.metadata,
  com.ibm.ws.threadContext,
