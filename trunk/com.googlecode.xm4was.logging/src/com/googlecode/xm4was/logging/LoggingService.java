@@ -5,8 +5,6 @@ import java.util.logging.Logger;
 
 import javax.management.JMException;
 import javax.management.MBeanParameterInfo;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 import javax.management.modelmbean.DescriptorSupport;
 import javax.management.modelmbean.InvalidTargetObjectTypeException;
 import javax.management.modelmbean.ModelMBeanAttributeInfo;
@@ -17,12 +15,10 @@ import javax.management.modelmbean.ModelMBeanOperationInfo;
 import javax.management.modelmbean.RequiredModelMBean;
 
 import com.googlecode.xm4was.commons.AbstractWsComponent;
-import com.googlecode.xm4was.commons.JmxConstants;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.logging.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
-import com.ibm.websphere.management.AdminServiceFactory;
 
 public class LoggingService extends AbstractWsComponent {
     private static final TraceComponent TC = Tr.register(LoggingService.class, TrConstants.GROUP, Messages.class.getName());
@@ -36,7 +32,6 @@ public class LoggingService extends AbstractWsComponent {
             }
         });
         
-        final MBeanServer mbs = AdminServiceFactory.getMBeanFactory().getMBeanServer();
         final LoggingServiceHandler handler = new LoggingServiceHandler();
         Tr.debug(TC, "Registering handler on root logger");
         Logger.getLogger("").addHandler(handler);
@@ -95,18 +90,7 @@ public class LoggingService extends AbstractWsComponent {
             Hashtable<String,String> keyProperties = new Hashtable<String,String>();
             keyProperties.put("type", "LoggingService");
             keyProperties.put("name", "LoggingService");
-            final ObjectName objectName = new ObjectName(JmxConstants.DOMAIN, keyProperties);
-            mbs.registerMBean(mbean, objectName);
-            addStopAction(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        mbs.unregisterMBean(objectName);
-                    } catch (JMException ex) {
-                        Tr.error(TC, Messages._0004E, ex);
-                    }
-                }
-            });
+            registerMBean(mbean, keyProperties);
         } catch (JMException ex) {
             Tr.error(TC, Messages._0003E, ex);
         }

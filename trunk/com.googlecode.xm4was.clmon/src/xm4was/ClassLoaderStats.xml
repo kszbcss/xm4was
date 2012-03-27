@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Stats SYSTEM "stats.dtd">
-<Stats type="ClassLoaderStats">
+<Stats type="xm4was.ClassLoaderStats">
     <description>Class Loader Stats</description>
     <CountStatistic ID="1" name="CreateCount">
         <level>high</level>
