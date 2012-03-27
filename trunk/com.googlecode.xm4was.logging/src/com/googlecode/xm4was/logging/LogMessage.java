@@ -64,7 +64,12 @@ public final class LogMessage implements Serializable {
     
     @Override
     public String toString() {
+        // The format is designed to be forward compatible. The string contains a sequence of
+        // colon-separated fields enclosed in brackets, followed by the log message itself.
+        // This means that new fields can be added easily and that no escaping is required for
+        // the message.
         StringBuilder buffer = new StringBuilder();
+        buffer.append('[');
         buffer.append(sequence);
         buffer.append(':');
         buffer.append(level);
@@ -86,7 +91,7 @@ public final class LogMessage implements Serializable {
         if (componentName != null) {
             buffer.append(componentName);
         }
-        buffer.append(':');
+        buffer.append(']');
         buffer.append(message);
         return buffer.toString();
     }
