@@ -19,8 +19,8 @@ import com.googlecode.xm4was.jmx.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.management.AdminServiceFactory;
+import com.ibm.websphere.models.config.ipc.EndPoint;
 import com.ibm.ws.runtime.service.EndPointMgr;
-import com.ibm.ws.runtime.service.EndPointMgr.EndPointInfo;
 import com.ibm.wsspi.runtime.service.WsServiceRegistry;
 
 // * Security concerns in http://blogs.oracle.com/lmalventosa/entry/mimicking_the_out_of_the
@@ -37,7 +37,8 @@ public class JmxConnector extends AbstractWsComponent {
     protected void doInitialize() throws Exception {
         // TODO: need to add this as a dependency
         EndPointMgr epMgr = WsServiceRegistry.getService(this, EndPointMgr.class);
-        EndPointInfo ep = epMgr.getNodeEndPoints("@").getServerEndPoints("@").getEndPointInfo("JRMP_CONNECTOR_ADDRESS");
+        // We don't use getEndPointInfo, because it only exists in WAS 7.0, but not WAS 6.1
+        EndPoint ep = epMgr.getNodeEndPoints("@").getServerEndPoints("@").getEndPoint("JRMP_CONNECTOR_ADDRESS");
         if (ep == null) {
             enabled = false;
         } else {
