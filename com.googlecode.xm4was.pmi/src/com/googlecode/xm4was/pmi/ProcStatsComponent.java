@@ -9,6 +9,7 @@ import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.management.AdminService;
 import com.ibm.websphere.management.AdminServiceFactory;
+import com.ibm.wsspi.pmi.factory.StatsFactory;
 
 public class ProcStatsComponent extends AbstractWsComponent {
     private static final TraceComponent TC = Tr.register(ProcStatsComponent.class, TrConstants.GROUP, Messages.class.getName());
@@ -17,6 +18,9 @@ public class ProcStatsComponent extends AbstractWsComponent {
 
     @Override
     protected void doStart() throws Exception {
+        if (!StatsFactory.isPMIEnabled()) {
+            return;
+        }
         if (!procDir.exists()) {
             Tr.info(TC, Messages._0101I);
             return;

@@ -21,6 +21,7 @@ import com.ibm.ws.runtime.deploy.DeployedObject;
 import com.ibm.ws.runtime.deploy.DeployedObjectEvent;
 import com.ibm.ws.runtime.deploy.DeployedObjectListener;
 import com.ibm.ws.runtime.service.ApplicationMgr;
+import com.ibm.wsspi.pmi.factory.StatsFactory;
 import com.ibm.wsspi.runtime.service.WsServiceRegistry;
 
 public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedObjectListener {
@@ -83,7 +84,9 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
             }
         }, 1000, 1000);
         
-        createStatsInstance("ClassLoaderStats", "/xm4was/ClassLoaderStats.xml", null, new ClassLoaderStatisticActions(this));
+        if (StatsFactory.isPMIEnabled()) {
+            createStatsInstance("ClassLoaderStats", "/xm4was/ClassLoaderStats.xml", null, new ClassLoaderStatisticActions(this));
+        }
         
         Tr.info(TC, Messages._0001I);
     }
