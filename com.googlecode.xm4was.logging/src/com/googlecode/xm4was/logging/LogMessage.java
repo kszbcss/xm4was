@@ -1,10 +1,6 @@
 package com.googlecode.xm4was.logging;
 
-import java.io.Serializable;
-
-public final class LogMessage implements Serializable {
-    private static final long serialVersionUID = -5515760895763431771L;
-
+public final class LogMessage {
     private long sequence;
     private final int level;
     private final long timestamp;
