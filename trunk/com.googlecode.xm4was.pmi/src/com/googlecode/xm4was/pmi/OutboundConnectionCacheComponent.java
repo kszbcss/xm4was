@@ -16,12 +16,13 @@ import javax.management.modelmbean.RequiredModelMBean;
 import com.googlecode.xm4was.commons.AbstractWsComponent;
 import com.ibm.ws.webservices.engine.transport.channel.OutboundConnectionCache;
 import com.ibm.ws.websvcs.transport.http.SOAPOverHTTPSender;
+import com.ibm.wsspi.pmi.factory.StatsFactory;
 import com.ibm.wsspi.pmi.factory.StatsGroup;
 
 public class OutboundConnectionCacheComponent extends AbstractWsComponent {
     @Override
     protected void doStart() throws Exception {
-        StatsGroup group = createStatsGroup("OutboundConnectionCache", "/xm4was/OutboundConnectionCacheStats.xml", null);
+        StatsGroup group = StatsFactory.isPMIEnabled() ? createStatsGroup("OutboundConnectionCache", "/xm4was/OutboundConnectionCacheStats.xml", null) : null;
         // The JAX-RPC cache is part of com.ibm.ws.runtime.jar and is visible to the application class loader.
         setupOutboundConnectionCacheMonitor(group, OutboundConnectionCache.class, "JAX-RPC");
         // The JAX-WS cache is part of the Axis2 OSGi bundle, but is not exported. We get the class loader
@@ -96,7 +97,9 @@ public class OutboundConnectionCacheComponent extends AbstractWsComponent {
         keyProperties.put("cacheClass", outboundConnectionCacheClass.getName());
         ObjectName mbeanName = registerMBean(mbean, keyProperties);
         
-        // Create a PMI module
-        createStatsInstance(moduleName, group, mbeanName, monitor);
+        if (group != null) {
+            // Create a PMI module
+            createStatsInstance(moduleName, group, mbeanName, monitor);
+        }
     }
 }
