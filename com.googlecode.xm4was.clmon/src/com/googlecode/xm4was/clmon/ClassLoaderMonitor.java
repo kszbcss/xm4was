@@ -134,12 +134,14 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
                     + "; deployed object type: " + deployedObject.getClass().getName());
         }
         ClassLoader classLoader = deployedObject.getClassLoader();
-        if (classLoader == null) {
-            Tr.error(TC, "DeployedObject#getClassLoader() returned null");
-        } else if (deployedObject instanceof DeployedApplication
-                || deployedObject instanceof DeployedModule && ((DeployedModule)deployedObject).getDeployedApplication().getClassLoader() != classLoader) {
-            // The condition above excludes EJB modules (which don't have a separate class loader)
-            // as well as applications that are configured with a single class loader.
+        
+        // * The class loader may be null. This occurs e.g. if a com.ibm.ws.runtime.deploy.DeployedApplicationFilter
+        //   vetoes the startup of the application.
+        // * The last condition excludes EJB modules (which don't have a separate class loader)
+        //   as well as modules in applications that are configured with a single class loader.
+        if (classLoader != null &&
+                (deployedObject instanceof DeployedApplication
+                        || deployedObject instanceof DeployedModule && ((DeployedModule)deployedObject).getDeployedApplication().getClassLoader() != classLoader)) {
             if (state.equals("STARTING")) {
                 classLoaderInfos.add(new ClassLoaderInfo(classLoader, deployedObject.getName()));
                 createCount++;
