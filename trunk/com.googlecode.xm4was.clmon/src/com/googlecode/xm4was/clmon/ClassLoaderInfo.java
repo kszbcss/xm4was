@@ -4,20 +4,20 @@ import java.lang.ref.WeakReference;
 
 public class ClassLoaderInfo {
     private final WeakReference<ClassLoader> ref;
-    private final String name;
+    private final ClassLoaderGroup group;
     private boolean stopped;
 
-    public ClassLoaderInfo(ClassLoader classLoader, String name) {
+    public ClassLoaderInfo(ClassLoader classLoader, ClassLoaderGroup group) {
         ref = new WeakReference<ClassLoader>(classLoader);
-        this.name = name;
+        this.group = group;
     }
     
     public ClassLoader getClassLoader() {
         return ref.get();
     }
 
-    public String getName() {
-        return name;
+    public ClassLoaderGroup getGroup() {
+        return group;
     }
 
     public boolean isStopped() {
@@ -30,6 +30,6 @@ public class ClassLoaderInfo {
 
     @Override
     public String toString() {
-        return "ClassLoaderInfo[name=" + name + ",stopped=" + stopped + ",destroyed=" + (ref.get() == null) + "]";
+        return "ClassLoaderInfo[name=" + group.getName() + ",stopped=" + stopped + ",destroyed=" + (ref.get() == null) + "]";
     }
 }

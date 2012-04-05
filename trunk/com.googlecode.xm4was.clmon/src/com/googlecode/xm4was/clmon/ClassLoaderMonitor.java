@@ -1,12 +1,12 @@
 package com.googlecode.xm4was.clmon;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.TreeMap;
 
 import com.googlecode.xm4was.clmon.resources.Messages;
 import com.googlecode.xm4was.commons.AbstractWsComponent;
@@ -22,6 +22,8 @@ import com.ibm.ws.runtime.deploy.DeployedObjectEvent;
 import com.ibm.ws.runtime.deploy.DeployedObjectListener;
 import com.ibm.ws.runtime.service.ApplicationMgr;
 import com.ibm.wsspi.pmi.factory.StatsFactory;
+import com.ibm.wsspi.pmi.factory.StatsFactoryException;
+import com.ibm.wsspi.pmi.factory.StatsGroup;
 import com.ibm.wsspi.runtime.service.WsServiceRegistry;
 
 public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedObjectListener {
@@ -42,12 +44,11 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
      */
     private static final int STATS_MAX_DELAY = 30000;
     
-    private int createCount;
-    private int stopCount;
-    private int destroyedCount;
     private long lastDumped;
     private long lastUpdated;
     private List<ClassLoaderInfo> classLoaderInfos;
+    private StatsGroup statsGroup;
+    private Map<String,ClassLoaderGroup> classLoaderGroups;
     
     @Override
     protected void doStart() throws Exception {
@@ -85,44 +86,41 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         }, 1000, 1000);
         
         if (StatsFactory.isPMIEnabled()) {
-            createStatsInstance("ClassLoaderStats", "/xm4was/ClassLoaderStats.xml", null, new ClassLoaderStatisticActions(this));
+            statsGroup = createStatsGroup("ClassLoaderStats", "/xm4was/ClassLoaderStats.xml", null);
         }
+        classLoaderGroups = new HashMap<String,ClassLoaderGroup>();
         
         Tr.info(TC, Messages._0001I);
     }
 
     synchronized void monitor() {
         Iterator<ClassLoaderInfo> it = classLoaderInfos.iterator();
-        Map<String,Integer> leakStats = new TreeMap<String,Integer>();
-        int count = 0;
+        boolean isUpdated = false;
         while (it.hasNext()) {
             ClassLoaderInfo classLoaderInfo = it.next();
-            if (classLoaderInfo.isStopped()) {
-                if (classLoaderInfo.getClassLoader() == null) {
-                    it.remove();
-                    count++;
-                    if (TC.isDebugEnabled()) {
-                        Tr.debug(TC, "Detected class loader that has been garbage collected: " + classLoaderInfo);
-                    }
-                } else {
-                    String name = classLoaderInfo.getName();
-                    Integer currentCount = leakStats.get(name);
-                    if (currentCount == null) {
-                        leakStats.put(name, Integer.valueOf(1));
-                    } else {
-                        leakStats.put(name, currentCount+1);
-                    }
+            if (classLoaderInfo.isStopped() && classLoaderInfo.getClassLoader() == null) {
+                it.remove();
+                if (TC.isDebugEnabled()) {
+                    Tr.debug(TC, "Detected class loader that has been garbage collected: " + classLoaderInfo);
                 }
+                classLoaderInfo.getGroup().incrementDestroyedCount();
             }
         }
         long timestamp = System.currentTimeMillis();
-        if (count > 0) {
-            destroyedCount += count;
+        if (isUpdated) {
             lastUpdated = System.currentTimeMillis();
         }
         if (lastUpdated > lastDumped && ((timestamp - lastUpdated > STATS_MIN_DELAY) || (timestamp - lastDumped > STATS_MAX_DELAY))) {
             lastDumped = timestamp;
-            Tr.info(TC, Messages._0003I, new Object[] { String.valueOf(createCount), String.valueOf(stopCount), String.valueOf(destroyedCount), leakStats.toString() });
+            int createCount = 0;
+            int stopCount = 0;
+            int destroyedCount = 0;
+            for (ClassLoaderGroup group : classLoaderGroups.values()) {
+                createCount += group.getCreateCount();
+                stopCount += group.getStopCount();
+                destroyedCount += group.getDestroyedCount();
+            }
+            Tr.info(TC, Messages._0003I, new Object[] { String.valueOf(createCount), String.valueOf(stopCount), String.valueOf(destroyedCount) });
         }
     }
 
@@ -142,12 +140,27 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         if (classLoader != null &&
                 (deployedObject instanceof DeployedApplication
                         || deployedObject instanceof DeployedModule && ((DeployedModule)deployedObject).getDeployedApplication().getClassLoader() != classLoader)) {
-            if (state.equals("STARTING")) {
-                classLoaderInfos.add(new ClassLoaderInfo(classLoader, deployedObject.getName()));
-                createCount++;
-                if (TC.isDebugEnabled()) {
-                    Tr.debug(TC, "Incremented createCount; new value: " + createCount);
+            String groupKey;
+            if (deployedObject instanceof DeployedModule) {
+                groupKey = ((DeployedModule)deployedObject).getDeployedApplication().getName() + "#" + deployedObject.getName();
+            } else {
+                groupKey = deployedObject.getName();
+            }
+            ClassLoaderGroup group = classLoaderGroups.get(groupKey);
+            if (group == null) {
+                group = new ClassLoaderGroup(groupKey);
+                classLoaderGroups.put(groupKey, group);
+                if (StatsFactory.isPMIEnabled()) {
+                    try {
+                        StatsFactory.createStatsInstance(groupKey, statsGroup, null, group);
+                    } catch (StatsFactoryException ex) {
+                        Tr.error(TC, Messages._0004E, new Object[] { groupKey, ex });
+                    }
                 }
+            }
+            if (state.equals("STARTING")) {
+                classLoaderInfos.add(new ClassLoaderInfo(classLoader, group));
+                group.incrementCreateCount();
                 lastUpdated = System.currentTimeMillis();
             } else if (state.equals("DESTROYED")) {
                 for (ClassLoaderInfo info : classLoaderInfos) {
@@ -156,27 +169,12 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
                             Tr.debug(TC, "Identified class loader: " + info);
                         }
                         info.setStopped(true);
-                        stopCount++;
-                        if (TC.isDebugEnabled()) {
-                            Tr.debug(TC, "Incremented stopCount; new value: " + stopCount);
-                        }
+                        group.incrementStopCount();
                         lastUpdated = System.currentTimeMillis();
                         break;
                     }
                 }
             }
         }
-    }
-
-    public synchronized int getCreateCount() {
-        return createCount;
-    }
-
-    public synchronized int getStopCount() {
-        return stopCount;
-    }
-
-    public synchronized int getDestroyedCount() {
-        return destroyedCount;
     }
 }
