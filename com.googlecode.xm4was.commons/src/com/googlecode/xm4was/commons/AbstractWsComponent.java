@@ -12,6 +12,9 @@ import com.googlecode.xm4was.commons.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.management.AdminServiceFactory;
+import com.ibm.websphere.management.MBeanFactory;
+import com.ibm.websphere.management.RuntimeCollaborator;
+import com.ibm.websphere.management.exception.AdminException;
 import com.ibm.ws.exception.ComponentDisabledException;
 import com.ibm.ws.exception.ConfigurationError;
 import com.ibm.ws.exception.ConfigurationWarning;
@@ -145,5 +148,20 @@ public abstract class AbstractWsComponent implements WsComponent {
         }
         addStopAction(new RemoveStatsInstanceAction(statsInstance));
         return statsInstance;
+    }
+    
+    protected final ObjectName activateMBean(String type, RuntimeCollaborator collaborator, String configId, String descriptor) throws AdminException {
+        final MBeanFactory mbeanFactory = AdminServiceFactory.getMBeanFactory();
+        final ObjectName name = mbeanFactory.activateMBean(type, collaborator, configId, descriptor);
+        addStopAction(new Runnable() {
+            public void run() {
+                try {
+                    mbeanFactory.deactivateMBean(name);
+                } catch (AdminException ex) {
+                    Tr.error(TC, Messages._0003E, ex);
+                }
+            }
+        });
+        return name;
     }
 }

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE MBean SYSTEM "MbeanDescriptor.dtd">
+<MBean type="ClassLoaderMonitor"
+       version="1.0.0"
+       description="Class Loader Monitor.">
+    <operation name="clearORBCaches"
+               role="operation" impact="ACTION"
+               type="void" targetObjectType="objectReference">
+        <signature/>
+    </operation>
+</MBean>
