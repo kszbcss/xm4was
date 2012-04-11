@@ -4,6 +4,10 @@
 
 A local installation of !WebSphere 7.0.
 
+= Create a new workspace =
+
+Configuring Eclipse to work with the XM4WAS sources requires some changes to the workspace settings. It is therefore recommended to create a new workspace.
+
 = Add the WAS 7.0 JDK =
 
   # In the Eclipse preferences, select _Java_ > _Installed JREs_.
@@ -11,6 +15,13 @@ A local installation of !WebSphere 7.0.
   # Select _Standard VM_ and click _Next_.
   # Set the _JRE home_ to the location of the WAS 7.0 JDK. This is the `java` folder under the !WebSphere installation directory (e.g. `/opt/IBM/WebSphere/AppServer/java`).
   # Set the _JRE name_ to `WAS 7.0` and click _Finish_.
+
+= Configuring execution environments =
+
+  # In the Eclipse preferences, select _Java_ > _Installed JREs_ > _Execution Environments_.
+  # Select _J2SE-1.5_ in the left pane.
+  # Check _WAS 7.0_ in the right pane.
+  # Click _OK_.
 
 = Creating a target platform definition for WAS =
 
