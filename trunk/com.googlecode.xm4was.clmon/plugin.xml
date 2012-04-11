@@ -11,5 +11,6 @@
                 <dependency type="service" name="com.ibm.ws.runtime.service.ApplicationMgr"/>
             </component>
         </components>
-   </extension>
+    </extension>
+    <extension point="com.ibm.wsspi.extension.mbean-provider"/>
 </plugin>

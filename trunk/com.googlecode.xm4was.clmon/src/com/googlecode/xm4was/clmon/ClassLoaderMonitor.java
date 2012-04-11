@@ -8,11 +8,14 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.management.ObjectName;
+
 import com.googlecode.xm4was.clmon.resources.Messages;
 import com.googlecode.xm4was.commons.AbstractWsComponent;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
+import com.ibm.websphere.management.UserMBeanCollaborator;
 import com.ibm.ws.exception.RuntimeError;
 import com.ibm.ws.exception.RuntimeWarning;
 import com.ibm.ws.runtime.deploy.DeployedApplication;
@@ -85,8 +88,10 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
             }
         }, 1000, 1000);
         
+        ObjectName mbean = activateMBean("ClassLoaderMonitor", new UserMBeanCollaborator(new ClassLoaderMonitorMBean()), null, "/xm4was/ClassLoaderMonitorMBean.xml");
+        
         if (StatsFactory.isPMIEnabled()) {
-            statsGroup = createStatsGroup("ClassLoaderStats", "/xm4was/ClassLoaderStats.xml", null);
+            statsGroup = createStatsGroup("ClassLoaderStats", "/xm4was/ClassLoaderStats.xml", mbean);
         }
         classLoaderGroups = new HashMap<String,ClassLoaderGroup>();
         
