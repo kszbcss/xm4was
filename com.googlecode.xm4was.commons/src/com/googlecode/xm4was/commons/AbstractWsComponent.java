@@ -1,12 +1,9 @@
 package com.googlecode.xm4was.commons;
 
-import java.util.Hashtable;
+import java.util.Properties;
 import java.util.Stack;
 
-import javax.management.JMException;
-import javax.management.MBeanServer;
 import javax.management.ObjectName;
-import javax.management.modelmbean.RequiredModelMBean;
 
 import com.googlecode.xm4was.commons.resources.Messages;
 import com.ibm.ejs.ras.Tr;
@@ -96,21 +93,6 @@ public abstract class AbstractWsComponent implements WsComponent {
     protected void doDestroy() {
     }
     
-    protected final ObjectName registerMBean(RequiredModelMBean mbean, Hashtable<String,String> keyProperties) throws JMException {
-        final MBeanServer mbs = AdminServiceFactory.getMBeanFactory().getMBeanServer();
-        final ObjectName objectName = mbs.registerMBean(mbean, new ObjectName(JmxConstants.DOMAIN, keyProperties)).getObjectName();
-        addStopAction(new Runnable() {
-            public void run() {
-                try {
-                    mbs.unregisterMBean(objectName);
-                } catch (JMException ex) {
-                    Tr.error(TC, Messages._0003E, ex);
-                }
-            }
-        });
-        return objectName;
-    }
-    
     protected final StatsGroup createStatsGroup(String groupName, String statsTemplate, ObjectName mBean) throws StatsFactoryException {
         ClassLoader savedTCCL = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
@@ -151,17 +133,16 @@ public abstract class AbstractWsComponent implements WsComponent {
     }
     
     protected final ObjectName activateMBean(String type, RuntimeCollaborator collaborator, String configId, String descriptor) throws AdminException {
-        final MBeanFactory mbeanFactory = AdminServiceFactory.getMBeanFactory();
-        final ObjectName name = mbeanFactory.activateMBean(type, collaborator, configId, descriptor);
-        addStopAction(new Runnable() {
-            public void run() {
-                try {
-                    mbeanFactory.deactivateMBean(name);
-                } catch (AdminException ex) {
-                    Tr.error(TC, Messages._0003E, ex);
-                }
-            }
-        });
+        MBeanFactory mbeanFactory = AdminServiceFactory.getMBeanFactory();
+        ObjectName name = mbeanFactory.activateMBean(type, collaborator, configId, descriptor);
+        addStopAction(new DeactivateMBeanAction(mbeanFactory, name));
+        return name;
+    }
+    
+    protected final ObjectName activateMBean(String type, RuntimeCollaborator collaborator, String configId, String descriptor, Properties props) throws AdminException {
+        MBeanFactory mbeanFactory = AdminServiceFactory.getMBeanFactory();
+        ObjectName name = mbeanFactory.activateMBean(type, collaborator, configId, descriptor, props);
+        addStopAction(new DeactivateMBeanAction(mbeanFactory, name));
         return name;
     }
 }
