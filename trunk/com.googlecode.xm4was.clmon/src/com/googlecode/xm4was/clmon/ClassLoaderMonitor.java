@@ -107,6 +107,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
             ClassLoaderInfo classLoaderInfo = it.next();
             if (classLoaderInfo.isStopped() && classLoaderInfo.getClassLoader() == null) {
                 it.remove();
+                isUpdated = true;
                 if (TC.isDebugEnabled()) {
                     Tr.debug(TC, "Detected class loader that has been garbage collected: " + classLoaderInfo);
                 }
