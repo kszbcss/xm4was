@@ -76,6 +76,17 @@ public class LoggingService extends AbstractWsComponent {
                                     },
                                     "java.lang.String[]",
                                     ModelMBeanOperationInfo.INFO),
+                            new ModelMBeanOperationInfo(
+                                    "getMessages",
+                                    "Get the buffered messages starting with a given sequence",
+                                    new MBeanParameterInfo[] {
+                                            new MBeanParameterInfo("startSequence", "long",
+                                                    "The sequence number of the first message to return"),
+                                            new MBeanParameterInfo("maxMessageSize", "int",
+                                                    "The maximum message size (including the stack trace); message longer than the specified size will be truncated")
+                                    },
+                                    "java.lang.String[]",
+                                    ModelMBeanOperationInfo.INFO),
                     },
                     new ModelMBeanNotificationInfo[0]));
             try {

@@ -66,7 +66,8 @@ public class LoggingServiceHandler extends Handler {
                 }
                 LogMessage message = new LogMessage(level, record.getMillis(),
                         record.getLoggerName(), applicationName, moduleName, componentName,
-                        TraceLogFormatter.formatMessage(record, Locale.ENGLISH, TraceLogFormatter.UNUSED_PARM_HANDLING_APPEND_WITH_NEWLINE));
+                        TraceLogFormatter.formatMessage(record, Locale.ENGLISH, TraceLogFormatter.UNUSED_PARM_HANDLING_APPEND_WITH_NEWLINE),
+                        record.getThrown());
                 synchronized (this) {
                     message.setSequence(nextSequence++);
                     buffer[head++] = message;
@@ -93,6 +94,10 @@ public class LoggingServiceHandler extends Handler {
     }
     
     public String[] getMessages(long startSequence) {
+        return getMessages(startSequence, -1);
+    }
+    
+    public String[] getMessages(long startSequence, int maxMessageSize) {
         if (TC.isDebugEnabled()) {
             Tr.debug(TC, "Entering getMessages with startSequence = " + startSequence);
         }
@@ -122,7 +127,7 @@ public class LoggingServiceHandler extends Handler {
         }
         String[] formattedMessages = new String[messages.length];
         for (int i=0; i<messages.length; i++) {
-            formattedMessages[i] = messages[i].toString();
+            formattedMessages[i] = messages[i].format(maxMessageSize);
         }
         if (TC.isDebugEnabled()) {
             if (messages.length == 0) {
