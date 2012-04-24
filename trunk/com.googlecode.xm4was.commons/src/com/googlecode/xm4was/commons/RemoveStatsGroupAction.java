@@ -7,12 +7,12 @@ import com.ibm.wsspi.pmi.factory.StatsFactory;
 import com.ibm.wsspi.pmi.factory.StatsFactoryException;
 import com.ibm.wsspi.pmi.factory.StatsGroup;
 
-public class RemoveStatsGroupAction implements Runnable {
+class RemoveStatsGroupAction implements Runnable {
     private static final TraceComponent TC = Tr.register(RemoveStatsGroupAction.class, TrConstants.GROUP, Messages.class.getName());
     
     private final StatsGroup statsGroup;
     
-    public RemoveStatsGroupAction(StatsGroup statsGroup) {
+    RemoveStatsGroupAction(StatsGroup statsGroup) {
         this.statsGroup = statsGroup;
     }
 

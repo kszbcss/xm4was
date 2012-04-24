@@ -10,4 +10,5 @@
                        startup-mode="immediate"/>
         </components>
     </extension>
+    <extension point="com.ibm.wsspi.extension.mbean-provider"/>
 </plugin>
