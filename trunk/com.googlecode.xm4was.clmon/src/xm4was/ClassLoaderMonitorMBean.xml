@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE MBean SYSTEM "MbeanDescriptor.dtd">
-<MBean type="ClassLoaderMonitor"
+<MBean type="XM4WAS.ClassLoaderMonitor"
        version="1.0.0"
        description="Class Loader Monitor.">
     <operation name="clearORBCaches"

@@ -15,9 +15,9 @@ import com.googlecode.xm4was.commons.AbstractWsComponent;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
-import com.ibm.websphere.management.UserMBeanCollaborator;
 import com.ibm.ws.exception.RuntimeError;
 import com.ibm.ws.exception.RuntimeWarning;
+import com.ibm.ws.management.collaborator.DefaultRuntimeCollaborator;
 import com.ibm.ws.runtime.deploy.DeployedApplication;
 import com.ibm.ws.runtime.deploy.DeployedModule;
 import com.ibm.ws.runtime.deploy.DeployedObject;
@@ -88,7 +88,9 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
             }
         }, 1000, 1000);
         
-        ObjectName mbean = activateMBean("ClassLoaderMonitor", new UserMBeanCollaborator(new ClassLoaderMonitorMBean()), null, "/xm4was/ClassLoaderMonitorMBean.xml");
+        ObjectName mbean = activateMBean("XM4WAS.ClassLoaderMonitor",
+                new DefaultRuntimeCollaborator(new ClassLoaderMonitorMBean(), "ClassLoaderMonitor"),
+                null, "/xm4was/ClassLoaderMonitorMBean.xml");
         
         if (StatsFactory.isPMIEnabled()) {
             statsGroup = createStatsGroup("ClassLoaderStats", "/xm4was/ClassLoaderStats.xml", mbean);
