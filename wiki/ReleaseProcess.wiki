@@ -4,6 +4,10 @@
 
 Follow these steps to release a new version of XM4WAS.
 
+ # Ensure that the sources are up-to-date:
+{{{
+svn update
+}}}
  # Set project version to release version with the Tycho Versions plugin:
 {{{
 mvn org.eclipse.tycho:tycho-versions-plugin:set-version -DnewVersion=0.1.0
@@ -18,6 +22,7 @@ svn commit -m "prepare for release"
 }}}
  # Create a release tag with pattern `v<version>`
 {{{
+svn update
 svn copy . https://xm4was.googlecode.com/svn/tags/0.1.0 -m "created tag for 0.1.0"
 }}}
  # Upload the distribution to the downloads section of the project
