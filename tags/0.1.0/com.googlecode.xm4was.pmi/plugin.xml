@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+    <extension point="com.ibm.wsspi.extension.applicationserver-startup">
+        <components>
+            <component startup="5000"
+                       class="com.googlecode.xm4was.pmi.OutboundConnectionCacheComponent"
+                       processType="Servant"
+                       component-id="XM_OutboundConnectionCacheComponent"
+                       startup-mode="immediate"/>
+            <component startup="5000"
+                       class="com.googlecode.xm4was.pmi.ProcStatsComponent"
+                       processType="Servant"
+                       component-id="XM_ProcStatsComponent"
+                       startup-mode="immediate"/>
+        </components>
+    </extension>
+    <extension point="com.ibm.wsspi.extension.mbean-provider"/>
+</plugin>
