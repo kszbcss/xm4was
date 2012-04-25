@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Without the DTD, creation of the statistic group will fail in some cases with
+     "Document is invalid: no grammar found." -->
+<!DOCTYPE Stats SYSTEM "stats.dtd">
+<Stats type="xm4was.ProcStats">
+    <description>Proc Stats</description>
+    <RangeStatistic ID="1" name="FileDescriptors">
+        <level>high</level>
+        <unit>None</unit>
+        <description>The number of file descriptors allocated by the server process.</description>
+        <updateOnRequest>true</updateOnRequest>
+    </RangeStatistic>
+</Stats>
