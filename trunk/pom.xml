@@ -677,5 +677,6 @@
         <module>com.googlecode.xm4was.logging</module>
         <module>com.googlecode.xm4was.pmi</module>
         <module>jmx-client-connector</module>
+        <module>distribution</module>
     </modules>
 </project>
