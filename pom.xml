@@ -8,6 +8,9 @@
     <properties>
         <tycho-version>0.14.1</tycho-version>
     </properties>
+    <scm>
+        <developerConnection>scm:svn:https://xm4was.googlecode.com/svn/trunk</developerConnection>
+    </scm>
     <dependencies>
         <!-- This dependency is not imported from WAS because it is provided by the OSGi container -->
         <dependency>
