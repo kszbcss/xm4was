@@ -1,0 +1,138 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+
+<!--The MBean element repesents an individual MBean type. -->
+<!ELEMENT MBean        (parentType*, attribute* , operation* , notification* , constructor*)>
+
+<!-- zOS: added aggregationHandlerClass, eventHandlerClass, invocationHandlerClass,
+                stateObjectClass, statisticsProvider, and dynamicProxyInterface
+                allowDynamicProxyStaticRegistrationInControlRegion   //514862
+                NOTE: type is #REQUIRED on zOS? -->
+<!ATTLIST MBean        type                      CDATA  #IMPLIED
+                       j2eeType                  CDATA  #IMPLIED
+                       description               CDATA  #IMPLIED
+                       collaboratorClass         CDATA  #IMPLIED
+                       configureMBean            CDATA  #IMPLIED
+                       deployerMBean             CDATA  #IMPLIED
+                       persistPeriod             CDATA  #IMPLIED
+                       persistLocation           CDATA  #IMPLIED
+                       persistName               CDATA  #IMPLIED
+                       log                       CDATA  #IMPLIED
+                       logFile                   CDATA  #IMPLIED
+                       currencyTimeLimit         CDATA  #IMPLIED
+                       visibility                CDATA  #IMPLIED
+                       presentationString        CDATA  #IMPLIED
+                       version                   CDATA  #IMPLIED
+                       platform                  CDATA  #IMPLIED
+                       since                     CDATA  #IMPLIED
+                       deprecated                CDATA  #IMPLIED
+                       persistPolicy             (Never | OnTimer | OnUpdate | NoMoreOftenThan) #IMPLIED
+                       aggregationHandlerClass   CDATA  #IMPLIED
+                       eventHandlerClass         CDATA  #IMPLIED
+                       invocationHandlerClass    CDATA  #IMPLIED
+                       stateObjectClass          CDATA  #IMPLIED
+                       statisticsProvider        CDATA  #IMPLIED
+                       runAs                     CDATA  #IMPLIED
+                       resourceIdentifierKey     CDATA  #IMPLIED
+                       resourceType              CDATA  #IMPLIED
+                       securityDoc               CDATA  #IMPLIED
+                       excludeAccessCheck        CDATA  #IMPLIED
+                       minimalAccessCheck        CDATA  #IMPLIED
+                       adminAgentProxyInterface  CDATA  #IMPLIED
+                       allowDynamicProxyStaticRegistrationInControlRegion  CDATA  #IMPLIED
+                       dynamicProxyInterface     CDATA  #IMPLIED >
+
+<!--The parent type element.-->
+<!ELEMENT parentType   EMPTY>
+
+<!ATTLIST parentType   type                      CDATA #REQUIRED
+                       descriptorFile            CDATA #IMPLIED >
+
+<!--The attribute element represents one single attribute of an MBean.-->
+<!ELEMENT attribute    EMPTY>
+
+<!-- zOS: added proxyInvokeType and proxySetterInvokeType -->
+<!ATTLIST attribute    name                      CDATA  #REQUIRED
+                       type                      CDATA  #REQUIRED
+                       description               CDATA  #IMPLIED
+                       default                   CDATA  #IMPLIED
+                       displayName               CDATA  #IMPLIED
+                       getMethod                 CDATA  #IMPLIED
+                       setMethod                 CDATA  #IMPLIED
+                       persistPolicy             (Never | OnTimer | OnUpdate | NoMoreOftenThan )  #IMPLIED
+                       persistPeriod             CDATA  #IMPLIED
+                       currencyTimeLimit         CDATA  #IMPLIED
+                       iterable                  CDATA  #IMPLIED
+                       visibility                CDATA  #IMPLIED
+                       presentationString        CDATA  #IMPLIED
+                       since                     CDATA  #IMPLIED
+                       deprecated                CDATA  #IMPLIED
+                       proxyInvokeType           CDATA  #IMPLIED
+                       resourceIdentifierKey     CDATA  #IMPLIED
+                       resourceType              CDATA  #IMPLIED
+                       securityDoc               CDATA  #IMPLIED
+                       excludeAccessCheck        CDATA  #IMPLIED
+                       minimalAccessCheck        CDATA  #IMPLIED
+                       proxySetterInvokeType     CDATA  #IMPLIED >
+
+<!ELEMENT signature    (parameter*)>
+
+<!ELEMENT parameter    EMPTY>
+
+<!ATTLIST parameter    type                      CDATA  #REQUIRED
+                       name                      CDATA  #REQUIRED
+                       isResourceIdentifier      CDATA  #IMPLIED
+                       resourceType              CDATA  #IMPLIED
+                       description               CDATA  #IMPLIED >
+
+<!--The operation element represents one single operation exposed by an MBean.-->
+<!ELEMENT operation    (signature)>
+
+<!-- zOS: added proxyInvokeType -->
+<!ATTLIST operation    name                      CDATA  #REQUIRED
+                       role                      CDATA  #REQUIRED
+                       targetObjectType          CDATA  #REQUIRED
+                       description               CDATA  #IMPLIED
+                       impact                    CDATA  #IMPLIED
+                       type                      CDATA  #IMPLIED
+                       class                     CDATA  #IMPLIED
+                       displayName               CDATA  #IMPLIED
+                       currencyTimeLimit         CDATA  #IMPLIED
+                       visibility                CDATA  #IMPLIED
+                       presentationString        CDATA  #IMPLIED
+                       since                     CDATA  #IMPLIED
+                       deprecated                CDATA  #IMPLIED
+                       runAs                     CDATA  #IMPLIED
+                       resourceIdentifierKey     CDATA  #IMPLIED
+                       resourceType              CDATA  #IMPLIED
+                       securityDoc               CDATA  #IMPLIED
+                       excludeAccessCheck        CDATA  #IMPLIED
+                       minimalAccessCheck        CDATA  #IMPLIED
+                       proxyInvokeType           CDATA  #IMPLIED >
+
+<!--The notification element represents one notification generated by an MBean.-->
+<!ELEMENT notification (notificationType+)>
+
+<!ATTLIST notification name                      CDATA  #REQUIRED
+                       severity                  CDATA  #REQUIRED
+                       messageId                 CDATA  #IMPLIED
+                       log                       CDATA  #IMPLIED
+                       logFile                   CDATA  #IMPLIED
+                       visibility                CDATA  #IMPLIED
+                       presentationString        CDATA  #IMPLIED
+                       description               CDATA  #IMPLIED
+                       since                     CDATA  #IMPLIED
+                       deprecated                CDATA  #IMPLIED >
+
+<!ELEMENT notificationType (#PCDATA)>
+
+<!--The constructor element represents one single constructor implemented by an MBean.-->
+<!ELEMENT constructor  (signature)>
+
+<!ATTLIST constructor  name                      CDATA  #REQUIRED
+                       description               CDATA  #IMPLIED
+                       displayName               CDATA  #IMPLIED
+                       currencyTimeLimit         CDATA  #IMPLIED
+                       visibility                CDATA  #IMPLIED
+                       presentationString        CDATA  #IMPLIED
+                       since                     CDATA  #IMPLIED
+                       deprecated                CDATA  #IMPLIED >

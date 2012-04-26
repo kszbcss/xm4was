@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+    <extension point="com.ibm.wsspi.extension.server-startup">
+        <components>
+            <component startup="5000"
+                       class="com.googlecode.xm4was.jmx.JmxConnector"
+                       processType="Servant"
+                       component-id="XM_JmxConnector"
+                       startup-mode="immediate"/>
+        </components>
+    </extension>
+    <extension point="com.ibm.wsspi.extension.server-startup">
+        <components>
+            <component startup="5000"
+                       class="com.googlecode.xm4was.jmx.PlatformMXBeansRegistrant"
+                       processType="Servant"
+                       component-id="XM_PlatformMXBeansRegistrant"
+                       startup-mode="immediate"/>
+        </components>
+    </extension>
+</plugin>
