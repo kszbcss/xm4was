@@ -1,5 +1,6 @@
 package com.googlecode.xm4was.jmx;
 
+import java.lang.management.CompilationMXBean;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryManagerMXBean;
@@ -72,8 +73,11 @@ public class PlatformMXBeansRegistrant extends AbstractWsComponent {
                 new ObjectName(ManagementFactory.RUNTIME_MXBEAN_NAME));
         registerMBean(ManagementFactory.getOperatingSystemMXBean(),
                 new ObjectName(ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME));
-        registerMBean(ManagementFactory.getCompilationMXBean(),
-                new ObjectName(ManagementFactory.COMPILATION_MXBEAN_NAME));
+        CompilationMXBean compilationMXBean = ManagementFactory.getCompilationMXBean();
+        if (compilationMXBean != null) {
+            registerMBean(compilationMXBean,
+                    new ObjectName(ManagementFactory.COMPILATION_MXBEAN_NAME));
+        }
         for (GarbageCollectorMXBean mbean : ManagementFactory.getGarbageCollectorMXBeans()) {
             registerMBean(mbean, new ObjectName(ManagementFactory.GARBAGE_COLLECTOR_MXBEAN_DOMAIN_TYPE
                     + ",name=" + mbean.getName()));
