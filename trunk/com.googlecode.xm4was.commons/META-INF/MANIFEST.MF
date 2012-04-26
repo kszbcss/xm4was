@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: XM4WAS Commons
 Bundle-SymbolicName: com.googlecode.xm4was.commons
-Bundle-Version: 0.1.1
+Bundle-Version: 0.2.0.qualifier
 Import-Package: com.ibm.ejs.ras,
  com.ibm.websphere.management,
  com.ibm.websphere.management.exception,
