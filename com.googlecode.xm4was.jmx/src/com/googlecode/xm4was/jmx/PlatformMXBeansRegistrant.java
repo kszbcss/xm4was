@@ -54,9 +54,7 @@ public class PlatformMXBeansRegistrant extends AbstractWsComponent {
             // which can be retrieved using the getDefaultMBeanServer.
             mbs = ((PlatformMBeanServer)wasMBeanServer).getDefaultMBeanServer();
         } else {
-            Tr.warning(TC, "The MBeanServer returned by MBeanFactory#getMBeanServer() is not an instance of "
-                    + PlatformMBeanServer.class.getName() + "; instead it is an instance of "
-                    + wasMBeanServer.getClass().getName());
+            Tr.warning(TC, Messages._0103W, new Object[] { PlatformMBeanServer.class.getName(), wasMBeanServer.getClass() });
             mbs = wasMBeanServer;
         }
         addStopAction(new Runnable() {
