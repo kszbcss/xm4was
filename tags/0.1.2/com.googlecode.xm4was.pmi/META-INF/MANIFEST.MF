@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: XM4WAS PMI Metrics
+Bundle-SymbolicName: com.googlecode.xm4was.pmi;singleton:=true
+Bundle-Version: 0.1.2
+Bundle-Activator: com.googlecode.xm4was.pmi.Activator
+Eclipse-AutoStart: true
+Require-Bundle: com.ibm.wsspi.extension
+Import-Package: com.googlecode.xm4was.commons,
+ com.ibm.ejs.ras,
+ com.ibm.websphere.management,
+ com.ibm.websphere.pmi.stat,
+ com.ibm.ws.management.collaborator,
+ com.ibm.ws.webservices.engine.transport.channel,
+ com.ibm.ws.websvcs.transport.http;resolution:=optional,
+ com.ibm.wsspi.bootstrap.osgi,
+ com.ibm.wsspi.pmi.factory,
+ com.ibm.wsspi.pmi.stat,
+ org.osgi.framework
+Export-Package: com.googlecode.xm4was.pmi.resources
