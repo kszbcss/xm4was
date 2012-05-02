@@ -1,0 +1,13 @@
+#summary Release notes.
+
+= 0.1.2 =
+
+Fixes issue #1 which causes a start-up failure on WAS 6.1 servers configured in debug mode.
+
+= 0.1.1 =
+
+Fixes an issue in the OSGi manifest of the `com.googlecode.xm4was.commons` bundle that prevents the plugins from working with WAS 6.1.
+
+= 0.1.0 =
+
+Initial release.
