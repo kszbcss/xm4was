@@ -20,7 +20,7 @@ mvn clean install
 {{{
 svn commit -m "prepare for release"
 }}}
- # Create a release tag with pattern `v<version>`
+ # Create a release tag:
 {{{
 svn update
 svn copy . https://xm4was.googlecode.com/svn/tags/0.1.0 -m "created tag for 0.1.0"
