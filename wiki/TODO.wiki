@@ -1,4 +1,3 @@
 #summary TODO List
 
-  * Need to decide which API to use to register MBeans. If we want to enable security, we should probably use !WebSphere's APIs. However, this means a change in naming conventions because the API in !WebSphere always uses "!WebSphere" as domain name.
   * Configure security for the platform MXBeans. This needs to be done programmatically, as described here: http://publib.boulder.ibm.com/infocenter/wasinfo/v6r1/topic/com.ibm.websphere.express.doc/info/exp/ae/tjmx_admin_finegr_mbsec.html
