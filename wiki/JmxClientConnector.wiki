@@ -74,7 +74,7 @@ The first two JARs contain the IBM ORB which is required by !AdminClient. `ibmpk
 
 == Recommended server-side configuration ==
 
-When connecting to WebSphere using RMI/IIOP, it is recommended to configure the `com.ibm.CORBA.EnableServerKeepAlive` system property on those instances. Setting this property avoids the problem described in [http://www-01.ibm.com/support/docview.wss?uid=swg1PK37506 PK37506]. It enables the `SO_KEEPALIVE` socket option on the server side of IIOP connections. This makes sure that broken connections are detected and that the corresponding resources can be released. If this setting is not enabled, a broken connection may result in an IIOP reader thread permanently blocking on a socket read operation in the server.
+When connecting to !WebSphere using RMI/IIOP, it is recommended to configure the `com.ibm.CORBA.EnableServerKeepAlive` system property on those instances. Setting this property avoids the problem described in [http://www-01.ibm.com/support/docview.wss?uid=swg1PK37506 PK37506]. It enables the `SO_KEEPALIVE` socket option on the server side of IIOP connections. This makes sure that broken connections are detected and that the corresponding resources can be released. If this setting is not enabled, a broken connection may result in an IIOP reader thread permanently blocking on a socket read operation in the server.
 
 = Known issues and limitations =
 
