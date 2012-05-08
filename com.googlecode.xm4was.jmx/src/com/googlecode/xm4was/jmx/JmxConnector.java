@@ -1,6 +1,7 @@
 package com.googlecode.xm4was.jmx;
 
 import java.io.IOException;
+import java.lang.reflect.Proxy;
 import java.rmi.NoSuchObjectException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -11,6 +12,7 @@ import java.util.Map;
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXConnectorServerFactory;
 import javax.management.remote.JMXServiceURL;
+import javax.management.remote.MBeanServerForwarder;
 import javax.naming.Context;
 
 import com.googlecode.xm4was.commons.AbstractWsComponent;
@@ -67,7 +69,7 @@ public class JmxConnector extends AbstractWsComponent {
             Map<String,Object> env = new HashMap<String,Object>();
             env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.rmi.registry.RegistryContextFactory");
             env.put(Context.PROVIDER_URL, "rmi://server:" + port);
-            // env.put("jmx.remote.x.login.config", "WSLogin");
+            env.put(JMXConnectorServer.AUTHENTICATOR, new WebSphereJMXAuthenticator());
     
             // SslRMIClientSocketFactory csf = new SslRMIClientSocketFactory();
             // SslRMIServerSocketFactory ssf = new SslRMIServerSocketFactory();
@@ -75,6 +77,8 @@ public class JmxConnector extends AbstractWsComponent {
             // env.put(RMIConnectorServer.RMI_SERVER_SOCKET_FACTORY_ATTRIBUTE, ssf); 
             server = JMXConnectorServerFactory.newJMXConnectorServer(url, env,
                     AdminServiceFactory.getMBeanFactory().getMBeanServer());
+            server.setMBeanServerForwarder((MBeanServerForwarder)Proxy.newProxyInstance(JmxConnector.class.getClassLoader(),
+                    new Class<?>[] { MBeanServerForwarder.class }, new WebSphereMBeanServerInvocationHandler()));
             server.start();
             addStopAction(new Runnable() {
                 public void run() {
