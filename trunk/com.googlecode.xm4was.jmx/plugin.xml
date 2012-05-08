@@ -16,7 +16,9 @@
                        class="com.googlecode.xm4was.jmx.PlatformMXBeansRegistrant"
                        processType="Servant"
                        component-id="XM_PlatformMXBeansRegistrant"
-                       startup-mode="immediate"/>
+                       startup-mode="immediate">
+                <dependency type="service" name="com.ibm.websphere.management.authorizer.service.AdminAuthzService"/>
+            </component>
         </components>
     </extension>
 </plugin>
