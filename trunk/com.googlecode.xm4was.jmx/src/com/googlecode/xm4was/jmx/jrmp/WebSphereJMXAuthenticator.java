@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.jmx;
+package com.googlecode.xm4was.jmx.jrmp;
 
 import javax.management.remote.JMXAuthenticator;
 import javax.security.auth.Subject;

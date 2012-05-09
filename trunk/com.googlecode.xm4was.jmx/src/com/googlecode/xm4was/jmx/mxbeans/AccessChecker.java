@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.jmx;
+package com.googlecode.xm4was.jmx.mxbeans;
 
 import java.util.Map;
 
