@@ -71,6 +71,9 @@ public class JmxConnector extends AbstractWsComponent {
             env.put(Context.PROVIDER_URL, "rmi://server:" + port);
             env.put(JMXConnectorServer.AUTHENTICATOR, new WebSphereJMXAuthenticator());
     
+            // TODO: enable SSL
+            // * WebSphere API to get socket factory: JSSEHelper.getSSLServerSocketFactory
+            // * Also use SSLConfigChangeListener to reconfigure the socket when config changes
             // SslRMIClientSocketFactory csf = new SslRMIClientSocketFactory();
             // SslRMIServerSocketFactory ssf = new SslRMIServerSocketFactory();
             // env.put(RMIConnectorServer.RMI_CLIENT_SOCKET_FACTORY_ATTRIBUTE, csf);
