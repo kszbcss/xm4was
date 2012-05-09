@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.jmx;
+package com.googlecode.xm4was.jmx.jrmp;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;

@@ -4,7 +4,7 @@
     <extension point="com.ibm.wsspi.extension.server-startup">
         <components>
             <component startup="5000"
-                       class="com.googlecode.xm4was.jmx.JmxConnector"
+                       class="com.googlecode.xm4was.jmx.jrmp.JmxConnector"
                        processType="Servant"
                        component-id="XM_JmxConnector"
                        startup-mode="immediate"/>
@@ -13,7 +13,7 @@
     <extension point="com.ibm.wsspi.extension.server-startup">
         <components>
             <component startup="5000"
-                       class="com.googlecode.xm4was.jmx.PlatformMXBeansRegistrant"
+                       class="com.googlecode.xm4was.jmx.mxbeans.PlatformMXBeansRegistrant"
                        processType="Servant"
                        component-id="XM_PlatformMXBeansRegistrant"
                        startup-mode="immediate">
