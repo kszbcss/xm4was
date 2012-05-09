@@ -1,5 +1,11 @@
 #summary Release notes.
 
+= 0.2.0 =
+
+Adds MBean security:
+ * The platform MXBeans are now secured (and require monitor or operator role, depending on the method).
+ * The JRMP JMX connector now integrates with !WebSphere's security system (authentication and authorization). Note however that SSL is not yet supported.
+
 = 0.1.2 =
 
 Fixes issue #1 which causes a start-up failure on WAS 6.1 servers configured in debug mode.
