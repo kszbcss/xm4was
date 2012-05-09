@@ -23,6 +23,7 @@ import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.management.AdminServiceFactory;
 import com.ibm.websphere.models.config.ipc.EndPoint;
 import com.ibm.ws.runtime.service.EndPointMgr;
+import com.ibm.ws.security.service.SecurityService;
 import com.ibm.wsspi.runtime.service.WsServiceRegistry;
 
 // * Security concerns in http://blogs.oracle.com/lmalventosa/entry/mimicking_the_out_of_the
@@ -37,7 +38,6 @@ public class JmxConnector extends AbstractWsComponent {
     
     @Override
     protected void doInitialize() throws Exception {
-        // TODO: need to add this as a dependency
         EndPointMgr epMgr = WsServiceRegistry.getService(this, EndPointMgr.class);
         // We don't use getEndPointInfo, because it only exists in WAS 7.0, but not WAS 6.1
         EndPoint ep = epMgr.getNodeEndPoints("@").getServerEndPoints("@").getEndPoint("JRMP_CONNECTOR_ADDRESS");
@@ -55,6 +55,9 @@ public class JmxConnector extends AbstractWsComponent {
         if (enabled) {
             JMXServiceURL url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://localhost:" + port + "/jmxrmi");
             Tr.info(TC, Messages._0001I, new Object[] { url.toString() });
+            SecurityService securityService = WsServiceRegistry.getService(this, SecurityService.class);
+            boolean securityEnabled = securityService.isSecurityEnabled();
+            Tr.info(TC, securityEnabled ? Messages._0003I : Messages._0004I);
             registry = LocateRegistry.createRegistry(port);
             addStopAction(new Runnable() {
                 public void run() {
@@ -69,7 +72,9 @@ public class JmxConnector extends AbstractWsComponent {
             Map<String,Object> env = new HashMap<String,Object>();
             env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.rmi.registry.RegistryContextFactory");
             env.put(Context.PROVIDER_URL, "rmi://server:" + port);
-            env.put(JMXConnectorServer.AUTHENTICATOR, new WebSphereJMXAuthenticator());
+            if (securityEnabled) {
+                env.put(JMXConnectorServer.AUTHENTICATOR, new WebSphereJMXAuthenticator());
+            }
     
             // TODO: enable SSL
             // * WebSphere API to get socket factory: JSSEHelper.getSSLServerSocketFactory
@@ -77,11 +82,16 @@ public class JmxConnector extends AbstractWsComponent {
             // SslRMIClientSocketFactory csf = new SslRMIClientSocketFactory();
             // SslRMIServerSocketFactory ssf = new SslRMIServerSocketFactory();
             // env.put(RMIConnectorServer.RMI_CLIENT_SOCKET_FACTORY_ATTRIBUTE, csf);
-            // env.put(RMIConnectorServer.RMI_SERVER_SOCKET_FACTORY_ATTRIBUTE, ssf); 
+            // env.put(RMIConnectorServer.RMI_SERVER_SOCKET_FACTORY_ATTRIBUTE, ssf);
+            if (TC.isDebugEnabled()) {
+                Tr.debug(TC, "Creating JMX connector with env={0}", env);
+            }
             server = JMXConnectorServerFactory.newJMXConnectorServer(url, env,
                     AdminServiceFactory.getMBeanFactory().getMBeanServer());
-            server.setMBeanServerForwarder((MBeanServerForwarder)Proxy.newProxyInstance(JmxConnector.class.getClassLoader(),
-                    new Class<?>[] { MBeanServerForwarder.class }, new WebSphereMBeanServerInvocationHandler()));
+            if (securityEnabled) {
+                server.setMBeanServerForwarder((MBeanServerForwarder)Proxy.newProxyInstance(JmxConnector.class.getClassLoader(),
+                        new Class<?>[] { MBeanServerForwarder.class }, new WebSphereMBeanServerInvocationHandler()));
+            }
             server.start();
             addStopAction(new Runnable() {
                 public void run() {
