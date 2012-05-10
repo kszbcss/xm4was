@@ -4,6 +4,7 @@
     <formats>
         <format>zip</format>
     </formats>
+    <baseDirectory>xm4was-${project.version}</baseDirectory>
     <dependencySets>
         <dependencySet>
             <useProjectArtifact>false</useProjectArtifact>
@@ -20,4 +21,14 @@
             </includes>
         </dependencySet>
     </dependencySets>
+    <fileSets>
+        <fileSet>
+            <directory>src/main/scripts</directory>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>*.sh</include>
+            </includes>
+            <fileMode>0755</fileMode>
+        </fileSet>
+    </fileSets>
 </assembly>
