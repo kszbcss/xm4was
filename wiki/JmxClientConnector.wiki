@@ -53,9 +53,6 @@ The `jmx.remote.protocol.provider.pkgs` system property must be set so that JMX 
 jmx.remote.protocol.provider.pkgs=com.googlecode.xm4was.jmx.client
 }}}
 
-TODO:
-  * com.ibm.SSL.ConfigURL and com.ibm.CORBA.ConfigURL are optional
-
 == Required JARs ==
 
 In addition to `jmx-client-connector-<version>.jar`, the following JAR from the WAS 7.0 runtime must be added to the classpath:
@@ -75,6 +72,12 @@ The first two JARs contain the IBM ORB which is required by !AdminClient. `ibmpk
 == Recommended server-side configuration ==
 
 When connecting to !WebSphere using RMI/IIOP, it is recommended to configure the `com.ibm.CORBA.EnableServerKeepAlive` system property on those instances. Setting this property avoids the problem described in [http://www-01.ibm.com/support/docview.wss?uid=swg1PK37506 PK37506]. It enables the `SO_KEEPALIVE` socket option on the server side of IIOP connections. This makes sure that broken connections are detected and that the corresponding resources can be released. If this setting is not enabled, a broken connection may result in an IIOP reader thread permanently blocking on a socket read operation in the server.
+
+== Configuration files ==
+
+During the first usage, the connector will automatically create default configuration files in `${user.home}/.xm4was`. This directory will also contain the key and trust stores maintained by the connector. Note that for some part of the configuration, different sets of configuration files are used on IBM and Sun/Oracle JREs. 
+
+The locations of the individual configuration files can be changed using the `com.ibm.SSL.ConfigURL`, `com.ibm.CORBA.ConfigURL` and `com.ibm.SOAP.ConfigURL` system properties. Please refer to the WebSphere documentation for more information about these system properties and the content of the configuration files.
 
 = Known issues and limitations =
 

@@ -1,3 +1,0 @@
-#summary TODO List
-
-  * Configure security for the platform MXBeans. This needs to be done programmatically, as described here: http://publib.boulder.ibm.com/infocenter/wasinfo/v6r1/topic/com.ibm.websphere.express.doc/info/exp/ae/tjmx_admin_finegr_mbsec.html

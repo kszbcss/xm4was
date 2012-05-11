@@ -1,0 +1,28 @@
+#summary Plugin installation
+
+= Available plugins =
+
+XM4WAS provides the following plugins for WebSphere Application Server. The JAR files for these plugins can be found in the `plugins` directory in the binary distribution.
+
+|| Plugin || Description ||
+|| com.googlecode.xm4was.commons || Contains common code used by the other plugins ||
+|| com.googlecode.xm4was.clmon || ClassLoaderMonitorPlugin ||
+|| com.googlecode.xm4was.jmx || JmxPlugin ||
+|| com.googlecode.xm4was.logging || LoggingPlugin ||
+|| com.googlecode.xm4was.pmi || PmiPlugin ||
+
+Note that it is not necessary to install all plugins. Only `com.googlecode.xm4was.commons` is mandatory because it contains code that is reused by the other plugins.
+
+= First installation =
+
+After selecting the set of plugins to install, copy the corresponding JARs to the existing `plugins` directory under the WebSphere installation directory (e.g. `/opt/IBM/WebSphere/AppServer`). To enable the plugins, restart the WebSphere instance(s).
+
+= Upgrading =
+
+To upgrade from a previous XM4WAS version, first delete all `com.googlecode.xm4was.*` JAR files from the `plugins` directory. Then copy the new JARs as described in the previous section. Before restarting WebSphere, execute the `bin/osgiCfgInit.(sh|bat)` script found in the profile directory (e.g. `/opt/IBM/WebSphere/AppServer/profiles/AppSrv01`).
+
+*Note:* restarting the server(s) without prior execution of `osgiCfgInit` may result in failures (typically `ClassNotFoundException`s) during server startup.
+
+= Troubleshooting =
+
+ 
