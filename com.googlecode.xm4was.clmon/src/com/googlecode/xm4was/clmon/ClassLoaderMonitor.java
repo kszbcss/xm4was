@@ -93,7 +93,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
                 null, "/ClassLoaderMonitorMBean.xml");
         
         if (StatsFactory.isPMIEnabled()) {
-            statsGroup = createStatsGroup("ClassLoaderStats", "/xm4was/ClassLoaderStats.xml", mbean);
+            statsGroup = createStatsGroup("ClassLoaderStats", "/com/googlecode/xm4was/clmon/pmi/ClassLoaderStats.xml", mbean);
         }
         classLoaderGroups = new HashMap<String,ClassLoaderGroup>();
         

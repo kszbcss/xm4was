@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.pmi;
+package com.googlecode.xm4was.pmi.zfc;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -22,7 +22,7 @@ public class ZipFileCacheComponent extends AbstractWsComponent {
         Field modCountField = HashMap.class.getDeclaredField("modCount");
         modCountField.setAccessible(true);
         
-        createStatsInstance("ZipFileCacheStats", "/xm4was/ZipFileCacheStats.xml", null,
+        createStatsInstance("ZipFileCacheStats", "/com/googlecode/xm4was/pmi/ZipFileCacheStats.xml", null,
                 new ZipFileCacheMonitor(zipFileCache, modCountField));
     }
 }

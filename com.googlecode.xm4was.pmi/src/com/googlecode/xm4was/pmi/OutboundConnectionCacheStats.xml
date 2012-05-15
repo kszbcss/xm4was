@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Stats SYSTEM "com.ibm.websphere.pmi.xml/stats.dtd">
-<Stats type="xm4was.OutboundConnectionCacheStats">
+<Stats type="com.googlecode.xm4was.pmi.OutboundConnectionCacheStats">
     <description>Outbound HTTP Connection Pool</description>
     <BoundedRangeStatistic ID="1" name="ConnectionsInUse">
         <level>high</level>

@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.pmi;
+package com.googlecode.xm4was.pmi.zfc;
 
 import java.lang.reflect.Field;
 import java.util.Map;

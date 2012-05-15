@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.pmi;
+package com.googlecode.xm4was.pmi.occ;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
