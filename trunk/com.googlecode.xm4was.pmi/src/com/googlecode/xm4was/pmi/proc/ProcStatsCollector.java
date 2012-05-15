@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.pmi;
+package com.googlecode.xm4was.pmi.proc;
 
 import java.io.File;
 

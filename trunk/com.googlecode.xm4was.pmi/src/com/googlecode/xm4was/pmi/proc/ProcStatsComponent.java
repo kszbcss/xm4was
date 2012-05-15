@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.pmi;
+package com.googlecode.xm4was.pmi.proc;
 
 import java.io.File;
 
@@ -32,6 +32,6 @@ public class ProcStatsComponent extends AbstractWsComponent {
             Tr.error(TC, Messages._0102E, fdDir);
             return;
         }
-        createStatsInstance("ProcStats", "/xm4was/ProcStats.xml", null, new ProcStatsCollector(fdDir));
+        createStatsInstance("ProcStats", "/com/googlecode/xm4was/pmi/ProcStats.xml", null, new ProcStatsCollector(fdDir));
     }
 }

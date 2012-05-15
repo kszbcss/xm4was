@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.pmi;
+package com.googlecode.xm4was.pmi.occ;
 
 import java.util.Properties;
 
@@ -13,7 +13,7 @@ import com.ibm.wsspi.pmi.factory.StatsGroup;
 public class OutboundConnectionCacheComponent extends AbstractWsComponent {
     @Override
     protected void doStart() throws Exception {
-        StatsGroup group = StatsFactory.isPMIEnabled() ? createStatsGroup("OutboundConnectionCache", "/xm4was/OutboundConnectionCacheStats.xml", null) : null;
+        StatsGroup group = StatsFactory.isPMIEnabled() ? createStatsGroup("OutboundConnectionCache", "/com/googlecode/xm4was/pmi/OutboundConnectionCacheStats.xml", null) : null;
         // The JAX-RPC cache is part of com.ibm.ws.runtime.jar and is visible to the application class loader.
         setupOutboundConnectionCacheMonitor(group, OutboundConnectionCache.class, "JAX-RPC");
         // The JAX-WS cache is part of the Axis2 OSGi bundle, but is not exported. We get the class loader

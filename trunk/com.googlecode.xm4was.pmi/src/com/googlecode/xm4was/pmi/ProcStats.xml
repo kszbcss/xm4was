@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Stats SYSTEM "com.ibm.websphere.pmi.xml/stats.dtd">
-<Stats type="xm4was.ProcStats">
+<Stats type="com.googlecode.xm4was.pmi.ProcStats">
     <description>Proc Stats</description>
     <RangeStatistic ID="1" name="FileDescriptors">
         <level>high</level>

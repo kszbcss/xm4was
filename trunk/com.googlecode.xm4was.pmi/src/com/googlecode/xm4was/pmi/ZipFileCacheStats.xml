@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Stats SYSTEM "com.ibm.websphere.pmi.xml/stats.dtd">
-<Stats type="xm4was.ZipFileCacheStats">
+<Stats type="com.googlecode.xm4was.pmi.ZipFileCacheStats">
     <description>ZIP File Cache Stats</description>
     <CountStatistic ID="1" name="ModificationCount">
         <level>high</level>
