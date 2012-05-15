@@ -26,4 +26,10 @@
         <description>The number of leaked class loaders.</description>
         <updateOnRequest>true</updateOnRequest>
     </CountStatistic>
+    <CountStatistic ID="5" name="ResourceRequestCacheModCount">
+        <level>high</level>
+        <unit>None</unit>
+        <description>The number of modifications to the resource request cache of the class loader. The modification rate is expected to be roughly the same as the cache miss rate.</description>
+        <updateOnRequest>true</updateOnRequest>
+    </CountStatistic>
 </Stats>
