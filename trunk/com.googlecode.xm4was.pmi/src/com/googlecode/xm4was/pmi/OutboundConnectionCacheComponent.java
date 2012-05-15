@@ -37,7 +37,7 @@ public class OutboundConnectionCacheComponent extends AbstractWsComponent {
         
         ObjectName mbeanName = activateMBean("XM4WAS.OutboundConnectionCache",
                 new DefaultRuntimeCollaborator(monitor, moduleName),
-                null, "/xm4was/OutboundConnectionCache.xml", keyProperties);
+                null, "/OutboundConnectionCache.xml", keyProperties);
         
         if (group != null) {
             // Create a PMI module
