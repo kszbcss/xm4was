@@ -111,7 +111,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
                 if (TC.isDebugEnabled()) {
                     Tr.debug(TC, "Detected class loader that has been garbage collected: " + classLoaderInfo);
                 }
-                classLoaderInfo.getGroup().incrementDestroyedCount();
+                classLoaderInfo.getGroup().classLoaderDestroyed();
             }
         }
         long timestamp = System.currentTimeMillis();
@@ -168,7 +168,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
             }
             if (state.equals("STARTING")) {
                 classLoaderInfos.add(new ClassLoaderInfo(classLoader, group));
-                group.incrementCreateCount();
+                group.classLoaderCreated(classLoader);
                 lastUpdated = System.currentTimeMillis();
             } else if (state.equals("DESTROYED")) {
                 for (ClassLoaderInfo info : classLoaderInfos) {
@@ -177,7 +177,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
                             Tr.debug(TC, "Identified class loader: " + info);
                         }
                         info.setStopped(true);
-                        group.incrementStopCount();
+                        group.classLoaderStopped();
                         lastUpdated = System.currentTimeMillis();
                         break;
                     }

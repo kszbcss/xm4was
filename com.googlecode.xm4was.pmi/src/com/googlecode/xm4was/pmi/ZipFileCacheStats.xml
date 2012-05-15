@@ -2,7 +2,7 @@
 <!DOCTYPE Stats SYSTEM "com.ibm.websphere.pmi.xml/stats.dtd">
 <Stats type="com.googlecode.xm4was.pmi.ZipFileCacheStats">
     <description>ZIP File Cache Stats</description>
-    <CountStatistic ID="1" name="ModificationCount">
+    <CountStatistic ID="1" name="ModCount">
         <level>high</level>
         <unit>None</unit>
         <description>The number of modifications to the ZIP file cache. The modification rate is expected to be roughly the same as the cache miss rate.</description>
