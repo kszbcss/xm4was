@@ -90,7 +90,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         
         ObjectName mbean = activateMBean("XM4WAS.ClassLoaderMonitor",
                 new DefaultRuntimeCollaborator(new ClassLoaderMonitorMBean(), "ClassLoaderMonitor"),
-                null, "/xm4was/ClassLoaderMonitorMBean.xml");
+                null, "/ClassLoaderMonitorMBean.xml");
         
         if (StatsFactory.isPMIEnabled()) {
             statsGroup = createStatsGroup("ClassLoaderStats", "/xm4was/ClassLoaderStats.xml", mbean);
