@@ -13,6 +13,11 @@
                        processType="Servant"
                        component-id="XM_ProcStatsComponent"
                        startup-mode="immediate"/>
+            <component startup="5000"
+                       class="com.googlecode.xm4was.pmi.ZipFileCacheComponent"
+                       processType="Servant"
+                       component-id="XM_ZipFileCacheComponent"
+                       startup-mode="immediate"/>
         </components>
     </extension>
     <extension point="com.ibm.wsspi.extension.mbean-provider"/>
