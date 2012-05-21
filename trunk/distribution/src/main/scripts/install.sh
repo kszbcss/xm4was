@@ -24,6 +24,10 @@ PROFILES=$($MANAGE_PROFILES -listProfiles | sed -e 's/[][,]//g')
 PROFILE_PATHS=
 for PROFILE_NAME in $PROFILES; do
   PROFILE_PATH=$($MANAGE_PROFILES -getPath -profileName $PROFILE_NAME)
+  if [ ! -O $PROFILE_PATH/configuration ]; then
+    echo "$PROFILE_PATH/configuration doesn't belong to the current user; not continuing."
+    exit 1
+  fi
   if [ -z "$PROFILE_PATHS" ]; then
     PROFILE_PATHS=$PROFILE_PATH
   else
