@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Stats SYSTEM "com.ibm.websphere.pmi.xml/stats.dtd">
+<Stats type="com.googlecode.xm4was.pmi.ProcStats">
+    <description>Proc Stats</description>
+    <RangeStatistic ID="1" name="FileDescriptors">
+        <level>high</level>
+        <unit>None</unit>
+        <description>The number of file descriptors allocated by the server process.</description>
+        <updateOnRequest>true</updateOnRequest>
+    </RangeStatistic>
+</Stats>

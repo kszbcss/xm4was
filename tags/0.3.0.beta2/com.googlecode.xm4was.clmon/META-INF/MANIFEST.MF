@@ -1,0 +1,25 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: XM4WAS Class Loader Monitor
+Bundle-SymbolicName: com.googlecode.xm4was.clmon;singleton:=true
+Bundle-Version: 0.3.0.beta2
+Bundle-Activator: com.googlecode.xm4was.clmon.Activator
+Eclipse-AutoStart: true
+Import-Package: com.googlecode.xm4was.commons,
+ com.ibm.ejs.ras,
+ com.ibm.websphere.management,
+ com.ibm.websphere.pmi.stat,
+ com.ibm.ws.classloader,
+ com.ibm.ws.exception,
+ com.ibm.ws.management.collaborator,
+ com.ibm.ws.runtime.deploy,
+ com.ibm.ws.runtime.service,
+ com.ibm.wsspi.bootstrap.osgi,
+ com.ibm.wsspi.pmi.factory,
+ com.ibm.wsspi.pmi.stat,
+ com.ibm.wsspi.runtime.component,
+ com.ibm.wsspi.runtime.service,
+ org.osgi.framework
+Require-Bundle: com.ibm.wsspi.extension
+Export-Package: com.googlecode.xm4was.clmon.pmi,
+ com.googlecode.xm4was.clmon.resources
