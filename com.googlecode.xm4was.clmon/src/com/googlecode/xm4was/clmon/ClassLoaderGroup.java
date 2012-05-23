@@ -28,20 +28,34 @@ public class ClassLoaderGroup extends StatisticActions {
     private static final Field modCountField;
     
     static {
+        Field field;
         try {
-            resourceRequestCacheField = CompoundClassLoader.class.getDeclaredField("resourceRequestCache");
-            resourceRequestCacheField.setAccessible(true);
-            Class<?> synchronizedMapClass = Class.forName("java.util.Collections$SynchronizedMap");
-            mutexField = synchronizedMapClass.getDeclaredField("mutex");
-            mutexField.setAccessible(true);
-            targetMapField = synchronizedMapClass.getDeclaredField("m");
-            targetMapField.setAccessible(true);
-            modCountField = HashMap.class.getDeclaredField("modCount");
-            modCountField.setAccessible(true);
-        } catch (ClassNotFoundException ex) {
-            throw new NoClassDefFoundError(ex.getMessage());
+            field = CompoundClassLoader.class.getDeclaredField("resourceRequestCache");
         } catch (NoSuchFieldException ex) {
-            throw new NoSuchFieldError(ex.getMessage());
+            // resourceRequestCache doesn't exist in WAS 6.1
+            field = null;
+        }
+        if (field == null) {
+            resourceRequestCacheField = null;
+            mutexField = null;
+            targetMapField = null;
+            modCountField = null;
+        } else {
+            try {
+                resourceRequestCacheField = field;
+                resourceRequestCacheField.setAccessible(true);
+                Class<?> synchronizedMapClass = Class.forName("java.util.Collections$SynchronizedMap");
+                mutexField = synchronizedMapClass.getDeclaredField("mutex");
+                mutexField.setAccessible(true);
+                targetMapField = synchronizedMapClass.getDeclaredField("m");
+                targetMapField.setAccessible(true);
+                modCountField = HashMap.class.getDeclaredField("modCount");
+                modCountField.setAccessible(true);
+            } catch (ClassNotFoundException ex) {
+                throw new NoClassDefFoundError(ex.getMessage());
+            } catch (NoSuchFieldException ex) {
+                throw new NoSuchFieldError(ex.getMessage());
+            }
         }
     }
     
@@ -74,21 +88,26 @@ public class ClassLoaderGroup extends StatisticActions {
     public synchronized void classLoaderCreated(ClassLoader classLoader) {
         createCount++;
         if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Incremented createCount; new value: " + createCount);
+            Tr.debug(TC, "Incremented createCount; new value: {0}", createCount);
         }
-        try {
-            Map<?,?> synchronizedMap = (Map<?,?>)resourceRequestCacheField.get(classLoader);
-            mutex = mutexField.get(synchronizedMap);
-            resourceRequestCache = (Map<?,?>)targetMapField.get(synchronizedMap);
-        } catch (IllegalAccessException ex) {
-            throw new IllegalAccessError(ex.getMessage());
+        if (resourceRequestCacheField != null) {
+            try {
+                Map<?,?> synchronizedMap = (Map<?,?>)resourceRequestCacheField.get(classLoader);
+                mutex = mutexField.get(synchronizedMap);
+                resourceRequestCache = (Map<?,?>)targetMapField.get(synchronizedMap);
+            } catch (IllegalAccessException ex) {
+                throw new IllegalAccessError(ex.getMessage());
+            }
+            Tr.debug(TC, "Extracted resource request cache reference from class loader");
+        } else {
+            Tr.debug(TC, "Resource request cache not available in this WAS version");
         }
     }
     
     public synchronized void classLoaderStopped() {
         stopCount++;
         if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Incremented stopCount; new value: " + stopCount);
+            Tr.debug(TC, "Incremented stopCount; new value: {0}", stopCount);
         }
         // Release references to avoid class loader leak
         mutex = null;
@@ -98,7 +117,7 @@ public class ClassLoaderGroup extends StatisticActions {
     public synchronized void classLoaderDestroyed() {
         destroyedCount++;
         if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Incremented destroyedCount; new value: " + destroyedCount);
+            Tr.debug(TC, "Incremented destroyedCount; new value: {0}", destroyedCount);
         }
     }
     
@@ -130,7 +149,9 @@ public class ClassLoaderGroup extends StatisticActions {
                 leakedCountStat = (SPICountStatistic)statistic;
                 break;
             case RESOURCE_REQUEST_CACHE_MOD_COUNT:
-                resourceRequestCacheModCountStat = (SPICountStatistic)statistic;
+                if (resourceRequestCache != null) {
+                    resourceRequestCacheModCountStat = (SPICountStatistic)statistic;
+                }
                 break;
         }
     }
@@ -151,12 +172,14 @@ public class ClassLoaderGroup extends StatisticActions {
                 leakedCountStat.setCount(stopCount - destroyedCount);
                 break;
             case RESOURCE_REQUEST_CACHE_MOD_COUNT:
-                try {
-                    synchronized (mutex) {
-                        resourceRequestCacheModCountStat.setCount(modCountField.getInt(resourceRequestCache));
+                if (resourceRequestCacheModCountStat != null) {
+                    try {
+                        synchronized (mutex) {
+                            resourceRequestCacheModCountStat.setCount(modCountField.getInt(resourceRequestCache));
+                        }
+                    } catch (IllegalAccessException ex) {
+                        throw new IllegalAccessError(ex.getMessage());
                     }
-                } catch (IllegalAccessException ex) {
-                    throw new IllegalAccessError(ex.getMessage());
                 }
                 break;
         }
