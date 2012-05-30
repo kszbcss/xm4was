@@ -2,7 +2,7 @@
 
 = Available plugins =
 
-XM4WAS provides the following plugins for WebSphere Application Server. The JAR files for these plugins can be found in the `plugins` directory in the binary distribution.
+XM4WAS provides the following plugins for !WebSphere Application Server. The JAR files for these plugins can be found in the `plugins` directory in the binary distribution.
 
 || Plugin || Description ||
 || com.googlecode.xm4was.commons || Contains common code used by the other plugins ||
@@ -13,16 +13,20 @@ XM4WAS provides the following plugins for WebSphere Application Server. The JAR 
 
 Note that it is not necessary to install all plugins. Only `com.googlecode.xm4was.commons` is mandatory because it contains code that is reused by the other plugins.
 
-= First installation =
+= Manual installation =
 
-After selecting the set of plugins to install, copy the corresponding JARs to the existing `plugins` directory under the WebSphere installation directory (e.g. `/opt/IBM/WebSphere/AppServer`). To enable the plugins, restart the WebSphere instance(s).
+== First installation ==
 
-= Upgrading =
+After selecting the set of plugins to install, copy the corresponding JARs to the existing `plugins` directory under the !WebSphere installation directory (e.g. `/opt/IBM/WebSphere/AppServer`). To enable the plugins, restart the !WebSphere instance(s).
 
-To upgrade from a previous XM4WAS version, first delete all `com.googlecode.xm4was.*` JAR files from the `plugins` directory. Then copy the new JARs as described in the previous section. Before restarting WebSphere, execute the `bin/osgiCfgInit.(sh|bat)` script found in the profile directory (e.g. `/opt/IBM/WebSphere/AppServer/profiles/AppSrv01`).
+== Upgrading ==
+
+To upgrade from a previous XM4WAS version, first delete all `com.googlecode.xm4was.*` JAR files from the `plugins` directory. Then copy the new JARs as described in the previous section. Before restarting !WebSphere, execute the `bin/osgiCfgInit.(sh|bat)` script found in the profile directory (e.g. `/opt/IBM/WebSphere/AppServer/profiles/AppSrv01`).
 
 *Note:* restarting the server(s) without prior execution of `osgiCfgInit` may result in failures (typically `ClassNotFoundException`s) during server startup.
 
-= Troubleshooting =
+= Installation/upgrade using the `install.sh` script =
 
- 
+The `install.sh` script shipped with the binary distribution automates the steps described above. To use the script, unzip the binary distribution and execute the script with the user account that is the owner of the !WebSphere installation. The script requires a single argument, which is the !WebSphere installation directory (e.g. `/opt/IBM/WebSphere/AppServer`).
+
+= Troubleshooting =
