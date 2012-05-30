@@ -1,5 +1,11 @@
 #summary Release notes.
 
+= 0.3.0 =
+
+ * Added a PMI module that provides statistics about WebSphere's ZIP file cache.
+ * Added a statistic to the class loader monitor PMI module that provides information about the resource request cache.
+ * The PMI statistics can now be visualized in the performance viewer in the admin console. This already worked for stand-alone servers, but not on the deployment manager in a Network Deployment cell.
+
 = 0.2.0 =
 
 Adds MBean security:
