@@ -51,8 +51,7 @@ During startup, most of the plugins will emit at least one log message at INFO l
 [18/06/12 23:19:45:265 CEST] 00000000 ClassLoaderMo I   XMCLM0001I: Class loader monitor started
 [18/06/12 23:19:45:578 CEST] 00000000 ProcStatsComp I   XMPMI0101I: The /proc filesystem doesn't exist on this platform
 ...
-[18/06/12 23:20:37:468 CEST] 00000013 ClassLoaderMo I   XMCLM0003I: Class loader stats: created=19; stopped=1; destroyed=0
-</code>
+[18/06/12 23:20:37:468 CEST] 00000013 ClassLoaderMo I   XMCLM0003I: Class loader stats: created=19; stopped=1; destroyed=0</code>
 
 == Determining why the plugins are not loaded ==
 
@@ -67,14 +66,12 @@ id      State       Bundle
 8       RESOLVED    com.googlecode.xm4was.jmx_0.3.0
 9       RESOLVED    com.googlecode.xm4was.logging_0.3.0
 10      RESOLVED    com.googlecode.xm4was.pmi_0.3.0
-...
-</code>
+...</code>
 
 If there is a problem, then the state will be `INSTALLED` instead:
 
 <code language="xml">
-6       INSTALLED   com.googlecode.xm4was.clmon_0.3.0
-</code>
+6       INSTALLED   com.googlecode.xm4was.clmon_0.3.0</code>
 
 To determine why the bundle for a given plugin can't be resolved, attempt to start it using the `start` command with the bundle ID as parameter:
 
@@ -92,7 +89,6 @@ org.osgi.framework.BundleException: The bundle could not be resolved. Reason: Mi
         at org.eclipse.osgi.framework.internal.core.FrameworkConsole.docommand(FrameworkConsole.java:293)
         at org.eclipse.osgi.framework.internal.core.FrameworkConsole.console(FrameworkConsole.java:278)
         at org.eclipse.osgi.framework.internal.core.FrameworkConsole.run(FrameworkConsole.java:213)
-        at java.lang.Thread.run(Thread.java:736)
-</code>
+        at java.lang.Thread.run(Thread.java:736)</code>
 
 In the example shown here, the `com.googlecode.xm4was.clmon` plugin can't be loaded because the `com.googlecode.xm4was.commons` is not installed.
