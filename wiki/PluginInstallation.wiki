@@ -39,7 +39,7 @@ To uninstall the plugins, simply delete the corresponding JAR files from the `pl
 
 During startup, most of the plugins will emit at least one log message at INFO level. If the plugins are loaded correctly, then these log messages should appear in `SystemOut.log`. Note that all messages emitted by the XM4WAS plugins have a key that starts with `XM` and that identifies the plugin. Here are some typical messages that can be seen during startup: 
 
-<pre>
+<code language="xml">
 [18/06/12 23:19:22:812 CEST] 00000000 JmxConnector  I   XMJMX0001I: Starting the JRMP JMX connector on service:jmx:rmi:///jndi/rmi://localhost:9999/jmxrmi
 [18/06/12 23:19:22:843 CEST] 00000000 JmxConnector  I   XMJMX0004I: JRMP JMX connector security not enabled.
 [18/06/12 23:19:23:359 CEST] 00000000 PlatformMXBea I   XMJMX0101I: Registered 14 platform MXBeans
@@ -52,13 +52,13 @@ During startup, most of the plugins will emit at least one log message at INFO l
 [18/06/12 23:19:45:578 CEST] 00000000 ProcStatsComp I   XMPMI0101I: The /proc filesystem doesn't exist on this platform
 ...
 [18/06/12 23:20:37:468 CEST] 00000013 ClassLoaderMo I   XMCLM0003I: Class loader stats: created=19; stopped=1; destroyed=0
-</pre>
+</code>
 
 == Determining why the plugins are not loaded ==
 
 To determine why an XM4WAS plugin can't be loaded, start the `osgiConsole` tool shipped with !WebSphere and use the `ss` (short status) command to list the available plugins. Note that !WebSphere doesn't need to be running to use that tool. If the plugins are loaded correctly, then they should all appear in the list produced by `ss` with status `RESOLVED`, as shown in the following example:
 
-<pre>
+<code language="xml">
 osgi> ss
 id      State       Bundle
 ...
@@ -68,17 +68,17 @@ id      State       Bundle
 9       RESOLVED    com.googlecode.xm4was.logging_0.3.0
 10      RESOLVED    com.googlecode.xm4was.pmi_0.3.0
 ...
-</pre>
+</code>
 
 If there is a problem, then the state will be `INSTALLED` instead:
 
-<pre>
+<code language="xml">
 6       INSTALLED   com.googlecode.xm4was.clmon_0.3.0
-</pre>
+</code>
 
 To determine why the bundle for a given plugin can't be resolved, attempt to start it using the `start` command with the bundle ID as parameter:
 
-<pre>
+<code language="xml">
 osgi> start 6
 org.osgi.framework.BundleException: The bundle could not be resolved. Reason: Missing Constraint: Import-Package: com.googlecode.xm4was.commons; version="0.0.0"
         at org.eclipse.osgi.framework.internal.core.BundleHost.startWorker(BundleHost.java:294)
@@ -93,6 +93,6 @@ org.osgi.framework.BundleException: The bundle could not be resolved. Reason: Mi
         at org.eclipse.osgi.framework.internal.core.FrameworkConsole.console(FrameworkConsole.java:278)
         at org.eclipse.osgi.framework.internal.core.FrameworkConsole.run(FrameworkConsole.java:213)
         at java.lang.Thread.run(Thread.java:736)
-</pre>
+</code>
 
 In the example shown here, the `com.googlecode.xm4was.clmon` plugin can't be loaded because the `com.googlecode.xm4was.commons` is not installed.
