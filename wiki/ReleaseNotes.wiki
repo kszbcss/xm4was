@@ -1,5 +1,9 @@
 #summary Release notes.
 
+= 0.3.1 (not yet released) =
+
+ * Solved issue #5.
+
 = 0.3.0 =
 
  * Added a PMI module that provides statistics about WebSphere's ZIP file cache.
