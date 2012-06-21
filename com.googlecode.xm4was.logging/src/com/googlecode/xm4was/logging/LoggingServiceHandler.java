@@ -22,7 +22,7 @@ public class LoggingServiceHandler extends Handler {
     private final LogMessage[] buffer = new LogMessage[1024];
     private int head;
     // We start at System.currentTimeMillis to make sure that the sequence is strictly increasing
-    // event across a server restart
+    // even across a server restarts
     private final long initialSequence;
     private long nextSequence;
     
