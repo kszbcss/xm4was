@@ -14,6 +14,8 @@ import com.ibm.ws.runtime.metadata.ApplicationMetaData;
 import com.ibm.ws.runtime.metadata.ComponentMetaData;
 import com.ibm.ws.runtime.metadata.ModuleMetaData;
 import com.ibm.ws.threadContext.ComponentMetaDataAccessorImpl;
+import com.ibm.wsspi.webcontainer.metadata.WebComponentMetaData;
+import com.ibm.wsspi.webcontainer.servlet.IServletConfig;
 
 public class LoggingServiceHandler extends Handler {
     private static final TraceComponent TC = Tr.register(LoggingServiceHandler.class, TrConstants.GROUP, Messages.class.getName());
@@ -52,7 +54,19 @@ public class LoggingServiceHandler extends Handler {
                         componentName = null;
                         mmd = (ModuleMetaData)cmd;
                     } else {
-                        componentName = cmd.getName();
+                        if (cmd instanceof WebComponentMetaData) {
+                            IServletConfig config = ((WebComponentMetaData)cmd).getServletConfig();
+                            // Don't set the component name for static web resources (config == null; the name would be "Static File")
+                            // and JSPs (config.getFileName != null). This is especially important for log events generated
+                            // by servlet filters.
+                            if (config == null || config.getFileName() != null) {
+                                componentName = null;
+                            } else {
+                                componentName = cmd.getName();
+                            }
+                        } else {
+                            componentName = cmd.getName();
+                        }
                         mmd = cmd.getModuleMetaData();
                     }
                     if (mmd == null) {
