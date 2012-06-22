@@ -1,26 +1,35 @@
 package com.googlecode.xm4was.logging;
 
+import java.util.IdentityHashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.logging.resources.Messages;
+import com.ibm.ejs.csi.DefaultComponentMetaData;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.logging.WsLevel;
 import com.ibm.ws.logging.TraceLogFormatter;
+import com.ibm.ws.runtime.deploy.DeployedObject;
+import com.ibm.ws.runtime.deploy.DeployedObjectEvent;
+import com.ibm.ws.runtime.deploy.DeployedObjectListener;
 import com.ibm.ws.runtime.metadata.ApplicationMetaData;
 import com.ibm.ws.runtime.metadata.ComponentMetaData;
+import com.ibm.ws.runtime.metadata.MetaData;
 import com.ibm.ws.runtime.metadata.ModuleMetaData;
 import com.ibm.ws.threadContext.ComponentMetaDataAccessorImpl;
+import com.ibm.ws.util.ThreadPool;
 import com.ibm.wsspi.webcontainer.metadata.WebComponentMetaData;
 import com.ibm.wsspi.webcontainer.servlet.IServletConfig;
 
-public class LoggingServiceHandler extends Handler {
+public class LoggingServiceHandler extends Handler implements DeployedObjectListener {
     private static final TraceComponent TC = Tr.register(LoggingServiceHandler.class, TrConstants.GROUP, Messages.class.getName());
     
     private final ComponentMetaDataAccessorImpl cmdAccessor = ComponentMetaDataAccessorImpl.getComponentMetaDataAccessor();
+    private final Map<ClassLoader,MetaData> classLoaderMap = new IdentityHashMap<ClassLoader,MetaData>();
     private final LogMessage[] buffer = new LogMessage[1024];
     private int head;
     // We start at System.currentTimeMillis to make sure that the sequence is strictly increasing
@@ -33,53 +42,94 @@ public class LoggingServiceHandler extends Handler {
         nextSequence = initialSequence;
     }
     
+    public void stateChanged(DeployedObjectEvent event) {
+        DeployedObject deployedObject = event.getDeployedObject();
+        ClassLoader classLoader = deployedObject.getClassLoader();
+        if (classLoader != null) {
+            String state = (String)event.getNewValue();
+            MetaData metaData = deployedObject.getMetaData();
+            if (state.equals("STARTING")) {
+                if (!classLoaderMap.containsKey(classLoader)) {
+                    if (TC.isDebugEnabled()) {
+                        Tr.debug(TC, "Adding class loader mapping for component {0}:{1}", new Object[] { metaData.getName(), classLoader });
+                    }
+                    classLoaderMap.put(classLoader, metaData);
+                }
+            } else if (state.equals("STOPPED")) {
+                MetaData existingMetaData = classLoaderMap.get(classLoader);
+                if (existingMetaData == metaData) {
+                    if (TC.isDebugEnabled()) {
+                        Tr.debug(TC, "Removing class loader mapping for component {0}:{1}", new Object[] { metaData.getName(), classLoader });
+                    }
+                    classLoaderMap.remove(classLoader);
+                }
+            }
+        }
+    }
+
     @Override
     public void publish(LogRecord record) {
         int level = record.getLevel().intValue();
         if (level >= WsLevel.AUDIT.intValue()) {
             try {
-                String applicationName;
-                String moduleName;
-                String componentName;
-                ComponentMetaData cmd = cmdAccessor.getComponentMetaData();
-                if (cmd == null) {
-                    applicationName = null;
-                    moduleName = null;
-                    componentName = null;
-                } else {
-                    // For servlet context listeners, the component meta data is the same as the
-                    // module meta data. If we are in this case, we leave the component name empty.
-                    ModuleMetaData mmd;
-                    if (cmd instanceof ModuleMetaData) {
-                        componentName = null;
-                        mmd = (ModuleMetaData)cmd;
-                    } else {
-                        if (cmd instanceof WebComponentMetaData) {
-                            IServletConfig config = ((WebComponentMetaData)cmd).getServletConfig();
-                            // Don't set the component name for static web resources (config == null; the name would be "Static File")
-                            // and JSPs (config.getFileName != null). This is especially important for log events generated
-                            // by servlet filters.
-                            if (config == null || config.getFileName() != null) {
-                                componentName = null;
-                            } else {
-                                componentName = cmd.getName();
-                            }
-                        } else {
-                            componentName = cmd.getName();
-                        }
-                        mmd = cmd.getModuleMetaData();
-                    }
-                    if (mmd == null) {
-                        applicationName = null;
-                        moduleName = null;
-                    } else {
-                        moduleName = mmd.getName();
-                        ApplicationMetaData amd = mmd.getApplicationMetaData();
-                        applicationName = amd == null ? null : amd.getName();
+                final ComponentMetaData componentMetaData;
+                final ModuleMetaData moduleMetaData;
+                final ApplicationMetaData applicationMetaData;
+                MetaData metaData = cmdAccessor.getComponentMetaData();
+                if (metaData instanceof DefaultComponentMetaData) {
+                    metaData = null;
+                }
+                if (metaData == null) {
+                    // Attempt to determine the application or module based on the thread context
+                    // class loader. We don't do this for threads belonging to WebSphere thread
+                    // pools because
+                    //  * these are always managed threads and therefore should have a J2EE context;
+                    //  * sometimes the thread context class loader is set incorrectly on a thread pool.
+                    Thread thread = Thread.currentThread();
+                    if (!(thread instanceof ThreadPool.WorkerThread)) {
+                        metaData = classLoaderMap.get(thread.getContextClassLoader());
                     }
                 }
+                if (metaData instanceof ModuleMetaData) {
+                    // We get here in two cases:
+                    //  * The log event was emitted by an unmanaged thread and the metadata was
+                    //    identified using the thread context class loader.
+                    //  * For servlet context listeners, the component meta data is the same as the
+                    //    module meta data. If we are in this case, we leave the component name empty.
+                    componentMetaData = null;
+                    moduleMetaData = (ModuleMetaData)metaData;
+                    applicationMetaData = moduleMetaData.getApplicationMetaData();
+                } else if (metaData instanceof ComponentMetaData) {
+                    ComponentMetaData cmd = (ComponentMetaData)metaData;
+                    if (cmd instanceof WebComponentMetaData) {
+                        IServletConfig config = ((WebComponentMetaData)cmd).getServletConfig();
+                        // Don't set the component for static web resources (config == null; the name would be "Static File")
+                        // and JSPs (config.getFileName != null). This is especially important for log events generated
+                        // by servlet filters.
+                        if (config == null || config.getFileName() != null) {
+                            componentMetaData = null;
+                        } else {
+                            componentMetaData = cmd;
+                        }
+                    } else {
+                        componentMetaData = cmd;
+                    }
+                    moduleMetaData = cmd.getModuleMetaData();
+                    applicationMetaData = moduleMetaData.getApplicationMetaData();
+                } else if (metaData instanceof ApplicationMetaData) {
+                    componentMetaData = null;
+                    moduleMetaData = null;
+                    applicationMetaData = (ApplicationMetaData)metaData;
+                } else {
+                    componentMetaData = null;
+                    moduleMetaData = null;
+                    applicationMetaData = null;
+                }
                 LogMessage message = new LogMessage(level, record.getMillis(),
-                        record.getLoggerName(), applicationName, moduleName, componentName,
+                        record.getLoggerName(),
+                        applicationMetaData == null ? null : applicationMetaData.getName(),
+                        moduleMetaData == null ? null : moduleMetaData.getName(),
+                        componentMetaData == null ? null : componentMetaData.getName(),
                         TraceLogFormatter.formatMessage(record, Locale.ENGLISH, TraceLogFormatter.UNUSED_PARM_HANDLING_APPEND_WITH_NEWLINE),
                         record.getThrown());
                 synchronized (this) {

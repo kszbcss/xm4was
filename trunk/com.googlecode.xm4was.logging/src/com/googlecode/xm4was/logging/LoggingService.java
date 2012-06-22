@@ -8,6 +8,8 @@ import com.googlecode.xm4was.logging.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.ws.management.collaborator.DefaultRuntimeCollaborator;
+import com.ibm.ws.runtime.service.ApplicationMgr;
+import com.ibm.wsspi.runtime.service.WsServiceRegistry;
 
 public class LoggingService extends AbstractWsComponent {
     private static final TraceComponent TC = Tr.register(LoggingService.class, TrConstants.GROUP, Messages.class.getName());
@@ -27,6 +29,15 @@ public class LoggingService extends AbstractWsComponent {
             public void run() {
                 Tr.debug(TC, "Removing handler from root logger");
                 Logger.getLogger("").removeHandler(handler);
+            }
+        });
+        
+        final ApplicationMgr applicationMgr;
+        applicationMgr = WsServiceRegistry.getService(this, ApplicationMgr.class);
+        applicationMgr.addDeployedObjectListener(handler);
+        addStopAction(new Runnable() {
+            public void run() {
+                applicationMgr.removeDeployedObjectListener(handler);
             }
         });
         
