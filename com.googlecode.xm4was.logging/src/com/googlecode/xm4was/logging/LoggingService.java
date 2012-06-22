@@ -34,12 +34,15 @@ public class LoggingService extends AbstractWsComponent {
         
         final ApplicationMgr applicationMgr;
         applicationMgr = WsServiceRegistry.getService(this, ApplicationMgr.class);
-        applicationMgr.addDeployedObjectListener(handler);
-        addStopAction(new Runnable() {
-            public void run() {
-                applicationMgr.removeDeployedObjectListener(handler);
-            }
-        });
+        // On node agents, there is no ApplicationMgr service
+        if (applicationMgr != null) {
+            applicationMgr.addDeployedObjectListener(handler);
+            addStopAction(new Runnable() {
+                public void run() {
+                    applicationMgr.removeDeployedObjectListener(handler);
+                }
+            });
+        }
         
         activateMBean("XM4WAS.LoggingService", new DefaultRuntimeCollaborator(handler, "LoggingService"),
                 null, "/xm4was/LoggingService.xml");
