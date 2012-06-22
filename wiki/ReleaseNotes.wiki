@@ -3,6 +3,7 @@
 = 0.3.1 (not yet released) =
 
  * Solved issue #5.
+ * The extended logging service is now able to identify the source of log events emitted by unmanaged threads.
 
 = 0.3.0 =
 
