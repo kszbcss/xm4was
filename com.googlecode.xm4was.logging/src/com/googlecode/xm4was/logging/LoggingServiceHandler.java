@@ -49,19 +49,23 @@ public class LoggingServiceHandler extends Handler implements DeployedObjectList
             String state = (String)event.getNewValue();
             MetaData metaData = deployedObject.getMetaData();
             if (state.equals("STARTING")) {
-                if (!classLoaderMap.containsKey(classLoader)) {
-                    if (TC.isDebugEnabled()) {
-                        Tr.debug(TC, "Adding class loader mapping for component {0}:{1}", new Object[] { metaData.getName(), classLoader });
+                synchronized (classLoaderMap) {
+                    if (!classLoaderMap.containsKey(classLoader)) {
+                        if (TC.isDebugEnabled()) {
+                            Tr.debug(TC, "Adding class loader mapping for component {0}:{1}", new Object[] { metaData.getName(), classLoader });
+                        }
+                        classLoaderMap.put(classLoader, metaData);
                     }
-                    classLoaderMap.put(classLoader, metaData);
                 }
             } else if (state.equals("STOPPED")) {
-                MetaData existingMetaData = classLoaderMap.get(classLoader);
-                if (existingMetaData == metaData) {
-                    if (TC.isDebugEnabled()) {
-                        Tr.debug(TC, "Removing class loader mapping for component {0}:{1}", new Object[] { metaData.getName(), classLoader });
+                synchronized (classLoaderMap) {
+                    MetaData existingMetaData = classLoaderMap.get(classLoader);
+                    if (existingMetaData == metaData) {
+                        if (TC.isDebugEnabled()) {
+                            Tr.debug(TC, "Removing class loader mapping for component {0}:{1}", new Object[] { metaData.getName(), classLoader });
+                        }
+                        classLoaderMap.remove(classLoader);
                     }
-                    classLoaderMap.remove(classLoader);
                 }
             }
         }
@@ -87,7 +91,9 @@ public class LoggingServiceHandler extends Handler implements DeployedObjectList
                     //  * sometimes the thread context class loader is set incorrectly on a thread pool.
                     Thread thread = Thread.currentThread();
                     if (!(thread instanceof ThreadPool.WorkerThread)) {
-                        metaData = classLoaderMap.get(thread.getContextClassLoader());
+                        synchronized (classLoaderMap) {
+                            metaData = classLoaderMap.get(thread.getContextClassLoader());
+                        }
                     }
                 }
                 if (metaData instanceof ModuleMetaData) {
