@@ -1,8 +1,5 @@
 package com.googlecode.xm4was.logging;
 
-import java.io.PrintWriter;
-import java.io.Writer;
-
 public final class LogMessage {
     private long sequence;
     private final int level;
@@ -103,14 +100,7 @@ public final class LogMessage {
             maxMessageSize -= message.length();
         }
         if (throwable != null && maxMessageSize > 0) {
-            Writer out = new StringBuilderWriter(buffer);
-            if (maxMessageSize > 0) {
-                out = new LengthLimitedWriter(out, maxMessageSize);
-            }
-            PrintWriter pw = new PrintWriter(out, false);
-            pw.println();
-            throwable.printStackTrace(pw);
-            pw.flush();
+            ExceptionUtil.formatStackTrace(throwable, new LengthLimitedStringBuilderLineAppender(buffer, maxMessageSize));
         }
         return buffer.toString();
     }
