@@ -670,6 +670,7 @@
         <module>com.googlecode.xm4was.commons</module>
         <module>com.googlecode.xm4was.jmx</module>
         <module>com.googlecode.xm4was.logging</module>
+        <module>com.googlecode.xm4was.logging.tests</module>
         <module>com.googlecode.xm4was.pmi</module>
         <module>jmx-client-connector</module>
         <module>distribution</module>
