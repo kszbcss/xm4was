@@ -32,4 +32,10 @@
         <description>The number of modifications to the resource request cache of the class loader. The modification rate is expected to be roughly the same as the cache miss rate.</description>
         <updateOnRequest>true</updateOnRequest>
     </CountStatistic>
+    <RangeStatistic ID="6" name="UnmanagedThreadCount">
+        <level>high</level>
+        <unit>None</unit>
+        <description>The number of active unmanaged threads created by code loaded from the class loader.</description>
+        <updateOnRequest>true</updateOnRequest>
+    </RangeStatistic>
 </Stats>

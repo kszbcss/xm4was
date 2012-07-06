@@ -20,4 +20,8 @@ public class ThreadInfo extends WeakReference<Thread> {
     public Thread getThread() {
         return get();
     }
+
+    public ClassLoaderInfo getClassLoaderInfo() {
+        return classLoaderInfo;
+    }
 }
