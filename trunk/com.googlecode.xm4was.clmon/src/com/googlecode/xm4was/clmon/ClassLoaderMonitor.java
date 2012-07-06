@@ -4,8 +4,12 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.reflect.Field;
 import java.security.AccessControlContext;
 import java.security.ProtectionDomain;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.WeakHashMap;
@@ -126,7 +130,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         }, 1000, 1000);
         
         ObjectName mbean = activateMBean("XM4WAS.ClassLoaderMonitor",
-                new DefaultRuntimeCollaborator(new ClassLoaderMonitorMBean(), "ClassLoaderMonitor"),
+                new DefaultRuntimeCollaborator(new ClassLoaderMonitorMBean(this), "ClassLoaderMonitor"),
                 null, "/ClassLoaderMonitorMBean.xml");
         
         if (StatsFactory.isPMIEnabled()) {
@@ -166,15 +170,21 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
     }
     
     synchronized void updateThreads() {
+        Set<Thread> stoppedThreads = new HashSet<Thread>(threadInfos.keySet());
+        for (Thread thread : getAllThreads()) {
+            getThreadInfo(thread);
+            stoppedThreads.remove(thread);
+        }
+        for (Thread thread : stoppedThreads) {
+            threadInfos.remove(thread).enqueue();
+        }
+
         ThreadInfo threadInfo;
         while ((threadInfo = (ThreadInfo)threadInfoQueue.poll()) != null) {
             if (TC.isDebugEnabled()) {
-                Tr.debug(TC, "Detected thread that has been garbage collected: " + threadInfo.getName());
+                Tr.debug(TC, "Detected thread that has been stopped: " + threadInfo.getName());
             }
-        }
-        
-        for (Thread thread : getAllThreads()) {
-            getThreadInfo(thread);
+            threadInfo.getClassLoaderInfo().getGroup().threadDestroyed();
         }
     }
     
@@ -197,6 +207,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
                         if (classLoaderInfo != null) {
                             Tr.warning(TC, Messages._0005W, new Object[] { classLoaderInfo.getGroup().getName(), thread.getName() });
                             threadInfo = new ThreadInfo(thread, classLoaderInfo, threadInfoQueue);
+                            threadInfo.getClassLoaderInfo().getGroup().threadCreated();
                         }
                     }
                 }
@@ -285,5 +296,15 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
                 lastUpdated = System.currentTimeMillis();
             }
         }
+    }
+    
+    public synchronized ThreadInfo[] getThreadInfos() {
+        List<ThreadInfo> result = new ArrayList<ThreadInfo>();
+        for (ThreadInfo info : threadInfos.values()) {
+            if (info != null) {
+                result.add(info);
+            }
+        }
+        return result.toArray(new ThreadInfo[result.size()]);
     }
 }

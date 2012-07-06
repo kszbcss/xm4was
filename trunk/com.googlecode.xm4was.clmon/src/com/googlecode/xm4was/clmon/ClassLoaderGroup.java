@@ -11,6 +11,7 @@ import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.ws.classloader.CompoundClassLoader;
 import com.ibm.wsspi.pmi.factory.StatisticActions;
 import com.ibm.wsspi.pmi.stat.SPICountStatistic;
+import com.ibm.wsspi.pmi.stat.SPIRangeStatistic;
 import com.ibm.wsspi.pmi.stat.SPIStatistic;
 
 /**
@@ -64,6 +65,7 @@ public class ClassLoaderGroup extends StatisticActions {
     private static final int DESTROYED_COUNT_ID = 3;
     private static final int LEAKED_COUNT_ID = 4;
     private static final int RESOURCE_REQUEST_CACHE_MOD_COUNT = 5;
+    private static final int UNMANAGED_THREAD_COUNT = 6;
     
     private final String name;
     private SPICountStatistic createCountStat;
@@ -71,11 +73,13 @@ public class ClassLoaderGroup extends StatisticActions {
     private SPICountStatistic destroyedCountStat;
     private SPICountStatistic leakedCountStat;
     private SPICountStatistic resourceRequestCacheModCountStat;
+    private SPIRangeStatistic unmanagedThreadCountStat;
     private int createCount;
     private int stopCount;
     private int destroyedCount;
     private Object mutex;
     private Map<?,?> resourceRequestCache;
+    private int unmanagedThreadCount;
     
     public ClassLoaderGroup(String name) {
         this.name = name;
@@ -121,6 +125,14 @@ public class ClassLoaderGroup extends StatisticActions {
         }
     }
     
+    public synchronized void threadCreated() {
+        unmanagedThreadCount++;
+    }
+    
+    public synchronized void threadDestroyed() {
+        unmanagedThreadCount--;
+    }
+    
     public synchronized int getCreateCount() {
         return createCount;
     }
@@ -153,6 +165,9 @@ public class ClassLoaderGroup extends StatisticActions {
                     resourceRequestCacheModCountStat = (SPICountStatistic)statistic;
                 }
                 break;
+            case UNMANAGED_THREAD_COUNT:
+                unmanagedThreadCountStat = (SPIRangeStatistic)statistic;
+                break;
         }
     }
 
@@ -181,6 +196,9 @@ public class ClassLoaderGroup extends StatisticActions {
                         throw new IllegalAccessError(ex.getMessage());
                     }
                 }
+                break;
+            case UNMANAGED_THREAD_COUNT:
+                unmanagedThreadCountStat.set(unmanagedThreadCount);
                 break;
         }
     }
