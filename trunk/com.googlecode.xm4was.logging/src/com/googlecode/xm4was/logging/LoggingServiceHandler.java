@@ -1,11 +1,10 @@
 package com.googlecode.xm4was.logging;
 
-import java.util.IdentityHashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
+import com.googlecode.xm4was.clmon.thread.UnmanagedThreadMonitor;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.logging.resources.Messages;
 import com.ibm.ejs.csi.DefaultComponentMetaData;
@@ -13,23 +12,19 @@ import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.logging.WsLevel;
 import com.ibm.ws.logging.TraceLogFormatter;
-import com.ibm.ws.runtime.deploy.DeployedObject;
-import com.ibm.ws.runtime.deploy.DeployedObjectEvent;
-import com.ibm.ws.runtime.deploy.DeployedObjectListener;
 import com.ibm.ws.runtime.metadata.ApplicationMetaData;
 import com.ibm.ws.runtime.metadata.ComponentMetaData;
 import com.ibm.ws.runtime.metadata.MetaData;
 import com.ibm.ws.runtime.metadata.ModuleMetaData;
 import com.ibm.ws.threadContext.ComponentMetaDataAccessorImpl;
-import com.ibm.ws.util.ThreadPool;
 import com.ibm.wsspi.webcontainer.metadata.WebComponentMetaData;
 import com.ibm.wsspi.webcontainer.servlet.IServletConfig;
 
-public class LoggingServiceHandler extends Handler implements DeployedObjectListener {
+public class LoggingServiceHandler extends Handler {
     private static final TraceComponent TC = Tr.register(LoggingServiceHandler.class, TrConstants.GROUP, Messages.class.getName());
     
     private final ComponentMetaDataAccessorImpl cmdAccessor = ComponentMetaDataAccessorImpl.getComponentMetaDataAccessor();
-    private final Map<ClassLoader,MetaData> classLoaderMap = new IdentityHashMap<ClassLoader,MetaData>();
+    private UnmanagedThreadMonitor unmanagedThreadMonitor;
     private final LogMessage[] buffer = new LogMessage[1024];
     private int head;
     // We start at System.currentTimeMillis to make sure that the sequence is strictly increasing
@@ -42,32 +37,10 @@ public class LoggingServiceHandler extends Handler implements DeployedObjectList
         nextSequence = initialSequence;
     }
     
-    public void stateChanged(DeployedObjectEvent event) {
-        DeployedObject deployedObject = event.getDeployedObject();
-        ClassLoader classLoader = deployedObject.getClassLoader();
-        if (classLoader != null) {
-            String state = (String)event.getNewValue();
-            MetaData metaData = deployedObject.getMetaData();
-            if (state.equals("STARTING")) {
-                synchronized (classLoaderMap) {
-                    if (!classLoaderMap.containsKey(classLoader)) {
-                        if (TC.isDebugEnabled()) {
-                            Tr.debug(TC, "Adding class loader mapping for component {0}:{1}", new Object[] { metaData.getName(), classLoader });
-                        }
-                        classLoaderMap.put(classLoader, metaData);
-                    }
-                }
-            } else if (state.equals("STOPPED")) {
-                synchronized (classLoaderMap) {
-                    MetaData existingMetaData = classLoaderMap.get(classLoader);
-                    if (existingMetaData == metaData) {
-                        if (TC.isDebugEnabled()) {
-                            Tr.debug(TC, "Removing class loader mapping for component {0}:{1}", new Object[] { metaData.getName(), classLoader });
-                        }
-                        classLoaderMap.remove(classLoader);
-                    }
-                }
-            }
+    public synchronized void setUnmanagedThreadMonitor(UnmanagedThreadMonitor unmanagedThreadMonitor) {
+        this.unmanagedThreadMonitor = unmanagedThreadMonitor;
+        if (TC.isDebugEnabled()) {
+            Tr.debug(TC, "unmanagedThreadMonitor = " + unmanagedThreadMonitor.toString());
         }
     }
 
@@ -84,15 +57,10 @@ public class LoggingServiceHandler extends Handler implements DeployedObjectList
                     metaData = null;
                 }
                 if (metaData == null) {
-                    // Attempt to determine the application or module based on the thread context
-                    // class loader. We don't do this for threads belonging to WebSphere thread
-                    // pools because
-                    //  * these are always managed threads and therefore should have a J2EE context;
-                    //  * sometimes the thread context class loader is set incorrectly on a thread pool.
-                    Thread thread = Thread.currentThread();
-                    if (!(thread instanceof ThreadPool.WorkerThread)) {
-                        synchronized (classLoaderMap) {
-                            metaData = classLoaderMap.get(thread.getContextClassLoader());
+                    synchronized (this) {
+                        // Attempt to determine the application or module for an unmanaged thread
+                        if (unmanagedThreadMonitor != null) {
+                            metaData = unmanagedThreadMonitor.getMetaDataForUnmanagedThread(Thread.currentThread());
                         }
                     }
                 }

@@ -13,6 +13,7 @@ Import-Package: com.googlecode.xm4was.commons,
  com.ibm.ws.exception,
  com.ibm.ws.management.collaborator,
  com.ibm.ws.runtime.deploy,
+ com.ibm.ws.runtime.metadata,
  com.ibm.ws.runtime.service,
  com.ibm.wsspi.bootstrap.osgi,
  com.ibm.wsspi.pmi.factory,
@@ -22,4 +23,5 @@ Import-Package: com.googlecode.xm4was.commons,
  org.osgi.framework
 Require-Bundle: com.ibm.wsspi.extension
 Export-Package: com.googlecode.xm4was.clmon.pmi,
- com.googlecode.xm4was.clmon.resources
+ com.googlecode.xm4was.clmon.resources,
+ com.googlecode.xm4was.clmon.thread
