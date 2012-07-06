@@ -23,6 +23,7 @@ import com.ibm.wsspi.pmi.factory.StatsFactoryException;
 import com.ibm.wsspi.pmi.factory.StatsGroup;
 import com.ibm.wsspi.pmi.factory.StatsInstance;
 import com.ibm.wsspi.runtime.component.WsComponent;
+import com.ibm.wsspi.runtime.service.WsServiceRegistry;
 
 public abstract class AbstractWsComponent implements WsComponent {
     private static final TraceComponent TC = Tr.register(AbstractWsComponent.class, TrConstants.GROUP, Messages.class.getName());
@@ -144,5 +145,14 @@ public abstract class AbstractWsComponent implements WsComponent {
         ObjectName name = mbeanFactory.activateMBean(type, collaborator, configId, descriptor, props);
         addStopAction(new DeactivateMBeanAction(mbeanFactory, name));
         return name;
+    }
+    
+    protected void addService(Object serviceImplementation, Class<?> serviceInterface) throws Exception {
+        final Object token = WsServiceRegistry.addService(serviceImplementation, serviceInterface);
+        addStopAction(new Runnable() {
+            public void run() {
+                WsServiceRegistry.unregisterService(token);
+            }
+        });
     }
 }

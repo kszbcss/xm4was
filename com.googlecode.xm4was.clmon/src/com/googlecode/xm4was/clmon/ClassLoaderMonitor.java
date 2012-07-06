@@ -7,8 +7,10 @@ import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -17,6 +19,7 @@ import java.util.WeakHashMap;
 import javax.management.ObjectName;
 
 import com.googlecode.xm4was.clmon.resources.Messages;
+import com.googlecode.xm4was.clmon.thread.UnmanagedThreadMonitor;
 import com.googlecode.xm4was.commons.AbstractWsComponent;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.ibm.ejs.ras.Tr;
@@ -29,13 +32,14 @@ import com.ibm.ws.runtime.deploy.DeployedModule;
 import com.ibm.ws.runtime.deploy.DeployedObject;
 import com.ibm.ws.runtime.deploy.DeployedObjectEvent;
 import com.ibm.ws.runtime.deploy.DeployedObjectListener;
+import com.ibm.ws.runtime.metadata.MetaData;
 import com.ibm.ws.runtime.service.ApplicationMgr;
 import com.ibm.wsspi.pmi.factory.StatsFactory;
 import com.ibm.wsspi.pmi.factory.StatsFactoryException;
 import com.ibm.wsspi.pmi.factory.StatsGroup;
 import com.ibm.wsspi.runtime.service.WsServiceRegistry;
 
-public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedObjectListener {
+public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedObjectListener, UnmanagedThreadMonitor {
     private static final TraceComponent TC = Tr.register(ClassLoaderMonitor.class, TrConstants.GROUP, Messages.class.getName());
     
     /**
@@ -68,6 +72,8 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
     private Map<Thread,ThreadInfo> threadInfos;
     
     private ReferenceQueue<Thread> threadInfoQueue;
+    
+    private Queue<ThreadInfo> logQueue;
     
     /**
      * The field in the {@link Thread} class that stores the {@link AccessControlContext}.
@@ -115,6 +121,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         classLoaderInfoQueue = new ReferenceQueue<ClassLoader>();
         threadInfos = new WeakHashMap<Thread,ThreadInfo>();
         threadInfoQueue = new ReferenceQueue<Thread>();
+        logQueue = new LinkedList<ThreadInfo>();
         final Timer timer = new Timer("Class Loader Monitor");
         addStopAction(new Runnable() {
             public void run() {
@@ -137,6 +144,8 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
             statsGroup = createStatsGroup("ClassLoaderStats", "/com/googlecode/xm4was/clmon/pmi/ClassLoaderStats.xml", mbean);
         }
         classLoaderGroups = new HashMap<String,ClassLoaderGroup>();
+        
+        addService(this, UnmanagedThreadMonitor.class);
         
         Tr.info(TC, Messages._0001I);
     }
@@ -186,6 +195,10 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
             }
             threadInfo.getClassLoaderInfo().getGroup().threadDestroyed();
         }
+        
+        while ((threadInfo = logQueue.poll()) != null) {
+            Tr.warning(TC, Messages._0005W, new Object[] { threadInfo.getClassLoaderInfo().getGroup().getName(), threadInfo.getName() });
+        }
     }
     
     private synchronized ThreadInfo getThreadInfo(Thread thread) {
@@ -205,9 +218,11 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
                         }
                         ClassLoaderInfo classLoaderInfo = classLoaderInfos.get(pd.getClassLoader());
                         if (classLoaderInfo != null) {
-                            Tr.warning(TC, Messages._0005W, new Object[] { classLoaderInfo.getGroup().getName(), thread.getName() });
                             threadInfo = new ThreadInfo(thread, classLoaderInfo, threadInfoQueue);
-                            threadInfo.getClassLoaderInfo().getGroup().threadCreated();
+                            classLoaderInfo.getGroup().threadCreated();
+                            // getThreadInfo may be called by the monitor thread or via the UnmanagedThreadMonitor
+                            // service, but we want all logging to happen inside the monitor thread
+                            logQueue.add(threadInfo);
                         }
                     }
                 }
@@ -283,7 +298,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
                 }
             }
             if (state.equals("STARTING")) {
-                classLoaderInfos.put(classLoader, new ClassLoaderInfo(classLoader, group, classLoaderInfoQueue));
+                classLoaderInfos.put(classLoader, new ClassLoaderInfo(classLoader, group, deployedObject.getMetaData(), classLoaderInfoQueue));
                 group.classLoaderCreated(classLoader);
                 lastUpdated = System.currentTimeMillis();
             } else if (state.equals("DESTROYED")) {
@@ -306,5 +321,10 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
             }
         }
         return result.toArray(new ThreadInfo[result.size()]);
+    }
+
+    public MetaData getMetaDataForUnmanagedThread(Thread thread) {
+        ThreadInfo info = getThreadInfo(thread);
+        return info == null ? null : info.getClassLoaderInfo().getMetaData();
     }
 }
