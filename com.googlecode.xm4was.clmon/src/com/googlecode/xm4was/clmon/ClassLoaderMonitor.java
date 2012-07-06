@@ -1,12 +1,14 @@
 package com.googlecode.xm4was.clmon;
 
+import java.lang.ref.ReferenceQueue;
+import java.lang.reflect.Field;
+import java.security.AccessControlContext;
+import java.security.ProtectionDomain;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.WeakHashMap;
 
 import javax.management.ObjectName;
 
@@ -49,12 +51,43 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
     
     private long lastDumped;
     private long lastUpdated;
-    private List<ClassLoaderInfo> classLoaderInfos;
+    private Map<ClassLoader,ClassLoaderInfo> classLoaderInfos;
+    private ReferenceQueue<ClassLoader> classLoaderInfoQueue;
     private StatsGroup statsGroup;
     private Map<String,ClassLoaderGroup> classLoaderGroups;
     
+    /**
+     * Maps {@link Thread} objects to {@link ThreadInfo} instances. If a thread is not linked to an
+     * application or module and has no associated {@link ThreadInfo} object, then the map contains
+     * an entry with a null value for that thread.
+     */
+    private Map<Thread,ThreadInfo> threadInfos;
+    
+    private ReferenceQueue<Thread> threadInfoQueue;
+    
+    /**
+     * The field in the {@link Thread} class that stores the {@link AccessControlContext}.
+     */
+    private Field accessControlContextField;
+    
+    /**
+     * The field in the {@link AccessControlContext} class that stores the array of
+     * {@link ProtectionDomain} objects.
+     */
+    private Field pdArrayField;
+    
     @Override
     protected void doStart() throws Exception {
+        accessControlContextField = Thread.class.getDeclaredField("accessControlContext");
+        accessControlContextField.setAccessible(true);
+        
+        try {
+            pdArrayField = AccessControlContext.class.getDeclaredField("context");
+        } catch (NoSuchFieldException ex) {
+            pdArrayField = AccessControlContext.class.getDeclaredField("domainsArray");
+        }
+        pdArrayField.setAccessible(true);
+        
         addStopAction(new Runnable() {
             public void run() {
                 Tr.info(TC, Messages._0002I);
@@ -74,7 +107,10 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
             }
         });
         
-        classLoaderInfos = new LinkedList<ClassLoaderInfo>();
+        classLoaderInfos = new WeakHashMap<ClassLoader,ClassLoaderInfo>();
+        classLoaderInfoQueue = new ReferenceQueue<ClassLoader>();
+        threadInfos = new WeakHashMap<Thread,ThreadInfo>();
+        threadInfoQueue = new ReferenceQueue<Thread>();
         final Timer timer = new Timer("Class Loader Monitor");
         addStopAction(new Runnable() {
             public void run() {
@@ -84,7 +120,8 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                monitor();
+                updateClassLoaders();
+                updateThreads();
             }
         }, 1000, 1000);
         
@@ -100,19 +137,15 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         Tr.info(TC, Messages._0001I);
     }
 
-    synchronized void monitor() {
-        Iterator<ClassLoaderInfo> it = classLoaderInfos.iterator();
+    synchronized void updateClassLoaders() {
         boolean isUpdated = false;
-        while (it.hasNext()) {
-            ClassLoaderInfo classLoaderInfo = it.next();
-            if (classLoaderInfo.isStopped() && classLoaderInfo.getClassLoader() == null) {
-                it.remove();
-                isUpdated = true;
-                if (TC.isDebugEnabled()) {
-                    Tr.debug(TC, "Detected class loader that has been garbage collected: " + classLoaderInfo);
-                }
-                classLoaderInfo.getGroup().classLoaderDestroyed();
+        ClassLoaderInfo classLoaderInfo;
+        while ((classLoaderInfo = (ClassLoaderInfo)classLoaderInfoQueue.poll()) != null) {
+            isUpdated = true;
+            if (TC.isDebugEnabled()) {
+                Tr.debug(TC, "Detected class loader that has been garbage collected: " + classLoaderInfo);
             }
+            classLoaderInfo.getGroup().classLoaderDestroyed();
         }
         long timestamp = System.currentTimeMillis();
         if (isUpdated) {
@@ -131,7 +164,79 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
             Tr.info(TC, Messages._0003I, new Object[] { String.valueOf(createCount), String.valueOf(stopCount), String.valueOf(destroyedCount) });
         }
     }
+    
+    synchronized void updateThreads() {
+        ThreadInfo threadInfo;
+        while ((threadInfo = (ThreadInfo)threadInfoQueue.poll()) != null) {
+            if (TC.isDebugEnabled()) {
+                Tr.debug(TC, "Detected thread that has been garbage collected: " + threadInfo.getName());
+            }
+        }
+        
+        for (Thread thread : getAllThreads()) {
+            getThreadInfo(thread);
+        }
+    }
+    
+    private synchronized ThreadInfo getThreadInfo(Thread thread) {
+        if (!threadInfos.containsKey(thread)) {
+            if (TC.isDebugEnabled()) {
+                Tr.debug(TC, "Discovered new thread: " + thread.getName());
+            }
+            try {
+                AccessControlContext acc = (AccessControlContext)accessControlContextField.get(thread);
+                ProtectionDomain[] pdArray = (ProtectionDomain[])pdArrayField.get(acc);
+                ThreadInfo threadInfo = null;
+                if (pdArray != null) {
+                    for (int i=pdArray.length-1; i>=0; i--) {
+                        ProtectionDomain pd = pdArray[i];
+                        if (TC.isDebugEnabled()) {
+                            Tr.debug(TC, "Protection domain:\n" + pd);
+                        }
+                        ClassLoaderInfo classLoaderInfo = classLoaderInfos.get(pd.getClassLoader());
+                        if (classLoaderInfo != null) {
+                            Tr.warning(TC, Messages._0005W, new Object[] { classLoaderInfo.getGroup().getName(), thread.getName() });
+                            threadInfo = new ThreadInfo(thread, classLoaderInfo, threadInfoQueue);
+                        }
+                    }
+                }
+                threadInfos.put(thread, threadInfo);
+                return threadInfo;
+            } catch (IllegalAccessException ex) {
+                throw new IllegalAccessError(ex.getMessage());
+            }
+        } else {
+            return threadInfos.get(thread);
+        }
+    }
 
+    private static ThreadGroup getRootThreadGroup() {
+        ThreadGroup rootThreadGroup = Thread.currentThread().getThreadGroup();
+        ThreadGroup parent;
+        while ((parent = rootThreadGroup.getParent()) != null) {
+            rootThreadGroup = parent;
+        }
+        return rootThreadGroup;
+    }
+    
+    private static Thread[] getAllThreads() {
+        ThreadGroup rootThreadGroup = getRootThreadGroup();
+        Thread[] threads = new Thread[64];
+        int threadCount;
+        while (true) {
+            threadCount = rootThreadGroup.enumerate(threads);
+            if (threadCount == threads.length) {
+                // We probably missed threads; double the size of the array
+                threads = new Thread[threads.length*2];
+            } else {
+                break;
+            }
+        }
+        Thread[] result = new Thread[threadCount];
+        System.arraycopy(threads, 0, result, 0, threadCount);
+        return result;
+    }
+    
     public synchronized void stateChanged(DeployedObjectEvent event) throws RuntimeError, RuntimeWarning {
         String state = (String)event.getNewValue();
         DeployedObject deployedObject = event.getDeployedObject();
@@ -167,21 +272,17 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
                 }
             }
             if (state.equals("STARTING")) {
-                classLoaderInfos.add(new ClassLoaderInfo(classLoader, group));
+                classLoaderInfos.put(classLoader, new ClassLoaderInfo(classLoader, group, classLoaderInfoQueue));
                 group.classLoaderCreated(classLoader);
                 lastUpdated = System.currentTimeMillis();
             } else if (state.equals("DESTROYED")) {
-                for (ClassLoaderInfo info : classLoaderInfos) {
-                    if (info.getClassLoader() == classLoader) {
-                        if (TC.isDebugEnabled()) {
-                            Tr.debug(TC, "Identified class loader: " + info);
-                        }
-                        info.setStopped(true);
-                        group.classLoaderStopped();
-                        lastUpdated = System.currentTimeMillis();
-                        break;
-                    }
+                ClassLoaderInfo info = classLoaderInfos.get(classLoader);
+                if (TC.isDebugEnabled()) {
+                    Tr.debug(TC, "Identified class loader: " + info);
                 }
+                info.setStopped(true);
+                group.classLoaderStopped();
+                lastUpdated = System.currentTimeMillis();
             }
         }
     }

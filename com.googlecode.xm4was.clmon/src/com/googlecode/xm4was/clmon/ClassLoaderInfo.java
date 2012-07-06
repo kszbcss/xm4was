@@ -1,19 +1,19 @@
 package com.googlecode.xm4was.clmon;
 
+import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 
-public class ClassLoaderInfo {
-    private final WeakReference<ClassLoader> ref;
+public class ClassLoaderInfo extends WeakReference<ClassLoader> {
     private final ClassLoaderGroup group;
     private boolean stopped;
 
-    public ClassLoaderInfo(ClassLoader classLoader, ClassLoaderGroup group) {
-        ref = new WeakReference<ClassLoader>(classLoader);
+    public ClassLoaderInfo(ClassLoader classLoader, ClassLoaderGroup group, ReferenceQueue<ClassLoader> queue) {
+        super(classLoader, queue);
         this.group = group;
     }
     
     public ClassLoader getClassLoader() {
-        return ref.get();
+        return get();
     }
 
     public ClassLoaderGroup getGroup() {
@@ -30,6 +30,6 @@ public class ClassLoaderInfo {
 
     @Override
     public String toString() {
-        return "ClassLoaderInfo[name=" + group.getName() + ",stopped=" + stopped + ",destroyed=" + (ref.get() == null) + "]";
+        return "ClassLoaderInfo[name=" + group.getName() + ",stopped=" + stopped + ",destroyed=" + (get() == null) + "]";
     }
 }
