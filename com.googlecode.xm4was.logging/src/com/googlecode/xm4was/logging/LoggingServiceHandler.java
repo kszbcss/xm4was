@@ -44,6 +44,8 @@ public class LoggingServiceHandler extends Handler {
         }
     }
 
+    // TODO: use Handler#setLevel to specify the minimum level
+    // TODO: use ErrorManager to report errors that occur while processing the log record
     @Override
     public void publish(LogRecord record) {
         int level = record.getLevel().intValue();
