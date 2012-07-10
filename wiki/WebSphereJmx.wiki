@@ -16,7 +16,7 @@ By default, !WebSphere doesn't configure any JMX connector for the platform MBea
 
 The platform MXBeans provide support for monitoring and management of the JVM. Each MXBean encapsulates a part of JVM functionality such as the JVM's class loading system, JIT compilation system, garbage collector, and so on. The JVM automatically registers these MBeans in the platform MBean server. The MXBeans are used by tools such as JConsole and VisualVM to visualize the JVM activity.
 
-The fact that they are registered in the platform MBean server and not !WebSphere's MBean server means that it is not easy to access them remotely. One solution is to [http://www.ibm.com/developerworks/library/j-rtm1/index.html#crossregister cross-register] them in WebSphere's MBean server. This is one of the features provided by the JmxPlugin.
+The fact that they are registered in the platform MBean server and not !WebSphere's MBean server means that it is not easy to access them remotely. One solution is to [http://www.ibm.com/developerworks/library/j-rtm1/index.html#crossregister cross-register] them in !WebSphere's MBean server. This is one of the features provided by the JmxPlugin.
 
 = MBean server federation and routable MBeans =
 
