@@ -18,7 +18,7 @@ The `com.googlecode.xm4was.jmx` plugin only depends on the `com.googlecode.xm4wa
 
 == Cross-registration of platform MXBeans ==
 
-The plugin registers the platform MXBeans in !WebSphere's MBean server, so that they can be accessed by a remote client using one of the JMX connectors provided by !WebSphere. See WebSphereJmx for more information about the platform MXBeans and why accessing them remotely requires cross-registration in !WebSphere's MBean server. See VisualVMHowTo for an example of how to use this feature to monitor a !WebSphere JVM using standard JMX tools.
+The plugin registers the platform MXBeans in !WebSphere's MBean server, so that they can be accessed by a remote client using one of the JMX connectors provided by !WebSphere. See WebSphereJmx for more information about the platform MXBeans and why accessing them remotely requires cross-registration in !WebSphere's MBean server. See [VisualVMHowTo] for an example of how to use this feature to monitor a !WebSphere JVM using standard JMX tools.
 
 To ensure compatibility with tools such as JConsole and VisualVM, the platform MXBeans are not routable. This means that they can only be accessed using a direct connection to the !WebSphere instance. It is not possible to access them through an administrative agent; in particular it is not possible to connect to the deployment manager and access the platform MXBeans on an application server in the cell.
 
