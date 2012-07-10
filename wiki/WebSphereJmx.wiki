@@ -1,0 +1,23 @@
+#summary How JMX works in WebSphere Application Server
+
+= MBean servers and connectors =
+
+An MBean server acts as a repository of MBean instances and provides management applications access to these MBeans, either locally via API calls or remotely through a JMX connector. Every JVM has a built-in MBean server called the "platform MBean server". In addition to that, !WebSphere creates its own MBean server where it registers a set of MBeans that allow to manage various aspects of the server process. !WebSphere itself doesn't use the platform MBean server in any way, but the platform MXBeans (see below) are registered in that MBean server, and some applications may also register their custom MBeans in the platform MBean server.
+
+Every !WebSphere process also has a preconfigured set of JMX connectors that provide remote access to WebSphere's MBean server. This includes a SOAP connector, a connector that uses a !WebSphere specific protocol over RMI/IIOP as well as a JSR-160 compliant RMI/IIOP connector. All these connectors are integrated with !WebSphere's security subsystem. If security is enabled, then !WebSphere ensures that connections to these connectors are encrypted and that access to MBeans is only granted to properly authenticated and authorized clients.
+
+On the client side, the SOAP and (classic) RMI/IIOP connector can only be used with !WebSphere's proprietary AdminClient API. Out of the box, only the JSR-160 connector can be used with standard JMX APIs, but this is notoriously difficult to configure. This makes it difficult to connect standard JMX tools (such as JConsole or VisualVM) to !WebSphere's MBean server. IBM currently has no plans to change that situation and to make the SOAP and classic RMI/IIOP connectors compatible with the JMX API. To overcome this limitation, the XM4WAS project provides a JmxClientConnector that integrates the SOAP and RMI/IIOP protocols with standard JMX APIs. VisualVMHowTo explains how to use this feature to connect VisualVM to a !WebSphere process.
+
+By default, !WebSphere doesn't configure any JMX connector for the platform MBean server, which means that it is not possible to get remote access to the platform MBean server of a JVM running !WebSphere. It is possible to enable such a connector by setting a couple of system properties on the !WebSphere process, but this is not recommended:
+ * This configuration requires a change of the javax.management.builder.initial system property, which is normally set to an internal !WebSphere class by the startup scripts of the server. According to IBM support, running a WAS instance with a modified javax.management.builder.initial system property is not a supported configuration. Doing this indeed modifies the behavior of !WebSphere's MBean server in subtle ways; in particular, custom MBeans will no longer routable by default (see below).
+ * The JMX connector configured this way is not integrated with !WebSphere's security subsystem.
+
+= Platform MXBeans =
+
+The platform MXBeans provide support for monitoring and management of the JVM. Each MXBean encapsulates a part of JVM functionality such as the JVM's class loading system, JIT compilation system, garbage collector, and so on. The JVM automatically registers these MBeans in the platform MBean server.
+
+The fact that they are registered in the platform MBean server and not !WebSphere's MBean server means that it is not easy to access them remotely. One solution is to cross-register (http://www.ibm.com/developerworks/library/j-rtm1/index.html#crossregister) them in WebSphere's MBean server. This is one of the features provided by the JmxPlugin.
+
+= MBean server federation and routable MBeans =
+
+It is possible to interact with MBeans registered in an application server by connecting to the corresponding node agent or deployment manager. This means that by connecting to the deployment manager, it is possible to see all MBeans on all !WebSphere instances (application servers, node agents and the deployment manager itself) in the cell. This of course only works for MBeans registered in !WebSphere's MBean server. In addition, the object name of these MBeans must include the process, node and cell as key properties, so that the deployment manager and node agents can route requests to the appropriate WebSphere instance. MBeans that satisfy this requirement are called routable. All MBeans registered by !WebSphere itself are always routable. In addition, by default, !WebSphere automatically adds the necessary key properties to the object names of custom MBeans (registered using !WebSphere specific APIs or standard JMX APIs).
