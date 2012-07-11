@@ -223,9 +223,12 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
                             // getThreadInfo may be called by the monitor thread or via the UnmanagedThreadMonitor
                             // service, but we want all logging to happen inside the monitor thread
                             logQueue.add(threadInfo);
+                            break;
                         }
                     }
                 }
+                // Always add the entry to the threadInfos map so that we remember threads that are not linked
+                // to applications
                 threadInfos.put(thread, threadInfo);
                 return threadInfo;
             } catch (IllegalAccessException ex) {
