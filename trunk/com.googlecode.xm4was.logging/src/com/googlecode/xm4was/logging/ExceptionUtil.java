@@ -1,18 +1,21 @@
 package com.googlecode.xm4was.logging;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
 public final class ExceptionUtil {
     private ExceptionUtil() {}
     
-    private static Throwable[] getThrowables(Throwable throwable) {
-        List<Throwable> list = new ArrayList<Throwable>();
+    public static ThrowableInfo[] process(Throwable throwable) {
+        List<ThrowableInfo> list = new ArrayList<ThrowableInfo>();
         while (throwable != null && list.contains(throwable) == false) {
-            list.add(throwable);
+            list.add(new ThrowableInfo(throwable.toString(), throwable.getStackTrace()));
             throwable = throwable.getCause();
         }
-        return list.toArray(new Throwable[list.size()]);
+        return list.toArray(new ThrowableInfo[list.size()]);
     }
     
     private static int countCommonFrames(StackTraceElement[] causeFrames, StackTraceElement[] wrapperFrames) {
@@ -33,8 +36,7 @@ public final class ExceptionUtil {
         return commonFrames;
     }
 
-    public static void formatStackTrace(Throwable throwable, LineAppender appender) {
-        Throwable throwables[] = getThrowables(throwable);
+    public static void formatStackTrace(ThrowableInfo[] throwables, LineAppender appender) {
         int count = throwables.length;
         StackTraceElement[] nextTrace = throwables[count-1].getStackTrace();
         int commonFrames = -1;
@@ -48,7 +50,7 @@ public final class ExceptionUtil {
                 nextTrace = throwables[i-1].getStackTrace();
                 commonFrames = countCommonFrames(trace, nextTrace);
             }
-            if (!appender.addLine(i == count - 1 ? throwables[i].toString() : ("Wrapped by: " + throwables[i].toString()))) {
+            if (!appender.addLine(i == count - 1 ? throwables[i].getMessage() : ("Wrapped by: " + throwables[i].getMessage()))) {
                 return;
             }
             for (int j = 0; j < trace.length-commonFrames; j++) {
@@ -108,5 +110,99 @@ public final class ExceptionUtil {
                 }
             }
         }
+    }
+    
+    public static ThrowableInfo[] parse(String s) {
+        BufferedReader reader = new BufferedReader(new StringReader(s));
+        List<ThrowableInfo> throwables = new ArrayList<ThrowableInfo>();
+        String message = null;
+        List<StackTraceElement> stackTrace = new ArrayList<StackTraceElement>();
+        try {
+            String line;
+            do {
+                line = reader.readLine();
+                boolean close;
+                boolean startNew;
+                if (line == null) {
+                    close = message != null;
+                    startNew = false;
+                } else if (line.startsWith("\tat ") && line.charAt(line.length()-1) == ')') {
+                    if (message == null) {
+                        // Probably a truncated stacktrace
+                        return null;
+                    }
+                    int parenIdx = line.indexOf('(');
+                    if (parenIdx == -1) {
+                        return null;
+                    }
+                    int methodIdx = line.lastIndexOf('.', parenIdx);
+                    if (methodIdx == -1) {
+                        return null;
+                    }
+                    String className = line.substring(4, methodIdx);
+                    String methodName = line.substring(methodIdx+1, parenIdx);
+                    int colonIdx = line.indexOf(':', parenIdx+1);
+                    String file;
+                    int sourceLine;
+                    if (colonIdx == -1) {
+                        file = null;
+                        String source = line.substring(parenIdx+1, line.length()-1);
+                        sourceLine = source.equals("Native Method") ? -2 : -1;
+                    } else {
+                        file = line.substring(parenIdx+1, colonIdx);
+                        try {
+                            sourceLine = Integer.parseInt(line.substring(colonIdx+1, line.length()-1));
+                        } catch (NumberFormatException ex) {
+                            return null;
+                        }
+                    }
+                    stackTrace.add(new StackTraceElement(className, methodName, file, sourceLine));
+                    close = false;
+                    startNew = false;
+                } else if (message == null) {
+                    close = false;
+                    startNew = true;
+                } else if (line.startsWith("\t... ") && line.endsWith(" more")) {
+                    if (throwables.isEmpty()) {
+                        // Malformed stacktrace: only nested exceptions can have a shortened stack trace
+                        return null;
+                    } else {
+                        int more;
+                        try {
+                            more = Integer.parseInt(line.substring(5, line.length()-5));
+                        } catch (NumberFormatException ex) {
+                            return null;
+                        }
+                        close = true;
+                        startNew = false;
+                        StackTraceElement[] previousStackTrace = throwables.get(throwables.size()-1).getStackTrace();
+                        for (int i=0; i<more; i++) {
+                            stackTrace.add(previousStackTrace[previousStackTrace.length-more+i]);
+                        }
+                    }
+                } else {
+                    close = message != null;
+                    startNew = true;
+                }
+                if (close) {
+                    throwables.add(new ThrowableInfo(message, stackTrace.toArray(new StackTraceElement[stackTrace.size()])));
+                    message = null;
+                    stackTrace.clear();
+                }
+                if (startNew) {
+                    if (throwables.isEmpty()) {
+                        message = line;
+                    } else if (line.startsWith("Caused by: ")) {
+                        message = line.substring(11);
+                    } else {
+                        // Malformed stacktrace
+                        return null;
+                    }
+                }
+            } while (line != null);
+        } catch (IOException ex) {
+            return null;
+        }
+        return throwables.toArray(new ThrowableInfo[throwables.size()]);
     }
 }

@@ -1,5 +1,7 @@
 package com.googlecode.xm4was.logging;
 
+import com.ibm.ejs.ras.TraceNLS;
+
 public final class LogMessage {
     private long sequence;
     private final int level;
@@ -9,11 +11,12 @@ public final class LogMessage {
     private final String moduleName;
     private final String componentName;
     private final String message;
+    private final Object[] parms;
     private final Throwable throwable;
     
     public LogMessage(int level, long timestamp, String loggerName,
             String applicationName, String moduleName, String componentName,
-            String message, Throwable throwable) {
+            String message, Object[] parms, Throwable throwable) {
         this.level = level;
         this.timestamp = timestamp;
         this.loggerName = loggerName;
@@ -21,6 +24,7 @@ public final class LogMessage {
         this.moduleName = moduleName;
         this.componentName = componentName;
         this.message = message;
+        this.parms = parms;
         this.throwable = throwable;
     }
     
@@ -92,15 +96,21 @@ public final class LogMessage {
         if (maxMessageSize < 0) {
             maxMessageSize = Integer.MAX_VALUE;
         }
-        if (message.length() > maxMessageSize) {
-            buffer.append(message.substring(0, maxMessageSize));
+        String formattedMessage;
+        if (parms == null) {
+            formattedMessage = message;
+        } else {
+            formattedMessage = TraceNLS.getFormattedMessageFromLocalizedMessage(message, parms, true);
+        }
+        if (formattedMessage.length() > maxMessageSize) {
+            buffer.append(formattedMessage.substring(0, maxMessageSize));
             maxMessageSize = 0; 
         } else {
-            buffer.append(message);
-            maxMessageSize -= message.length();
+            buffer.append(formattedMessage);
+            maxMessageSize -= formattedMessage.length();
         }
         if (throwable != null && maxMessageSize > 0) {
-            ExceptionUtil.formatStackTrace(throwable, new LengthLimitedStringBuilderLineAppender(buffer, maxMessageSize));
+            ExceptionUtil.formatStackTrace(ExceptionUtil.process(throwable), new LengthLimitedStringBuilderLineAppender(buffer, maxMessageSize));
         }
         return buffer.toString();
     }

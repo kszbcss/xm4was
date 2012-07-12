@@ -10,8 +10,8 @@ import com.googlecode.xm4was.logging.resources.Messages;
 import com.ibm.ejs.csi.DefaultComponentMetaData;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
+import com.ibm.ejs.ras.TraceNLS;
 import com.ibm.websphere.logging.WsLevel;
-import com.ibm.ws.logging.TraceLogFormatter;
 import com.ibm.ws.runtime.metadata.ApplicationMetaData;
 import com.ibm.ws.runtime.metadata.ComponentMetaData;
 import com.ibm.ws.runtime.metadata.MetaData;
@@ -101,12 +101,26 @@ public class LoggingServiceHandler extends Handler {
                     moduleMetaData = null;
                     applicationMetaData = null;
                 }
+                
+                // Get the localized message (with unsubstituted parameters)
+                String localizedMessage = null;
+                String resourceBundleName = record.getResourceBundleName();
+                if (resourceBundleName != null) {
+                    String defaultMessage = record.getMessage();
+                    String messageKey = defaultMessage.replace(' ', '.');
+                    localizedMessage = TraceNLS.getStringFromBundle(record.getResourceBundle(), resourceBundleName, messageKey, Locale.ENGLISH, defaultMessage);
+                }
+                if (localizedMessage == null) {
+                    localizedMessage = record.getMessage();
+                }
+                
                 LogMessage message = new LogMessage(level, record.getMillis(),
                         record.getLoggerName(),
                         applicationMetaData == null ? null : applicationMetaData.getName(),
                         moduleMetaData == null ? null : moduleMetaData.getName(),
                         componentMetaData == null ? null : componentMetaData.getName(),
-                        TraceLogFormatter.formatMessage(record, Locale.ENGLISH, TraceLogFormatter.UNUSED_PARM_HANDLING_APPEND_WITH_NEWLINE),
+                        localizedMessage,
+                        convertParameters(record.getParameters()),
                         record.getThrown());
                 synchronized (this) {
                     message.setSequence(nextSequence++);
@@ -122,6 +136,33 @@ public class LoggingServiceHandler extends Handler {
         }
     }
 
+    private Object[] convertParameters(Object[] parms) {
+        if (parms == null) {
+            return null;
+        }
+        Object[] result = null;
+        for (int i=0; i<parms.length; i++) {
+            Object parm = parms[i];
+            if (parm instanceof String) {
+                String s = (String)parm;
+                if (s.indexOf("\tat ") != -1) {
+                    ThrowableInfo[] throwables = ExceptionUtil.parse(s);
+                    if (throwables != null) {
+                        if (result == null) {
+                            result = parms.clone();
+                        }
+                        // TODO: at a later stage, do the formatting in LogMessage
+//                        result[i] = throwables;
+                        StringBuilder buffer = new StringBuilder();
+                        ExceptionUtil.formatStackTrace(throwables, new LengthLimitedStringBuilderLineAppender(buffer, Integer.MAX_VALUE));
+                        result[i] = buffer.toString();
+                    }
+                }
+            }
+        }
+        return result == null ? parms : result;
+    }
+    
     public long getNextSequence() {
         long result;
         synchronized (this) {
