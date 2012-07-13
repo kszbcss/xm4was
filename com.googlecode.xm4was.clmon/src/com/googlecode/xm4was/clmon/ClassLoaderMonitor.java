@@ -193,11 +193,12 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
             if (TC.isDebugEnabled()) {
                 Tr.debug(TC, "Detected thread that has been stopped: " + threadInfo.getName());
             }
-            threadInfo.getClassLoaderInfo().getGroup().threadDestroyed();
+            threadInfo.getClassLoaderInfo().threadDestroyed();
         }
         
         while ((threadInfo = logQueue.poll()) != null) {
-            Tr.warning(TC, Messages._0005W, new Object[] { threadInfo.getClassLoaderInfo().getGroup().getName(), threadInfo.getName() });
+            // TODO: remove temporary code
+            Tr.warning(TC, Messages._0005W, new Object[] { threadInfo.getClassLoaderInfo().getGroup().getName(), threadInfo.getName() + " (freq=" + threadInfo.getClassLoaderInfo().getThreadDestructionFrequency() + ")" });
         }
     }
     
