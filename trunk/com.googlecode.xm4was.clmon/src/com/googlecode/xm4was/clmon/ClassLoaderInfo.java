@@ -8,6 +8,7 @@ import com.ibm.ws.runtime.metadata.MetaData;
 public class ClassLoaderInfo extends WeakReference<ClassLoader> {
     private final ClassLoaderGroup group;
     private final MetaData metaData;
+    private final FrequencyEstimator threadDestructionFrequency = new FrequencyEstimator(10*60);
     private boolean stopped;
 
     public ClassLoaderInfo(ClassLoader classLoader, ClassLoaderGroup group, MetaData metaData, ReferenceQueue<ClassLoader> queue) {
@@ -35,7 +36,20 @@ public class ClassLoaderInfo extends WeakReference<ClassLoader> {
     public void setStopped(boolean stopped) {
         this.stopped = stopped;
     }
-
+    
+    public void threadDestroyed() {
+        group.threadDestroyed();
+        synchronized (threadDestructionFrequency) {
+            threadDestructionFrequency.addEvent();
+        }
+    }
+    
+    public double getThreadDestructionFrequency() {
+        synchronized (threadDestructionFrequency) {
+            return threadDestructionFrequency.getFrequency();
+        }
+    }
+    
     @Override
     public String toString() {
         return "ClassLoaderInfo[name=" + group.getName() + ",stopped=" + stopped + ",destroyed=" + (get() == null) + "]";
