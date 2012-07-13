@@ -40,7 +40,7 @@ public final class ExceptionUtil {
         int count = throwables.length;
         StackTraceElement[] nextTrace = throwables[count-1].getStackTrace();
         int commonFrames = -1;
-        for (int i = count; --i >= 0;) {
+        for (int i = count-1; i >= 0; i--) {
             StackTraceElement[] trace = nextTrace;
             // Number of frames not shared with the previous exception (cause)
             int newFrames = commonFrames == -1 ? 0 : trace.length-commonFrames;
@@ -50,8 +50,24 @@ public final class ExceptionUtil {
                 nextTrace = throwables[i-1].getStackTrace();
                 commonFrames = countCommonFrames(trace, nextTrace);
             }
-            if (!appender.addLine(i == count - 1 ? throwables[i].getMessage() : ("Wrapped by: " + throwables[i].getMessage()))) {
-                return;
+            if (i == count-1) {
+                if (!appender.addLine(throwables[i].getMessage())) {
+                    return;
+                }
+            } else {
+                // If the wrapping exception was constructed without explicit message, then
+                // the message will contain the message of the wrapped exception. If this is
+                // the case, then we remove this duplicate message to shorten the stacktrace.
+                String message = throwables[i].getMessage();
+                String prevMessage = throwables[i+1].getMessage();
+                if (message.endsWith(prevMessage)
+                        && message.charAt(message.length()-prevMessage.length()-2) == ':'
+                        && message.charAt(message.length()-prevMessage.length()-1) == ' ') {
+                    message = message.substring(0, message.length()-prevMessage.length()-2);
+                }
+                if (!appender.addLine("Wrapped by: " + message)) {
+                    return;
+                }
             }
             for (int j = 0; j < trace.length-commonFrames; j++) {
                 StackTraceElement frame = trace[j];
