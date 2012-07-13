@@ -3,6 +3,7 @@ package com.googlecode.xm4was.logging;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
@@ -62,6 +63,24 @@ public class ExceptionUtilTest {
             appender.assertLine(" \\| \\[proxy\\]\\.throwException");
             appender.assertLine(" \\| com\\.googlecode\\.xm4was\\.logging\\.ExceptionUtilTest\\.testFormatProxy\\([0-9]+\\)");
         }
+    }
+    
+    /**
+     * Tests the case where the wrapper has no message. The classic stack trace would contain the
+     * message of the wrapped exception twice, but we don't repeat the message.
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void testNoDuplicateMessage() throws Exception {
+        IOException rootCause = new IOException("Some exception message");
+        RuntimeException ex = new RuntimeException(rootCause);
+        LineAppenderImpl appender = new LineAppenderImpl();
+        ExceptionUtil.formatStackTrace(ExceptionUtil.process(ex), appender);
+        appender.assertLine("java\\.io\\.IOException: Some exception message");
+        appender.assertLine(" \\| com\\.googlecode\\.xm4was\\.logging\\.ExceptionUtilTest\\.testNoDuplicateMessage\\([0-9]+\\)");
+        appender.assertLine("Wrapped by: java\\.lang\\.RuntimeException");
+        appender.assertLine(" \\+ com\\.googlecode\\.xm4was\\.logging\\.ExceptionUtilTest\\.testNoDuplicateMessage\\([0-9]+\\)");
     }
     
     @Test
