@@ -7,11 +7,11 @@
         <version>0.4.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>com.googlecode.xm4was.logging.tests</artifactId>
+    <artifactId>com.googlecode.xm4was.pmi.tests</artifactId>
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>com.googlecode.xm4was.logging</artifactId>
+            <artifactId>com.googlecode.xm4was.pmi</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

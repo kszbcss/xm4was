@@ -646,6 +646,15 @@
             <version>3.2.1-v20092006</version>
         </dependency>
     </dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.8.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <build>
         <plugins>
             <plugin>
@@ -664,6 +673,14 @@
                 </configuration>
             </plugin>
         </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.10</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
     <modules>
         <module>com.googlecode.xm4was.clmon</module>
@@ -672,6 +689,7 @@
         <module>com.googlecode.xm4was.logging</module>
         <module>com.googlecode.xm4was.logging.tests</module>
         <module>com.googlecode.xm4was.pmi</module>
+        <module>com.googlecode.xm4was.pmi.tests</module>
         <module>jmx-client-connector</module>
         <module>distribution</module>
     </modules>

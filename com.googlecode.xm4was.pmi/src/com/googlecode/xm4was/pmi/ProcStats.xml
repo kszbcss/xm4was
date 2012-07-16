@@ -8,4 +8,16 @@
         <description>The number of file descriptors allocated by the server process.</description>
         <updateOnRequest>true</updateOnRequest>
     </RangeStatistic>
+    <RangeStatistic ID="2" name="VmSize">
+        <level>high</level>
+        <unit>unit.byte</unit>
+        <description>Virtual memory size of the process.</description>
+        <updateOnRequest>true</updateOnRequest>
+    </RangeStatistic>
+    <RangeStatistic ID="3" name="VmRSS">
+        <level>high</level>
+        <unit>unit.byte</unit>
+        <description>Resident set size, i.e. the number of bytes the process has in real memory.</description>
+        <updateOnRequest>true</updateOnRequest>
+    </RangeStatistic>
 </Stats>

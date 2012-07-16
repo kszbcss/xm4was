@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: XM4WAS PMI Metrics Tests
+Bundle-SymbolicName: com.googlecode.xm4was.pmi.tests
+Bundle-Version: 0.4.0.qualifier
+Fragment-Host: com.googlecode.xm4was.pmi
