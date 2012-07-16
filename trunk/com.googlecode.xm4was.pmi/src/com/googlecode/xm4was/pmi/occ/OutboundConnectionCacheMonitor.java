@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import com.googlecode.xm4was.commons.TrConstants;
+import com.googlecode.xm4was.pmi.common.PMIUtils;
 import com.googlecode.xm4was.pmi.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
@@ -100,9 +101,9 @@ public class OutboundConnectionCacheMonitor extends StatisticActions {
                 statistic.set((Integer)method.invoke(outboundConnectionCache));
             }
         } catch (IllegalAccessException ex) {
-            Tr.error(TC, Messages._0001E, new Object[] { statistic.getName(), ex });
+            PMIUtils.reportUpdateStatisticFailure(TC, statistic, ex);
         } catch (InvocationTargetException ex) {
-            Tr.error(TC, Messages._0001E, new Object[] { statistic.getName(), ex.getCause() });
+            PMIUtils.reportUpdateStatisticFailure(TC, statistic, ex.getCause());
         }
     }
 }
