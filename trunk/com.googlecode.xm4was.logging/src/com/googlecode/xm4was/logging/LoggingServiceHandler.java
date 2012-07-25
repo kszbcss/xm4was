@@ -146,8 +146,14 @@ public class LoggingServiceHandler extends Handler {
             if (parm instanceof String) {
                 String s = (String)parm;
                 if (s.indexOf("\tat ") != -1) {
+                    if (TC.isDebugEnabled()) {
+                        Tr.debug(TC, "Attempting to parse parameter {0} as stacktrace", i);
+                    }
                     ThrowableInfo[] throwables = ExceptionUtil.parse(s);
                     if (throwables != null) {
+                        if (TC.isDebugEnabled()) {
+                            Tr.debug(TC, "Successfully parsed parameter {0} as stacktrace", i);
+                        }
                         if (result == null) {
                             result = parms.clone();
                         }
@@ -156,6 +162,10 @@ public class LoggingServiceHandler extends Handler {
                         StringBuilder buffer = new StringBuilder();
                         ExceptionUtil.formatStackTrace(throwables, new LengthLimitedStringBuilderLineAppender(buffer, Integer.MAX_VALUE));
                         result[i] = buffer.toString();
+                    } else {
+                        if (TC.isDebugEnabled()) {
+                            Tr.debug(TC, "Parameter {0} doesn't appear to be a stacktrace", i);
+                        }
                     }
                 }
             }

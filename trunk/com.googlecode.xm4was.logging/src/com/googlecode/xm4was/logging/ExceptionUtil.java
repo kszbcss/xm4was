@@ -6,7 +6,14 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.googlecode.xm4was.commons.TrConstants;
+import com.googlecode.xm4was.logging.resources.Messages;
+import com.ibm.ejs.ras.Tr;
+import com.ibm.ejs.ras.TraceComponent;
+
 public final class ExceptionUtil {
+    private static final TraceComponent TC = Tr.register(ExceptionUtil.class, TrConstants.GROUP, Messages.class.getName());
+    
     private ExceptionUtil() {}
     
     public static ThrowableInfo[] process(Throwable throwable) {
@@ -144,15 +151,17 @@ public final class ExceptionUtil {
                     startNew = false;
                 } else if (line.startsWith("\tat ") && line.charAt(line.length()-1) == ')') {
                     if (message == null) {
-                        // Probably a truncated stacktrace
+                        Tr.debug(TC, "Found a frame, but there was no message; probably a truncated stacktrace");
                         return null;
                     }
                     int parenIdx = line.indexOf('(');
                     if (parenIdx == -1) {
+                        Tr.debug(TC, "Frame has unexpected format: no '(' found");
                         return null;
                     }
                     int methodIdx = line.lastIndexOf('.', parenIdx);
                     if (methodIdx == -1) {
+                        Tr.debug(TC, "Frame has unexpected format: unable to extract method name");
                         return null;
                     }
                     String className = line.substring(4, methodIdx);
@@ -169,6 +178,7 @@ public final class ExceptionUtil {
                         try {
                             sourceLine = Integer.parseInt(line.substring(colonIdx+1, line.length()-1));
                         } catch (NumberFormatException ex) {
+                            Tr.debug(TC, "Frame has unexpected format: unable to parse line number");
                             return null;
                         }
                     }
@@ -180,13 +190,14 @@ public final class ExceptionUtil {
                     startNew = true;
                 } else if (line.startsWith("\t... ") && line.endsWith(" more")) {
                     if (throwables.isEmpty()) {
-                        // Malformed stacktrace: only nested exceptions can have a shortened stack trace
+                        Tr.debug(TC, "Malformed stacktrace: only nested exceptions can have a shortened stack trace");
                         return null;
                     } else {
                         int more;
                         try {
                             more = Integer.parseInt(line.substring(5, line.length()-5));
                         } catch (NumberFormatException ex) {
+                            Tr.debug(TC, "Malformed stacktrace: unable to parse continuation");
                             return null;
                         }
                         close = true;
@@ -211,7 +222,7 @@ public final class ExceptionUtil {
                     } else if (line.startsWith("Caused by: ")) {
                         message = line.substring(11);
                     } else {
-                        // Malformed stacktrace
+                        Tr.debug(TC, "Malformed stacktrace: expected 'Caused by: '");
                         return null;
                     }
                 }
