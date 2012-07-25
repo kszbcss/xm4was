@@ -208,8 +208,14 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         }
         
         while ((threadInfo = logQueue.poll()) != null) {
-            // TODO: remove temporary code
-            Tr.warning(TC, Messages._0005W, new Object[] { threadInfo.getClassLoaderInfo().getGroup().getName(), threadInfo.getName() + " (freq=" + threadInfo.getClassLoaderInfo().getThreadDestructionFrequency() + ")" });
+            ClassLoaderInfo classLoaderInfo = threadInfo.getClassLoaderInfo();
+            if (classLoaderInfo.isThreadLoggingEnabled()) {
+                if (classLoaderInfo.updateThreadLoggingStatus()) {
+                    Tr.warning(TC, Messages._0005W, new Object[] { classLoaderInfo.getGroup().getName(), threadInfo.getName() });
+                } else {
+                    Tr.warning(TC, Messages._0006W, classLoaderInfo.getGroup().getName());
+                }
+            }
         }
     }
     
