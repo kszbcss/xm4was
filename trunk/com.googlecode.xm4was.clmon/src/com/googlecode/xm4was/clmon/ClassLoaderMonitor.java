@@ -7,7 +7,6 @@ import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -15,6 +14,8 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.management.ObjectName;
 
@@ -58,7 +59,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
     private static final int STATS_MAX_DELAY = 30000;
     
     private long lastDumped;
-    private long lastUpdated;
+    private final AtomicLong lastUpdated = new AtomicLong();
     private Map<ClassLoader,ClassLoaderInfo> classLoaderInfos;
     private ReferenceQueue<ClassLoader> classLoaderInfoQueue;
     private StatsGroup statsGroup;
@@ -121,7 +122,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         classLoaderInfoQueue = new ReferenceQueue<ClassLoader>();
         threadInfos = new WeakHashMap<Thread,ThreadInfo>();
         threadInfoQueue = new ReferenceQueue<Thread>();
-        logQueue = new LinkedList<ThreadInfo>();
+        logQueue = new ConcurrentLinkedQueue<ThreadInfo>();
         final Timer timer = new Timer("Class Loader Monitor");
         addStopAction(new Runnable() {
             public void run() {
@@ -150,42 +151,52 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         Tr.info(TC, Messages._0001I);
     }
 
-    synchronized void updateClassLoaders() {
+    void updateClassLoaders() {
         boolean isUpdated = false;
         ClassLoaderInfo classLoaderInfo;
+        // ReferenceQueues are thread safe. Therefore we don't need to synchronized here.
         while ((classLoaderInfo = (ClassLoaderInfo)classLoaderInfoQueue.poll()) != null) {
             isUpdated = true;
             if (TC.isDebugEnabled()) {
                 Tr.debug(TC, "Detected class loader that has been garbage collected: " + classLoaderInfo);
             }
+            // classLoaderDestroyed is synchronized
             classLoaderInfo.getGroup().classLoaderDestroyed();
         }
         long timestamp = System.currentTimeMillis();
         if (isUpdated) {
-            lastUpdated = System.currentTimeMillis();
+            lastUpdated.set(System.currentTimeMillis());
         }
+        // This method is only called by the timer, i.e. never concurrently. Therefore unsynchronized access
+        // to lastDumped is safe.
+        long lastUpdated = this.lastUpdated.get();
         if (lastUpdated > lastDumped && ((timestamp - lastUpdated > STATS_MIN_DELAY) || (timestamp - lastDumped > STATS_MAX_DELAY))) {
             lastDumped = timestamp;
             int createCount = 0;
             int stopCount = 0;
             int destroyedCount = 0;
-            for (ClassLoaderGroup group : classLoaderGroups.values()) {
-                createCount += group.getCreateCount();
-                stopCount += group.getStopCount();
-                destroyedCount += group.getDestroyedCount();
+            synchronized (classLoaderGroups) {
+                for (ClassLoaderGroup group : classLoaderGroups.values()) {
+                    // Getters are synchronized
+                    createCount += group.getCreateCount();
+                    stopCount += group.getStopCount();
+                    destroyedCount += group.getDestroyedCount();
+                }
             }
             Tr.info(TC, Messages._0003I, new Object[] { String.valueOf(createCount), String.valueOf(stopCount), String.valueOf(destroyedCount) });
         }
     }
     
-    synchronized void updateThreads() {
-        Set<Thread> stoppedThreads = new HashSet<Thread>(threadInfos.keySet());
-        for (Thread thread : getAllThreads()) {
-            getThreadInfo(thread);
-            stoppedThreads.remove(thread);
-        }
-        for (Thread thread : stoppedThreads) {
-            threadInfos.remove(thread).enqueue();
+    void updateThreads() {
+        synchronized (threadInfos) {
+            Set<Thread> stoppedThreads = new HashSet<Thread>(threadInfos.keySet());
+            for (Thread thread : getAllThreads()) {
+                getThreadInfo(thread);
+                stoppedThreads.remove(thread);
+            }
+            for (Thread thread : stoppedThreads) {
+                threadInfos.remove(thread).enqueue();
+            }
         }
 
         ThreadInfo threadInfo;
@@ -202,41 +213,46 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         }
     }
     
-    private synchronized ThreadInfo getThreadInfo(Thread thread) {
-        if (!threadInfos.containsKey(thread)) {
-            if (TC.isDebugEnabled()) {
-                Tr.debug(TC, "Discovered new thread: " + thread.getName());
-            }
-            try {
-                AccessControlContext acc = (AccessControlContext)accessControlContextField.get(thread);
-                ProtectionDomain[] pdArray = (ProtectionDomain[])pdArrayField.get(acc);
-                ThreadInfo threadInfo = null;
-                if (pdArray != null) {
-                    for (int i=pdArray.length-1; i>=0; i--) {
-                        ProtectionDomain pd = pdArray[i];
-                        if (TC.isDebugEnabled()) {
-                            Tr.debug(TC, "Protection domain:\n" + pd);
-                        }
-                        ClassLoaderInfo classLoaderInfo = classLoaderInfos.get(pd.getClassLoader());
-                        if (classLoaderInfo != null) {
-                            threadInfo = new ThreadInfo(thread, classLoaderInfo, threadInfoQueue);
-                            classLoaderInfo.getGroup().threadCreated();
-                            // getThreadInfo may be called by the monitor thread or via the UnmanagedThreadMonitor
-                            // service, but we want all logging to happen inside the monitor thread
-                            logQueue.add(threadInfo);
-                            break;
+    private ThreadInfo getThreadInfo(Thread thread) {
+        synchronized (threadInfos) {
+            if (!threadInfos.containsKey(thread)) {
+                if (TC.isDebugEnabled()) {
+                    Tr.debug(TC, "Discovered new thread: " + thread.getName());
+                }
+                try {
+                    AccessControlContext acc = (AccessControlContext)accessControlContextField.get(thread);
+                    ProtectionDomain[] pdArray = (ProtectionDomain[])pdArrayField.get(acc);
+                    ThreadInfo threadInfo = null;
+                    if (pdArray != null) {
+                        for (int i=pdArray.length-1; i>=0; i--) {
+                            ProtectionDomain pd = pdArray[i];
+                            if (TC.isDebugEnabled()) {
+                                Tr.debug(TC, "Protection domain:\n" + pd);
+                            }
+                            ClassLoaderInfo classLoaderInfo;
+                            synchronized (classLoaderInfos) {
+                                classLoaderInfo = classLoaderInfos.get(pd.getClassLoader());
+                            }
+                            if (classLoaderInfo != null) {
+                                threadInfo = new ThreadInfo(thread, classLoaderInfo, threadInfoQueue);
+                                classLoaderInfo.getGroup().threadCreated();
+                                // getThreadInfo may be called by the monitor thread or via the UnmanagedThreadMonitor
+                                // service, but we want all logging to happen inside the monitor thread
+                                logQueue.add(threadInfo);
+                                break;
+                            }
                         }
                     }
+                    // Always add the entry to the threadInfos map so that we remember threads that are not linked
+                    // to applications
+                    threadInfos.put(thread, threadInfo);
+                    return threadInfo;
+                } catch (IllegalAccessException ex) {
+                    throw new IllegalAccessError(ex.getMessage());
                 }
-                // Always add the entry to the threadInfos map so that we remember threads that are not linked
-                // to applications
-                threadInfos.put(thread, threadInfo);
-                return threadInfo;
-            } catch (IllegalAccessException ex) {
-                throw new IllegalAccessError(ex.getMessage());
+            } else {
+                return threadInfos.get(thread);
             }
-        } else {
-            return threadInfos.get(thread);
         }
     }
 
@@ -267,7 +283,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         return result;
     }
     
-    public synchronized void stateChanged(DeployedObjectEvent event) throws RuntimeError, RuntimeWarning {
+    public void stateChanged(DeployedObjectEvent event) throws RuntimeError, RuntimeWarning {
         String state = (String)event.getNewValue();
         DeployedObject deployedObject = event.getDeployedObject();
         if (TC.isDebugEnabled()) {
@@ -289,42 +305,52 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
             } else {
                 groupKey = deployedObject.getName();
             }
-            ClassLoaderGroup group = classLoaderGroups.get(groupKey);
-            if (group == null) {
-                group = new ClassLoaderGroup(groupKey);
-                classLoaderGroups.put(groupKey, group);
-                if (StatsFactory.isPMIEnabled()) {
-                    try {
-                        StatsFactory.createStatsInstance(groupKey, statsGroup, null, group);
-                    } catch (StatsFactoryException ex) {
-                        Tr.error(TC, Messages._0004E, new Object[] { groupKey, ex });
+            ClassLoaderGroup group;
+            synchronized (classLoaderGroups) {
+                group = classLoaderGroups.get(groupKey);
+                if (group == null) {
+                    group = new ClassLoaderGroup(groupKey);
+                    classLoaderGroups.put(groupKey, group);
+                    if (StatsFactory.isPMIEnabled()) {
+                        try {
+                            StatsFactory.createStatsInstance(groupKey, statsGroup, null, group);
+                        } catch (StatsFactoryException ex) {
+                            Tr.error(TC, Messages._0004E, new Object[] { groupKey, ex });
+                        }
                     }
                 }
             }
             if (state.equals("STARTING")) {
-                classLoaderInfos.put(classLoader, new ClassLoaderInfo(classLoader, group, deployedObject.getMetaData(), classLoaderInfoQueue));
+                synchronized (classLoaderInfos) {
+                    classLoaderInfos.put(classLoader, new ClassLoaderInfo(classLoader, group, deployedObject.getMetaData(), classLoaderInfoQueue));
+                }
                 group.classLoaderCreated(classLoader);
-                lastUpdated = System.currentTimeMillis();
+                lastUpdated.set(System.currentTimeMillis());
             } else if (state.equals("DESTROYED")) {
-                ClassLoaderInfo info = classLoaderInfos.get(classLoader);
+                ClassLoaderInfo info;
+                synchronized (classLoaderInfos) {
+                    info = classLoaderInfos.get(classLoader);
+                }
                 if (TC.isDebugEnabled()) {
                     Tr.debug(TC, "Identified class loader: " + info);
                 }
                 info.setStopped(true);
                 group.classLoaderStopped();
-                lastUpdated = System.currentTimeMillis();
+                lastUpdated.set(System.currentTimeMillis());
             }
         }
     }
     
-    public synchronized ThreadInfo[] getThreadInfos() {
-        List<ThreadInfo> result = new ArrayList<ThreadInfo>();
-        for (ThreadInfo info : threadInfos.values()) {
-            if (info != null) {
-                result.add(info);
+    public ThreadInfo[] getThreadInfos() {
+        synchronized (threadInfos) {
+            List<ThreadInfo> result = new ArrayList<ThreadInfo>();
+            for (ThreadInfo info : threadInfos.values()) {
+                if (info != null) {
+                    result.add(info);
+                }
             }
+            return result.toArray(new ThreadInfo[result.size()]);
         }
-        return result.toArray(new ThreadInfo[result.size()]);
     }
 
     public MetaData getMetaDataForUnmanagedThread(Thread thread) {
