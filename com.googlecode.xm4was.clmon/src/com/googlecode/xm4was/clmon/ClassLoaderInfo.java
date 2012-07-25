@@ -29,11 +29,11 @@ public class ClassLoaderInfo extends WeakReference<ClassLoader> {
         return metaData;
     }
 
-    public boolean isStopped() {
+    public synchronized boolean isStopped() {
         return stopped;
     }
 
-    public void setStopped(boolean stopped) {
+    public synchronized void setStopped(boolean stopped) {
         this.stopped = stopped;
     }
     
