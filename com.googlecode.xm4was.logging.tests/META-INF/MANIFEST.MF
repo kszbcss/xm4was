@@ -4,3 +4,6 @@ Bundle-Name: XM4WAS Logging Tests
 Bundle-SymbolicName: com.googlecode.xm4was.logging.tests
 Bundle-Version: 0.4.0.qualifier
 Fragment-Host: com.googlecode.xm4was.logging
+Require-Bundle: com.ibm.ws.emf,
+ org.eclipse.emf.ecore,
+ bootstrapstub;bundle-version="0.4.0"

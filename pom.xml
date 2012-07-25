@@ -683,6 +683,7 @@
         </pluginManagement>
     </build>
     <modules>
+        <module>bootstrapstub</module>
         <module>com.googlecode.xm4was.clmon</module>
         <module>com.googlecode.xm4was.commons</module>
         <module>com.googlecode.xm4was.jmx</module>

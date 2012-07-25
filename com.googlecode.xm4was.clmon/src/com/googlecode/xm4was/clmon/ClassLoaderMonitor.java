@@ -202,7 +202,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         ThreadInfo threadInfo;
         while ((threadInfo = (ThreadInfo)threadInfoQueue.poll()) != null) {
             if (TC.isDebugEnabled()) {
-                Tr.debug(TC, "Detected thread that has been stopped: " + threadInfo.getName());
+                Tr.debug(TC, "Detected thread that has been stopped: {0}", threadInfo.getName());
             }
             threadInfo.getClassLoaderInfo().threadDestroyed();
         }
@@ -227,13 +227,16 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
                         for (int i=pdArray.length-1; i>=0; i--) {
                             ProtectionDomain pd = pdArray[i];
                             if (TC.isDebugEnabled()) {
-                                Tr.debug(TC, "Protection domain:\n" + pd);
+                                Tr.debug(TC, "Protection domain: codeSource={0}", pd.getCodeSource());
                             }
                             ClassLoaderInfo classLoaderInfo;
                             synchronized (classLoaderInfos) {
                                 classLoaderInfo = classLoaderInfos.get(pd.getClassLoader());
                             }
                             if (classLoaderInfo != null) {
+                                if (TC.isDebugEnabled()) {
+                                    Tr.debug(TC, "Protection domain is linked to known class loader: {0}", classLoaderInfo.getGroup().getName());
+                                }
                                 threadInfo = new ThreadInfo(thread, classLoaderInfo, threadInfoQueue);
                                 classLoaderInfo.getGroup().threadCreated();
                                 // getThreadInfo may be called by the monitor thread or via the UnmanagedThreadMonitor
