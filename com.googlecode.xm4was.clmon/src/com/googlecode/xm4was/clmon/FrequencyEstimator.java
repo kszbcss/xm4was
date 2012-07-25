@@ -16,7 +16,7 @@ public class FrequencyEstimator {
         this.scale = scale;
     }
 
-    public void addEvent() {
+    public synchronized void addEvent() {
         long time = System.currentTimeMillis();
         double frequency = getFrequency(time);
         if (TC.isDebugEnabled()) {
@@ -31,7 +31,7 @@ public class FrequencyEstimator {
         }
     }
     
-    public double getFrequency() {
+    public synchronized double getFrequency() {
         return getFrequency(System.currentTimeMillis());
     }
     

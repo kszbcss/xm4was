@@ -8,8 +8,9 @@ import com.ibm.ws.runtime.metadata.MetaData;
 public class ClassLoaderInfo extends WeakReference<ClassLoader> {
     private final ClassLoaderGroup group;
     private final MetaData metaData;
-    private final FrequencyEstimator threadDestructionFrequency = new FrequencyEstimator(10*60);
+    private final FrequencyEstimator threadDestructionFrequency = new FrequencyEstimator(1200.0);
     private boolean stopped;
+    private boolean threadLoggingEnabled = true;
 
     public ClassLoaderInfo(ClassLoader classLoader, ClassLoaderGroup group, MetaData metaData, ReferenceQueue<ClassLoader> queue) {
         super(classLoader, queue);
@@ -39,15 +40,16 @@ public class ClassLoaderInfo extends WeakReference<ClassLoader> {
     
     public void threadDestroyed() {
         group.threadDestroyed();
-        synchronized (threadDestructionFrequency) {
-            threadDestructionFrequency.addEvent();
-        }
+        threadDestructionFrequency.addEvent();
     }
     
-    public double getThreadDestructionFrequency() {
-        synchronized (threadDestructionFrequency) {
-            return threadDestructionFrequency.getFrequency();
-        }
+    public synchronized boolean isThreadLoggingEnabled() {
+        return threadLoggingEnabled;
+    }
+    
+    public synchronized boolean updateThreadLoggingStatus() {
+        // Max frequency is 1 per 2 minutes
+        return threadLoggingEnabled = threadDestructionFrequency.getFrequency() <= 0.5/60.0;
     }
     
     @Override
