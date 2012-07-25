@@ -164,7 +164,7 @@ public class LoggingServiceHandler extends Handler {
                         result[i] = buffer.toString();
                     } else {
                         if (TC.isDebugEnabled()) {
-                            Tr.debug(TC, "Parameter {0} doesn't appear to be a stacktrace", i);
+                            Tr.debug(TC, "Parameter {0} does not appear to be a stacktrace", i);
                         }
                     }
                 }
