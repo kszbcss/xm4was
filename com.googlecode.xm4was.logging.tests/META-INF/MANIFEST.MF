@@ -6,4 +6,9 @@ Bundle-Version: 0.4.0.qualifier
 Fragment-Host: com.googlecode.xm4was.logging
 Require-Bundle: com.ibm.ws.emf,
  org.eclipse.emf.ecore,
- bootstrapstub;bundle-version="0.4.0"
+ bootstrapstub,
+ javax.j2ee.ejb,
+ com.ibm.ws.prereq.javamail,
+ javax.j2ee.jsp,
+ javax.j2ee.connector,
+ javax.j2ee.jms
