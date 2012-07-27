@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.logging.resources.Messages;
+import com.ibm.ejs.ras.RasHelper;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 
@@ -138,19 +139,33 @@ public final class ExceptionUtil {
     public static ThrowableInfo[] parse(String s) {
         BufferedReader reader = new BufferedReader(new StringReader(s));
         List<ThrowableInfo> throwables = new ArrayList<ThrowableInfo>();
-        String message = null;
+        StringBuilder message = new StringBuilder();
         List<StackTraceElement> stackTrace = new ArrayList<StackTraceElement>();
+        // Flag set to true if we are currently parsing the exception message (which
+        // may potentially span multiple lines)
+        boolean inMessage = false;
+        // Flag set to true if we are currently parsing the frames of a stacktrace
+        boolean inFrames = false;
+        // Flag set to true if the next line should be interpreted as the start of a
+        // nested exception even if it doesn't start with "Caused by: "
+        boolean forceCausedBy = false;
         try {
             String line;
             do {
                 line = reader.readLine();
+                // Flag set to true if we have reached the end of the current throwable
                 boolean close;
+                // Flag set to true if the current line starts a new throwable
                 boolean startNew;
                 if (line == null) {
-                    close = message != null;
+                    close = inFrames;
                     startNew = false;
                 } else if (line.startsWith("\tat ") && line.charAt(line.length()-1) == ')') {
-                    if (message == null) {
+                    if (inMessage) {
+                        inMessage = false;
+                        inFrames = true;
+                    }
+                    if (!inFrames) {
                         Tr.debug(TC, "Found a frame, but there was no message; probably a truncated stacktrace");
                         return null;
                     }
@@ -185,7 +200,12 @@ public final class ExceptionUtil {
                     stackTrace.add(new StackTraceElement(className, methodName, file, sourceLine));
                     close = false;
                     startNew = false;
-                } else if (message == null) {
+                } else if (line.equals("---- Begin backtrace for Nested Throwables")) {
+                    // This case is specific to stack traces formatted by RasHelper#throwableToString
+                    close = inFrames;
+                    startNew = false;
+                    forceCausedBy = true;
+                } else if (!inMessage && !inFrames) {
                     close = false;
                     startNew = true;
                 } else if (line.startsWith("\t... ") && line.endsWith(" more")) {
@@ -207,24 +227,34 @@ public final class ExceptionUtil {
                             stackTrace.add(previousStackTrace[previousStackTrace.length-more+i]);
                         }
                     }
+                } else if (inMessage) {
+                    message.append('\n');
+                    message.append(line);
+                    close = false;
+                    startNew = false;
                 } else {
-                    close = message != null;
+                    close = true;
                     startNew = true;
                 }
                 if (close) {
-                    throwables.add(new ThrowableInfo(message, stackTrace.toArray(new StackTraceElement[stackTrace.size()])));
-                    message = null;
+                    throwables.add(new ThrowableInfo(message.toString(), stackTrace.toArray(new StackTraceElement[stackTrace.size()])));
+                    message.setLength(0);
                     stackTrace.clear();
+                    inFrames = false;
                 }
                 if (startNew) {
-                    if (throwables.isEmpty()) {
-                        message = line;
+                    if (forceCausedBy) {
+                        message.append(line);
+                        forceCausedBy = false;
+                    } else if (throwables.isEmpty()) {
+                        message.append(line);
                     } else if (line.startsWith("Caused by: ")) {
-                        message = line.substring(11);
+                        message.append(line.substring(11));
                     } else {
                         Tr.debug(TC, "Malformed stacktrace: expected 'Caused by: '");
                         return null;
                     }
+                    inMessage = true;
                 }
             } while (line != null);
         } catch (IOException ex) {

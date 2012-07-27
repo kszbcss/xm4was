@@ -8,8 +8,11 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
+import java.sql.SQLException;
 
 import org.junit.Test;
+
+import com.ibm.ejs.ras.RasHelper;
 
 public class ExceptionUtilTest {
     @Test
@@ -83,16 +86,20 @@ public class ExceptionUtilTest {
         appender.assertLine(" \\+ com\\.googlecode\\.xm4was\\.logging\\.ExceptionUtilTest\\.testNoDuplicateMessage\\([0-9]+\\)");
     }
     
+    private static String throwableToString(Throwable t) {
+        StringWriter sw = new StringWriter();
+        PrintWriter out = new PrintWriter(sw, false);
+        t.printStackTrace(out);
+        out.flush();
+        return sw.toString();
+    }
+    
     @Test
     public void testParse() throws Exception {
         try {
             new MyClass().method3();
         } catch (RuntimeException ex) {
-            StringWriter sw = new StringWriter();
-            PrintWriter out = new PrintWriter(sw, false);
-            ex.printStackTrace(out);
-            out.flush();
-            ThrowableInfo[] throwables = ExceptionUtil.parse(sw.toString());
+            ThrowableInfo[] throwables = ExceptionUtil.parse(throwableToString(ex));
             assertNotNull(throwables);
             ThrowableInfo[] expected = ExceptionUtil.process(ex);
             assertEquals(expected.length, throwables.length);
@@ -115,5 +122,27 @@ public class ExceptionUtilTest {
                 }
             }
         }
+    }
+
+    @Test
+    public void testParseWithRasHelperNestedThrowables() throws Exception {
+        SQLException ex = new SQLException("ex1");
+        ex.setNextException(new SQLException("ex2"));
+        String formattedThrowable = RasHelper.throwableToString(new Error(ex));
+        ThrowableInfo[] parsedThrowables = ExceptionUtil.parse(formattedThrowable);
+        assertNotNull(parsedThrowables);
+        assertEquals(3, parsedThrowables.length);
+        assertEquals("java.lang.Error: java.sql.SQLException: ex1", parsedThrowables[0].getMessage());
+        assertEquals("java.sql.SQLException: ex1", parsedThrowables[1].getMessage());
+        assertEquals("java.sql.SQLException: ex2", parsedThrowables[2].getMessage());
+    }
+    
+    @Test
+    public void testParseWithMultilineMessage() throws Exception {
+        Throwable t = new RuntimeException("This is a\nmulti-line message");
+        ThrowableInfo[] parsedThrowables = ExceptionUtil.parse(throwableToString(t));
+        assertNotNull(parsedThrowables);
+        assertEquals(1, parsedThrowables.length);
+        assertEquals("java.lang.RuntimeException: This is a\nmulti-line message", parsedThrowables[0].getMessage());
     }
 }
