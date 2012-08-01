@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.googlecode.xm4was.clmon.resources.Messages;
+import com.googlecode.xm4was.clmon.thread.ModuleInfo;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
@@ -20,7 +21,7 @@ import com.ibm.wsspi.pmi.stat.SPIStatistic;
  * class collects statistics about the number of created, leaked and destroyed class loaders and
  * exposes them via PMI.
  */
-public class ClassLoaderGroup extends StatisticActions {
+public class ClassLoaderGroup extends StatisticActions implements ModuleInfo {
     private static final TraceComponent TC = Tr.register(ClassLoaderGroup.class, TrConstants.GROUP, Messages.class.getName());
     
     private static final Field resourceRequestCacheField;
@@ -67,6 +68,8 @@ public class ClassLoaderGroup extends StatisticActions {
     private static final int RESOURCE_REQUEST_CACHE_MOD_COUNT = 5;
     private static final int UNMANAGED_THREAD_COUNT = 6;
     
+    private final String applicationName;
+    private final String moduleName;
     private final String name;
     private SPICountStatistic createCountStat;
     private SPICountStatistic stopCountStat;
@@ -81,10 +84,24 @@ public class ClassLoaderGroup extends StatisticActions {
     private Map<?,?> resourceRequestCache;
     private int unmanagedThreadCount;
     
-    public ClassLoaderGroup(String name) {
-        this.name = name;
+    public ClassLoaderGroup(String applicationName, String moduleName) {
+        this.applicationName = applicationName;
+        this.moduleName = moduleName;
+        if (moduleName == null) {
+            name = applicationName;
+        } else {
+            name = applicationName + "#" + moduleName;
+        }
     }
     
+    public String getApplicationName() {
+        return applicationName;
+    }
+
+    public String getModuleName() {
+        return moduleName;
+    }
+
     public String getName() {
         return name;
     }

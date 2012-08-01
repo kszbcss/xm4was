@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.management.ObjectName;
 
 import com.googlecode.xm4was.clmon.resources.Messages;
+import com.googlecode.xm4was.clmon.thread.ModuleInfo;
 import com.googlecode.xm4was.clmon.thread.UnmanagedThreadMonitor;
 import com.googlecode.xm4was.commons.AbstractWsComponent;
 import com.googlecode.xm4was.commons.TrConstants;
@@ -33,7 +34,6 @@ import com.ibm.ws.runtime.deploy.DeployedModule;
 import com.ibm.ws.runtime.deploy.DeployedObject;
 import com.ibm.ws.runtime.deploy.DeployedObjectEvent;
 import com.ibm.ws.runtime.deploy.DeployedObjectListener;
-import com.ibm.ws.runtime.metadata.MetaData;
 import com.ibm.ws.runtime.service.ApplicationMgr;
 import com.ibm.wsspi.pmi.factory.StatsFactory;
 import com.ibm.wsspi.pmi.factory.StatsFactoryException;
@@ -308,17 +308,23 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         if (classLoader != null &&
                 (deployedObject instanceof DeployedApplication
                         || deployedObject instanceof DeployedModule && ((DeployedModule)deployedObject).getDeployedApplication().getClassLoader() != classLoader)) {
+            String applicationName;
+            String moduleName;
             String groupKey;
             if (deployedObject instanceof DeployedModule) {
-                groupKey = ((DeployedModule)deployedObject).getDeployedApplication().getName() + "#" + deployedObject.getName();
+                applicationName = ((DeployedModule)deployedObject).getDeployedApplication().getName();
+                moduleName = deployedObject.getName();
+                groupKey = applicationName + "#" + moduleName;
             } else {
-                groupKey = deployedObject.getName();
+                applicationName = deployedObject.getName();
+                moduleName = null;
+                groupKey = applicationName;
             }
             ClassLoaderGroup group;
             synchronized (classLoaderGroups) {
                 group = classLoaderGroups.get(groupKey);
                 if (group == null) {
-                    group = new ClassLoaderGroup(groupKey);
+                    group = new ClassLoaderGroup(applicationName, moduleName);
                     classLoaderGroups.put(groupKey, group);
                     if (StatsFactory.isPMIEnabled()) {
                         try {
@@ -331,7 +337,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
             }
             if (state.equals("STARTING")) {
                 synchronized (classLoaderInfos) {
-                    classLoaderInfos.put(classLoader, new ClassLoaderInfo(classLoader, group, deployedObject.getMetaData(), classLoaderInfoQueue));
+                    classLoaderInfos.put(classLoader, new ClassLoaderInfo(classLoader, group, classLoaderInfoQueue));
                 }
                 group.classLoaderCreated(classLoader);
                 lastUpdated.set(System.currentTimeMillis());
@@ -362,8 +368,8 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         }
     }
 
-    public MetaData getMetaDataForUnmanagedThread(Thread thread) {
+    public ModuleInfo getModuleInfoForUnmanagedThread(Thread thread) {
         ThreadInfo info = getThreadInfo(thread);
-        return info == null ? null : info.getClassLoaderInfo().getMetaData();
+        return info == null ? null : info.getClassLoaderInfo().getGroup();
     }
 }
