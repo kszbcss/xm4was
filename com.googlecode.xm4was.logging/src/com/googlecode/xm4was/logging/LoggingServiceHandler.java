@@ -4,6 +4,7 @@ import java.util.Locale;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
+import com.googlecode.xm4was.clmon.thread.ModuleInfo;
 import com.googlecode.xm4was.clmon.thread.UnmanagedThreadMonitor;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.logging.resources.Messages;
@@ -51,55 +52,74 @@ public class LoggingServiceHandler extends Handler {
         int level = record.getLevel().intValue();
         if (level >= WsLevel.AUDIT.intValue()) {
             try {
-                final ComponentMetaData componentMetaData;
-                final ModuleMetaData moduleMetaData;
-                final ApplicationMetaData applicationMetaData;
+                String applicationName;
+                String moduleName;
+                String componentName;
                 MetaData metaData = cmdAccessor.getComponentMetaData();
                 if (metaData instanceof DefaultComponentMetaData) {
                     metaData = null;
                 }
                 if (metaData == null) {
+                    ModuleInfo moduleInfo;
                     synchronized (this) {
                         // Attempt to determine the application or module for an unmanaged thread
                         if (unmanagedThreadMonitor != null) {
-                            metaData = unmanagedThreadMonitor.getMetaDataForUnmanagedThread(Thread.currentThread());
+                            moduleInfo = unmanagedThreadMonitor.getModuleInfoForUnmanagedThread(Thread.currentThread());
+                        } else {
+                            moduleInfo = null;
                         }
                     }
-                }
-                if (metaData instanceof ModuleMetaData) {
-                    // We get here in two cases:
-                    //  * The log event was emitted by an unmanaged thread and the metadata was
-                    //    identified using the thread context class loader.
-                    //  * For servlet context listeners, the component meta data is the same as the
-                    //    module meta data. If we are in this case, we leave the component name empty.
-                    componentMetaData = null;
-                    moduleMetaData = (ModuleMetaData)metaData;
-                    applicationMetaData = moduleMetaData.getApplicationMetaData();
-                } else if (metaData instanceof ComponentMetaData) {
-                    ComponentMetaData cmd = (ComponentMetaData)metaData;
-                    if (cmd instanceof WebComponentMetaData) {
-                        IServletConfig config = ((WebComponentMetaData)cmd).getServletConfig();
-                        // Don't set the component for static web resources (config == null; the name would be "Static File")
-                        // and JSPs (config.getFileName != null). This is especially important for log events generated
-                        // by servlet filters.
-                        if (config == null || config.getFileName() != null) {
-                            componentMetaData = null;
+                    if (moduleInfo == null) {
+                        applicationName = null;
+                        moduleName = null;
+                        componentName = null;
+                    } else {
+                        applicationName = moduleInfo.getApplicationName();
+                        moduleName = moduleInfo.getModuleName();
+                        componentName = null;
+                    }
+                } else {
+                    final ComponentMetaData componentMetaData;
+                    final ModuleMetaData moduleMetaData;
+                    final ApplicationMetaData applicationMetaData;
+                    if (metaData instanceof ModuleMetaData) {
+                        // We get here in two cases:
+                        //  * The log event was emitted by an unmanaged thread and the metadata was
+                        //    identified using the thread context class loader.
+                        //  * For servlet context listeners, the component meta data is the same as the
+                        //    module meta data. If we are in this case, we leave the component name empty.
+                        componentMetaData = null;
+                        moduleMetaData = (ModuleMetaData)metaData;
+                        applicationMetaData = moduleMetaData.getApplicationMetaData();
+                    } else if (metaData instanceof ComponentMetaData) {
+                        ComponentMetaData cmd = (ComponentMetaData)metaData;
+                        if (cmd instanceof WebComponentMetaData) {
+                            IServletConfig config = ((WebComponentMetaData)cmd).getServletConfig();
+                            // Don't set the component for static web resources (config == null; the name would be "Static File")
+                            // and JSPs (config.getFileName != null). This is especially important for log events generated
+                            // by servlet filters.
+                            if (config == null || config.getFileName() != null) {
+                                componentMetaData = null;
+                            } else {
+                                componentMetaData = cmd;
+                            }
                         } else {
                             componentMetaData = cmd;
                         }
+                        moduleMetaData = cmd.getModuleMetaData();
+                        applicationMetaData = moduleMetaData.getApplicationMetaData();
+                    } else if (metaData instanceof ApplicationMetaData) {
+                        componentMetaData = null;
+                        moduleMetaData = null;
+                        applicationMetaData = (ApplicationMetaData)metaData;
                     } else {
-                        componentMetaData = cmd;
+                        componentMetaData = null;
+                        moduleMetaData = null;
+                        applicationMetaData = null;
                     }
-                    moduleMetaData = cmd.getModuleMetaData();
-                    applicationMetaData = moduleMetaData.getApplicationMetaData();
-                } else if (metaData instanceof ApplicationMetaData) {
-                    componentMetaData = null;
-                    moduleMetaData = null;
-                    applicationMetaData = (ApplicationMetaData)metaData;
-                } else {
-                    componentMetaData = null;
-                    moduleMetaData = null;
-                    applicationMetaData = null;
+                    applicationName = applicationMetaData == null ? null : applicationMetaData.getName();
+                    moduleName = moduleMetaData == null ? null : moduleMetaData.getName();
+                    componentName = componentMetaData == null ? null : componentMetaData.getName();
                 }
                 
                 // Get the localized message (with unsubstituted parameters)
@@ -116,9 +136,9 @@ public class LoggingServiceHandler extends Handler {
                 
                 LogMessage message = new LogMessage(level, record.getMillis(),
                         record.getLoggerName(),
-                        applicationMetaData == null ? null : applicationMetaData.getName(),
-                        moduleMetaData == null ? null : moduleMetaData.getName(),
-                        componentMetaData == null ? null : componentMetaData.getName(),
+                        applicationName,
+                        moduleName,
+                        componentName,
                         localizedMessage,
                         convertParameters(record.getParameters()),
                         record.getThrown());
