@@ -77,7 +77,7 @@ When connecting to !WebSphere using RMI/IIOP, it is recommended to configure the
 
 During the first usage, the connector will automatically create default configuration files in `${user.home}/.xm4was`. This directory will also contain the key and trust stores maintained by the connector. Note that for some part of the configuration, different sets of configuration files are used on IBM and Sun/Oracle JREs. 
 
-The locations of the individual configuration files can be changed using the `com.ibm.SSL.ConfigURL`, `com.ibm.CORBA.ConfigURL` and `com.ibm.SOAP.ConfigURL` system properties. Please refer to the WebSphere documentation for more information about these system properties and the content of the configuration files.
+The locations of the individual configuration files can be changed using the `com.ibm.SSL.ConfigURL`, `com.ibm.CORBA.ConfigURL` and `com.ibm.SOAP.ConfigURL` system properties. Please refer to the !WebSphere documentation for more information about these system properties and the content of the configuration files.
 
 = Known issues and limitations =
 
