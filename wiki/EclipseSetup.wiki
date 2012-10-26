@@ -2,39 +2,33 @@
 
 = Prerequisites =
 
-A local installation of !WebSphere 7.0.
+A local installation of !WebSphere 7.0, 8.0 or 8.5.
 
 = Create a new workspace =
 
 Configuring Eclipse to work with the XM4WAS sources requires some changes to the workspace settings. It is therefore recommended to create a new workspace.
 
-= Add the WAS 7.0 JDK =
+= Add the WAS JDK and make it the workspace default =
 
   # In the Eclipse preferences, select _Java_ > _Installed JREs_.
   # Click _Add_.
   # Select _Standard VM_ and click _Next_.
-  # Set the _JRE home_ to the location of the WAS 7.0 JDK. This is the `java` folder under the !WebSphere installation directory (e.g. `/opt/IBM/WebSphere/AppServer/java`).
-  # Set the _JRE name_ to `WAS 7.0` and click _Finish_.
-
-= Configuring execution environments =
-
-  # In the Eclipse preferences, select _Java_ > _Installed JREs_ > _Execution Environments_.
-  # Select _J2SE-1.5_ in the left pane.
-  # Check _WAS 7.0_ in the right pane.
-  # Click _OK_.
+  # Set the _JRE home_ to the location of the WAS JDK. This is the `java` folder under the !WebSphere installation directory (e.g. `/opt/IBM/WebSphere/AppServer/java`).
+  # Set the _JRE name_ to _WAS x.y_ (replace _x.y_ with the !WebSphere version) and click _Finish_.
+  # Check _WAS x.y_ in the list of installed JREs to make it the workspace default.
 
 = Creating a target platform definition for WAS =
 
   # In the Eclipse preferences, select _Plug-in Development_ > _Target Platform_.
   # Click _Add_.
   # Select _Nothing: Start with an empty target definition_ and click _Next_.
-  # Enter the name for the target platform: _WAS 7.0_.
+  # Enter the name for the target platform: _WAS x.y_.
   # In the _Locations_ tab, click _Add_.
   # Select _Directory_ and click _Next_.
   # Set the _Location_ to the `plugins` directory of the WAS installation and click _Finish_.
   # In the _Content_ tab, deselect any previously installed version of the XM4WAS plugins (if applicable).
   # Click _Finish_.
-  # Select the _WAS 7.0_ definition to make it the active target platform for the workspace.
+  # Select the _WAS x.y_ definition to make it the active target platform for the workspace.
 
 = Deploying the plugins directly to !WebSphere =
 
