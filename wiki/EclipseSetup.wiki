@@ -34,4 +34,6 @@ Configuring Eclipse to work with the XM4WAS sources requires some changes to the
 
 The plugins can be deployed directly into !WebSphere by exporting them as _Deployable plug-ins and fragments_. The _Destination_ must be set to the WAS installation directory; Eclipse will automatically deploy the plugins to the `plugins` sub-directory.
 
+*Note:* Do not deploy `bootstrapstub`, `jmx-client-connector` or any of the test fragments to !WebSphere! Only deploy the `com.googlecode.xm4was.*` plugins.
+
 When redeploying, execute the `osgiCfgInit` (see [http://publib.boulder.ibm.com/infocenter/wasinfo/v7r0/topic/com.ibm.websphere.base.doc/info/aes/ae/rxml_osgicfginit_script.html here]) script in the WAS profile used for testing before starting the server. Otherwise not all changes will be taken into account.
