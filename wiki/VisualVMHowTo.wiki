@@ -2,19 +2,30 @@
 
 = Prerequisites =
 
-  * An installation of [http://visualvm.java.net/ VisualVM]. The procedure described in this document has been tested with VisualVM 1.3.2 and 1.3.3, but should work for older versions as well.
+  * An installation of [http://visualvm.java.net/ VisualVM].
+  * An installation of !WebSphere Application Server. Since only a couple of libraries are required, there is no need to install WAS locally. The required libraries can be copied from another system.
+
+The procedure described in this document has been tested with the following product versions:
+  * VisualVM 1.3.2, 1.3.3 and 1.3.4 (older versions should work as well).
+  * Libraries from !WebSphere 7.0, 8.0 and 8.5.
+  * Connections to !WebSphere 6.1, 7.0, 8.0 and 8.5.
 
 = Adding the XM4WAS JMX client connector JARs (Required) =
 
 Add the following JARs to the `platform/lib` folder in the VisualVM installation directory:
   * `jmx-client-connector-<version>.jar` from the XM4WAS distribution.
-  * The following JARs from a WAS 7.0 installation:
-    * `runtimes/com.ibm.ws.admin.client_7.0.0.jar`
-    * `runtimes/com.ibm.ws.ejb.thinclient_7.0.0.jar`
-    * `runtimes/com.ibm.ws.orb_7.0.0.jar`
+  * The following JARs from a WAS 7.0, 8.0 or 8.5 installation:
+    * `runtimes/com.ibm.ws.admin.client_*.jar`
+    * `runtimes/com.ibm.ws.ejb.thinclient_*.jar`
+    * `runtimes/com.ibm.ws.orb_*.jar`
     * `java/jre/lib/ibmpkcs.jar`
     * `java/jre/lib/ext/ibmkeycert.jar`
     * `java/jre/lib/ext/ibmjceprovider.jar`
+Note that it is *not* required that the version of the !WebSphere libraries matches the version of the server to connect to. However, it is strongly recommended to use the libraries from a recent fix pack level of any of the supported WAS releases.
+
+If you are planning to use the VisualVM-MBeans plugin and you are using the libraries from WAS 8.0 or 8.5, then you should also add the following JAR to `platform/lib`:
+  * `plugins/javax.j2ee.management.jar`
+This JAR contains the classes from the `javax.management.j2ee` package and is necessary to display the attribute values of certain !WebSphere MBeans. In WAS 7.0 these classes are already included in the admin client JAR.
 
 = Setting system properties (Required) =
 
@@ -54,5 +65,4 @@ Another important thing to keep in mind when using SOAP is that the proxy settin
 
 = Known issues =
 
-  * CPU sampling is not available with VisualVM 1.3.3, but works with 1.3.2.
-  * In some scenarios, `ibmjgssprovider.jar` also seems to be required, but this may be related to a bug in older WAS 7.0 versions (to be confirmed).
+  * CPU sampling is not available with VisualVM 1.3.3, but works with 1.3.2 and 1.3.4.

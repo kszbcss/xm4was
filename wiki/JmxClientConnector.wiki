@@ -55,14 +55,14 @@ jmx.remote.protocol.provider.pkgs=com.googlecode.xm4was.jmx.client
 
 == Required JARs ==
 
-In addition to `jmx-client-connector-<version>.jar`, the following JAR from the WAS 7.0 runtime must be added to the classpath:
+In addition to `jmx-client-connector-<version>.jar`, the following JAR from the WAS runtime must be added to the classpath:
 
-  * `runtimes/com.ibm.ws.admin.client_7.0.0.jar`
+  * `runtimes/com.ibm.ws.admin.client_*.jar`
 
-This is enough when running the connector on an IBM JRE. When running on a Sun/Oracle JRE, the following JARs from the WAS 7.0 runtime are also required:
+This is enough when running the connector on an IBM JRE. When running on a Sun/Oracle JRE, the following JARs from the WAS runtime are also required:
 
-  * `runtimes/com.ibm.ws.ejb.thinclient_7.0.0.jar`
-  * `runtimes/com.ibm.ws.orb_7.0.0.jar`
+  * `runtimes/com.ibm.ws.ejb.thinclient_*.jar`
+  * `runtimes/com.ibm.ws.orb_*.jar`
   * `java/jre/lib/ibmpkcs.jar`
   * `java/jre/lib/ext/ibmkeycert.jar`
   * `java/jre/lib/ext/ibmjceprovider.jar`
