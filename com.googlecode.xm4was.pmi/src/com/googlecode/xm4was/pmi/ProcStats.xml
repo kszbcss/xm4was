@@ -20,4 +20,16 @@
         <description>Resident set size, i.e. the number of bytes the process has in real memory.</description>
         <updateOnRequest>true</updateOnRequest>
     </RangeStatistic>
+    <CountStatistic ID="4" name="MinorFaults">
+        <level>high</level>
+        <unit>None</unit>
+        <description>The number of minor faults the process has made which have not required loading a memory page from disk.</description>
+        <updateOnRequest>true</updateOnRequest>
+    </CountStatistic>
+    <CountStatistic ID="5" name="MajorFaults">
+        <level>high</level>
+        <unit>None</unit>
+        <description>The number of major faults the process has made which have required loading a memory page from disk.</description>
+        <updateOnRequest>true</updateOnRequest>
+    </CountStatistic>
 </Stats>
