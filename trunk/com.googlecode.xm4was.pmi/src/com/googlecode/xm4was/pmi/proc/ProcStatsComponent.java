@@ -38,6 +38,11 @@ public class ProcStatsComponent extends AbstractWsComponent {
             Tr.error(TC, Messages._0102E, statmFile);
             return;
         }
-        createStatsInstance("ProcStats", "/com/googlecode/xm4was/pmi/ProcStats.xml", null, new ProcStatsCollector(fdDir, statmFile));
+        File statFile = new File(processDir, "stat");
+        if (!statFile.exists()) {
+            Tr.error(TC, Messages._0102E, statFile);
+            return;
+        }
+        createStatsInstance("ProcStats", "/com/googlecode/xm4was/pmi/ProcStats.xml", null, new ProcStatsCollector(fdDir, statmFile, statFile));
     }
 }

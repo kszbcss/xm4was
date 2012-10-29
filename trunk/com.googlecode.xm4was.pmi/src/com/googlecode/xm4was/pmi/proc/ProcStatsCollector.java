@@ -8,6 +8,7 @@ import com.googlecode.xm4was.pmi.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.wsspi.pmi.factory.StatisticActions;
+import com.ibm.wsspi.pmi.stat.SPICountStatistic;
 import com.ibm.wsspi.pmi.stat.SPIRangeStatistic;
 import com.ibm.wsspi.pmi.stat.SPIStatistic;
 
@@ -30,16 +31,22 @@ public class ProcStatsCollector extends StatisticActions {
     private static final int FILE_DESCRIPTORS = 1;
     private static final int VMSIZE = 2;
     private static final int VMRSS = 3;
+    private static final int MINOR_FAULTS = 4;
+    private static final int MAJOR_FAULTS = 5;
     
     private final File fdDir;
     private final File statmFile;
+    private final File statFile;
     private SPIRangeStatistic fileDescriptorsStatistic;
     private SPIRangeStatistic vmSizeStatistic;
     private SPIRangeStatistic vmRSSStatistic;
+    private SPICountStatistic minorFaultsStatistic;
+    private SPICountStatistic majorFaultsStatistic;
 
-    public ProcStatsCollector(File fdDir, File statmFile) {
+    public ProcStatsCollector(File fdDir, File statmFile, File statFile) {
         this.fdDir = fdDir;
         this.statmFile = statmFile;
+        this.statFile = statFile;
     }
     
     @Override
@@ -53,6 +60,12 @@ public class ProcStatsCollector extends StatisticActions {
                 break;
             case VMRSS:
                 vmRSSStatistic = (SPIRangeStatistic)statistic;
+                break;
+            case MINOR_FAULTS:
+                minorFaultsStatistic = (SPICountStatistic)statistic;
+                break;
+            case MAJOR_FAULTS:
+                majorFaultsStatistic = (SPICountStatistic)statistic;
                 break;
         }
     }
@@ -75,6 +88,20 @@ public class ProcStatsCollector extends StatisticActions {
                     vmRSSStatistic.set(ProcUtils.getLongValue(statmFile, 1)*PAGE_SIZE);
                 } catch (Exception ex) {
                     PMIUtils.reportUpdateStatisticFailure(TC, vmRSSStatistic, ex);
+                }
+                break;
+            case MINOR_FAULTS:
+                try {
+                    minorFaultsStatistic.setCount(ProcUtils.getLongValue(statFile, 9));
+                } catch (Exception ex) {
+                    PMIUtils.reportUpdateStatisticFailure(TC, minorFaultsStatistic, ex);
+                }
+                break;
+            case MAJOR_FAULTS:
+                try {
+                    majorFaultsStatistic.setCount(ProcUtils.getLongValue(statFile, 11));
+                } catch (Exception ex) {
+                    PMIUtils.reportUpdateStatisticFailure(TC, majorFaultsStatistic, ex);
                 }
                 break;
         }
