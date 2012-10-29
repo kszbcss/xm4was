@@ -1,0 +1,24 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: XM4WAS JMX Connector
+Bundle-SymbolicName: com.googlecode.xm4was.jmx;singleton:=true
+Bundle-Version: 0.3.1.beta2
+Bundle-Activator: com.googlecode.xm4was.jmx.Activator
+Import-Package: com.googlecode.xm4was.commons,
+ com.ibm.ejs.ras,
+ com.ibm.websphere.management,
+ com.ibm.websphere.management.authorizer,
+ com.ibm.websphere.management.authorizer.service,
+ com.ibm.websphere.models.config.ipc,
+ com.ibm.websphere.security.auth,
+ com.ibm.websphere.security.auth.callback,
+ com.ibm.ws.management,
+ com.ibm.ws.runtime.service,
+ com.ibm.ws.security.service,
+ com.ibm.wsspi.bootstrap.osgi,
+ com.ibm.wsspi.runtime.component,
+ com.ibm.wsspi.runtime.service,
+ org.osgi.framework
+Eclipse-AutoStart: true
+Require-Bundle: com.ibm.wsspi.extension
+Export-Package: com.googlecode.xm4was.jmx.resources

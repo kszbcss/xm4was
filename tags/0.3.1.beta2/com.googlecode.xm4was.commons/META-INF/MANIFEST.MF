@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: XM4WAS Commons
+Bundle-SymbolicName: com.googlecode.xm4was.commons
+Bundle-Version: 0.3.1.beta2
+Import-Package: com.ibm.ejs.ras,
+ com.ibm.websphere.management,
+ com.ibm.websphere.management.exception,
+ com.ibm.ws.exception,
+ com.ibm.wsspi.pmi.factory,
+ com.ibm.wsspi.runtime.component,
+ com.ibm.wsspi.runtime.service
+Export-Package: com.googlecode.xm4was.commons

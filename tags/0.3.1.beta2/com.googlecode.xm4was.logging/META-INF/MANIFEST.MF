@@ -1,0 +1,23 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: XM4WAS Logging
+Bundle-SymbolicName: com.googlecode.xm4was.logging;singleton:=true
+Bundle-Version: 0.3.1.beta2
+Bundle-Activator: com.googlecode.xm4was.logging.Activator
+Require-Bundle: com.ibm.wsspi.extension
+Eclipse-AutoStart: true
+Import-Package: com.googlecode.xm4was.clmon.thread,
+ com.googlecode.xm4was.commons,
+ com.ibm.ejs.csi,
+ com.ibm.ejs.ras,
+ com.ibm.websphere.logging,
+ com.ibm.websphere.management,
+ com.ibm.ws.management.collaborator,
+ com.ibm.ws.runtime.metadata,
+ com.ibm.ws.threadContext,
+ com.ibm.wsspi.bootstrap.osgi,
+ com.ibm.wsspi.webcontainer.metadata,
+ com.ibm.wsspi.webcontainer.servlet,
+ org.osgi.framework,
+ org.osgi.util.tracker
+Export-Package: com.googlecode.xm4was.logging.resources
