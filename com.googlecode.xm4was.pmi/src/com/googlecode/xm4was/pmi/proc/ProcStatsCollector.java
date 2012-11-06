@@ -15,19 +15,6 @@ import com.ibm.wsspi.pmi.stat.SPIStatistic;
 public class ProcStatsCollector extends StatisticActions {
     private static final TraceComponent TC = Tr.register(ProcStatsCollector.class, TrConstants.GROUP, Messages.class.getName());
     
-    /**
-     * The kernel page size. In principle this is not a constant. However, on Linux the kernel page
-     * size is 4KB on all architectures except i386, and even on that architecture it is not
-     * recommended to use page sizes other than 4KB. Note that large page support doesn't change the
-     * kernel page size because large pages are allocated from a different pool. Ideally the
-     * information about the page size should be retrieved from the operating system, but there
-     * seems to be no way to get that information from the <tt>/proc</tt> file system. One
-     * alternative would be to execute the <tt>getconf PAGESIZE</tt> command, but spawning a process
-     * is not ideal. Since we also don't want to do that using JNI, we have no other choice than to
-     * assume that the page size is 4KB.
-     */
-    private static final int PAGE_SIZE = 4096;
-    
     private static final int FILE_DESCRIPTORS = 1;
     private static final int VMSIZE = 2;
     private static final int VMRSS = 3;
@@ -37,16 +24,18 @@ public class ProcStatsCollector extends StatisticActions {
     private final File fdDir;
     private final File statmFile;
     private final File statFile;
+    private final int pageSize;
     private SPIRangeStatistic fileDescriptorsStatistic;
     private SPIRangeStatistic vmSizeStatistic;
     private SPIRangeStatistic vmRSSStatistic;
     private SPICountStatistic minorFaultsStatistic;
     private SPICountStatistic majorFaultsStatistic;
 
-    public ProcStatsCollector(File fdDir, File statmFile, File statFile) {
+    public ProcStatsCollector(File fdDir, File statmFile, File statFile, int pageSize) {
         this.fdDir = fdDir;
         this.statmFile = statmFile;
         this.statFile = statFile;
+        this.pageSize = pageSize;
     }
     
     @Override
@@ -78,14 +67,14 @@ public class ProcStatsCollector extends StatisticActions {
                 break;
             case VMSIZE:
                 try {
-                    vmSizeStatistic.set(ProcUtils.getLongValue(statmFile, 0)*PAGE_SIZE);
+                    vmSizeStatistic.set(ProcUtils.getLongValue(statmFile, 0)*pageSize);
                 } catch (Exception ex) {
                     PMIUtils.reportUpdateStatisticFailure(TC, vmSizeStatistic, ex);
                 }
                 break;
             case VMRSS:
                 try {
-                    vmRSSStatistic.set(ProcUtils.getLongValue(statmFile, 1)*PAGE_SIZE);
+                    vmRSSStatistic.set(ProcUtils.getLongValue(statmFile, 1)*pageSize);
                 } catch (Exception ex) {
                     PMIUtils.reportUpdateStatisticFailure(TC, vmRSSStatistic, ex);
                 }

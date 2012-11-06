@@ -10,6 +10,7 @@ import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.management.AdminService;
 import com.ibm.websphere.management.AdminServiceFactory;
 import com.ibm.wsspi.pmi.factory.StatsFactory;
+import com.sun.jna.Native;
 
 public class ProcStatsComponent extends AbstractWsComponent {
     private static final TraceComponent TC = Tr.register(ProcStatsComponent.class, TrConstants.GROUP, Messages.class.getName());
@@ -43,6 +44,20 @@ public class ProcStatsComponent extends AbstractWsComponent {
             Tr.error(TC, Messages._0102E, statFile);
             return;
         }
-        createStatsInstance("ProcStats", "/com/googlecode/xm4was/pmi/ProcStats.xml", null, new ProcStatsCollector(fdDir, statmFile, statFile));
+        
+        int pageSize;
+        try {
+            POSIX posix = (POSIX)Native.loadLibrary("c", POSIX.class);
+            pageSize = posix.getpagesize();
+            if (TC.isDebugEnabled()) {
+                Tr.debug(TC, "Page size is {0}", pageSize);
+            }
+        } catch (Throwable ex) {
+            pageSize = 4096;
+            Tr.warning(TC, Messages._0103W, new Object[] { ex, pageSize });
+        }
+        
+        createStatsInstance("ProcStats", "/com/googlecode/xm4was/pmi/ProcStats.xml", null,
+                new ProcStatsCollector(fdDir, statmFile, statFile, pageSize));
     }
 }
