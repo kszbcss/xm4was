@@ -24,4 +24,14 @@
             </component>
         </components>
     </extension>
+    <extension point="com.ibm.wsspi.extension.server-startup">
+        <components>
+            <component startup="5000"
+                       class="com.googlecode.xm4was.jmx.main.MainComponent"
+                       processType="Servant"
+                       component-id="XM_Main"
+                       startup-mode="immediate"/>
+        </components>
+    </extension>
+    <extension point="com.ibm.wsspi.extension.mbean-provider"/>
 </plugin>

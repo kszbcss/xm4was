@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE MBean SYSTEM "MbeanDescriptor.dtd">
+<MBean type="XM4WAS.Main"
+       version="1.0.0"
+       description="Contains various utility methods">
+    <operation name="dumpThreads"
+               role="operation" impact="INFO"
+               type="java.lang.String" targetObjectType="objectReference"
+               description="Dump the threads of a given thread pool and summarize the information in tree form">
+        <signature>
+            <parameter name="threadPoolName" type="java.lang.String"
+                       description="The name of the thread pool"/>
+        </signature>
+    </operation>
+</MBean>
