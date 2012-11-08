@@ -7,6 +7,7 @@ Bundle-Activator: com.googlecode.xm4was.clmon.Activator
 Eclipse-AutoStart: true
 Import-Package: com.googlecode.xm4was.commons,
  com.googlecode.xm4was.commons.deploy,
+ com.googlecode.xm4was.threadmon,
  com.ibm.ejs.ras,
  com.ibm.websphere.management,
  com.ibm.websphere.pmi.stat,
@@ -23,5 +24,4 @@ Import-Package: com.googlecode.xm4was.commons,
  org.osgi.framework
 Require-Bundle: com.ibm.wsspi.extension
 Export-Package: com.googlecode.xm4was.clmon.pmi,
- com.googlecode.xm4was.clmon.resources,
- com.googlecode.xm4was.clmon.thread
+ com.googlecode.xm4was.clmon.resources

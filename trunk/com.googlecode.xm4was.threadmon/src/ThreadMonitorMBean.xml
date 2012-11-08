@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE MBean SYSTEM "MbeanDescriptor.dtd">
+<MBean type="XM4WAS.ThreadMonitor"
+       version="1.0.0"
+       description="Thread Monitor.">
+    <operation name="dumpUnmanagedThreads"
+               role="monitor" impact="INFO"
+               type="java.lang.String" targetObjectType="objectReference">
+        <signature/>
+    </operation>
+</MBean>

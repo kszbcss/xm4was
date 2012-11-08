@@ -8,9 +8,4 @@
                type="void" targetObjectType="objectReference">
         <signature/>
     </operation>
-    <operation name="dumpUnmanagedThreads"
-               role="monitor" impact="INFO"
-               type="java.lang.String" targetObjectType="objectReference">
-        <signature/>
-    </operation>
 </MBean>

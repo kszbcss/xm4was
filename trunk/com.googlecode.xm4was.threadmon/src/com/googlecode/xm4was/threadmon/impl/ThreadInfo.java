@@ -1,16 +1,16 @@
-package com.googlecode.xm4was.clmon;
+package com.googlecode.xm4was.threadmon.impl;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 
 public class ThreadInfo extends WeakReference<Thread> {
     private final String name;
-    private final ClassLoaderInfo classLoaderInfo;
+    private final ModuleInfoImpl moduleInfo;
     
-    public ThreadInfo(Thread thread, ClassLoaderInfo classLoaderInfo, ReferenceQueue<Thread> queue) {
+    public ThreadInfo(Thread thread, ModuleInfoImpl moduleInfo, ReferenceQueue<Thread> queue) {
         super(thread, queue);
         this.name = thread.getName();
-        this.classLoaderInfo = classLoaderInfo;
+        this.moduleInfo = moduleInfo;
     }
     
     public String getName() {
@@ -21,7 +21,7 @@ public class ThreadInfo extends WeakReference<Thread> {
         return get();
     }
 
-    public ClassLoaderInfo getClassLoaderInfo() {
-        return classLoaderInfo;
+    public ModuleInfoImpl getModuleInfo() {
+        return moduleInfo;
     }
 }

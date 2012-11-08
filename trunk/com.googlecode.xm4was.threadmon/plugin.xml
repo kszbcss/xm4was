@@ -4,10 +4,13 @@
     <extension point="com.ibm.wsspi.extension.applicationserver-startup">
         <components>
             <component startup="5000"
-                       class="com.googlecode.xm4was.clmon.ClassLoaderMonitor"
+                       class="com.googlecode.xm4was.threadmon.impl.ThreadMonitor"
                        processType="Servant"
-                       component-id="XM_ClassLoaderMonitor"
+                       component-id="XM_ThreadMonitor"
                        startup-mode="immediate">
+                <services>
+                    <provide interface="com.googlecode.xm4was.threadmon.UnmanagedThreadMonitor"/>
+                </services>
                 <dependency type="service" name="com.ibm.ws.runtime.service.ApplicationMgr"/>
             </component>
         </components>
