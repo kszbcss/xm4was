@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Timer;
@@ -20,7 +19,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
@@ -83,13 +81,7 @@ public class ThreadMonitor extends AbstractWsComponent implements ClassLoaderLis
         }
         pdArrayField.setAccessible(true);
         
-        final BundleContext bundleContext = Activator.getBundleContext();
-        final ServiceRegistration classLoaderListenerRegistration = bundleContext.registerService(ClassLoaderListener.class.getName(), this, new Properties());
-        addStopAction(new Runnable() {
-            public void run() {
-                classLoaderListenerRegistration.unregister();
-            }
-        });
+        addService(this, ClassLoaderListener.class);
         
         moduleInfos = new HashMap<ClassLoader,ModuleInfoImpl>();
         threadInfos = new WeakHashMap<Thread,ThreadInfo>();
@@ -97,6 +89,7 @@ public class ThreadMonitor extends AbstractWsComponent implements ClassLoaderLis
         logQueue = new ConcurrentLinkedQueue<ThreadInfo>();
         listeners = new LinkedList<UnmanagedThreadListener>();
 
+        final BundleContext bundleContext = Activator.getBundleContext();
         final ServiceTracker tracker = new ServiceTracker(bundleContext, UnmanagedThreadListener.class.getName(), new ServiceTrackerCustomizer() {
             public Object addingService(ServiceReference reference) {
                 UnmanagedThreadListener listener = (UnmanagedThreadListener)bundleContext.getService(reference);
