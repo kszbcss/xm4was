@@ -7,7 +7,9 @@ Import-Package: com.ibm.ejs.ras,
  com.ibm.websphere.management,
  com.ibm.websphere.management.exception,
  com.ibm.ws.exception,
+ com.ibm.ws.runtime.deploy,
  com.ibm.wsspi.pmi.factory,
  com.ibm.wsspi.runtime.component,
  com.ibm.wsspi.runtime.service
-Export-Package: com.googlecode.xm4was.commons
+Export-Package: com.googlecode.xm4was.commons,
+ com.googlecode.xm4was.commons.deploy

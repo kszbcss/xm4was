@@ -24,15 +24,12 @@ import com.googlecode.xm4was.clmon.thread.ModuleInfo;
 import com.googlecode.xm4was.clmon.thread.UnmanagedThreadMonitor;
 import com.googlecode.xm4was.commons.AbstractWsComponent;
 import com.googlecode.xm4was.commons.TrConstants;
+import com.googlecode.xm4was.commons.deploy.ClassLoaderListener;
+import com.googlecode.xm4was.commons.deploy.ClassLoaderListenerAdapter;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.ws.exception.RuntimeError;
-import com.ibm.ws.exception.RuntimeWarning;
 import com.ibm.ws.management.collaborator.DefaultRuntimeCollaborator;
-import com.ibm.ws.runtime.deploy.DeployedApplication;
-import com.ibm.ws.runtime.deploy.DeployedModule;
-import com.ibm.ws.runtime.deploy.DeployedObject;
-import com.ibm.ws.runtime.deploy.DeployedObjectEvent;
 import com.ibm.ws.runtime.deploy.DeployedObjectListener;
 import com.ibm.ws.runtime.service.ApplicationMgr;
 import com.ibm.wsspi.pmi.factory.StatsFactory;
@@ -40,7 +37,7 @@ import com.ibm.wsspi.pmi.factory.StatsFactoryException;
 import com.ibm.wsspi.pmi.factory.StatsGroup;
 import com.ibm.wsspi.runtime.service.WsServiceRegistry;
 
-public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedObjectListener, UnmanagedThreadMonitor {
+public class ClassLoaderMonitor extends AbstractWsComponent implements ClassLoaderListener, UnmanagedThreadMonitor {
     private static final TraceComponent TC = Tr.register(ClassLoaderMonitor.class, TrConstants.GROUP, Messages.class.getName());
     
     /**
@@ -111,10 +108,11 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         } catch (Exception ex) {
             throw new RuntimeError(ex);
         }
-        applicationMgr.addDeployedObjectListener(this);
+        final DeployedObjectListener deployedObjectListener = new ClassLoaderListenerAdapter(this);
+        applicationMgr.addDeployedObjectListener(deployedObjectListener);
         addStopAction(new Runnable() {
             public void run() {
-                applicationMgr.removeDeployedObjectListener(ClassLoaderMonitor.this);
+                applicationMgr.removeDeployedObjectListener(deployedObjectListener);
             }
         });
         
@@ -292,68 +290,46 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements DeployedO
         return result;
     }
     
-    public void stateChanged(DeployedObjectEvent event) throws RuntimeError, RuntimeWarning {
-        String state = (String)event.getNewValue();
-        DeployedObject deployedObject = event.getDeployedObject();
-        if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Got a stateChanged event for " + deployedObject.getName() + "; state " + event.getOldValue() + "->" + event.getNewValue()
-                    + "; deployed object type: " + deployedObject.getClass().getName());
+    public void classLoaderCreated(ClassLoader classLoader, String applicationName, String moduleName) {
+        String groupKey;
+        if (moduleName != null) {
+            groupKey = applicationName + "#" + moduleName;
+        } else {
+            groupKey = applicationName;
         }
-        ClassLoader classLoader = deployedObject.getClassLoader();
-        
-        // * The class loader may be null. This occurs e.g. if a com.ibm.ws.runtime.deploy.DeployedApplicationFilter
-        //   vetoes the startup of the application.
-        // * The last condition excludes EJB modules (which don't have a separate class loader)
-        //   as well as modules in applications that are configured with a single class loader.
-        if (classLoader != null &&
-                (deployedObject instanceof DeployedApplication
-                        || deployedObject instanceof DeployedModule && ((DeployedModule)deployedObject).getDeployedApplication().getClassLoader() != classLoader)) {
-            String applicationName;
-            String moduleName;
-            String groupKey;
-            if (deployedObject instanceof DeployedModule) {
-                applicationName = ((DeployedModule)deployedObject).getDeployedApplication().getName();
-                moduleName = deployedObject.getName();
-                groupKey = applicationName + "#" + moduleName;
-            } else {
-                applicationName = deployedObject.getName();
-                moduleName = null;
-                groupKey = applicationName;
-            }
-            ClassLoaderGroup group;
-            synchronized (classLoaderGroups) {
-                group = classLoaderGroups.get(groupKey);
-                if (group == null) {
-                    group = new ClassLoaderGroup(applicationName, moduleName);
-                    classLoaderGroups.put(groupKey, group);
-                    if (StatsFactory.isPMIEnabled()) {
-                        try {
-                            StatsFactory.createStatsInstance(groupKey, statsGroup, null, group);
-                        } catch (StatsFactoryException ex) {
-                            Tr.error(TC, Messages._0004E, new Object[] { groupKey, ex });
-                        }
+        ClassLoaderGroup group;
+        synchronized (classLoaderGroups) {
+            group = classLoaderGroups.get(groupKey);
+            if (group == null) {
+                group = new ClassLoaderGroup(applicationName, moduleName);
+                classLoaderGroups.put(groupKey, group);
+                if (StatsFactory.isPMIEnabled()) {
+                    try {
+                        StatsFactory.createStatsInstance(groupKey, statsGroup, null, group);
+                    } catch (StatsFactoryException ex) {
+                        Tr.error(TC, Messages._0004E, new Object[] { groupKey, ex });
                     }
                 }
             }
-            if (state.equals("STARTING")) {
-                synchronized (classLoaderInfos) {
-                    classLoaderInfos.put(classLoader, new ClassLoaderInfo(classLoader, group, classLoaderInfoQueue));
-                }
-                group.classLoaderCreated(classLoader);
-                lastUpdated.set(System.currentTimeMillis());
-            } else if (state.equals("DESTROYED")) {
-                ClassLoaderInfo info;
-                synchronized (classLoaderInfos) {
-                    info = classLoaderInfos.get(classLoader);
-                }
-                if (TC.isDebugEnabled()) {
-                    Tr.debug(TC, "Identified class loader: " + info);
-                }
-                info.setStopped(true);
-                group.classLoaderStopped();
-                lastUpdated.set(System.currentTimeMillis());
-            }
         }
+        synchronized (classLoaderInfos) {
+            classLoaderInfos.put(classLoader, new ClassLoaderInfo(classLoader, group, classLoaderInfoQueue));
+        }
+        group.classLoaderCreated(classLoader);
+        lastUpdated.set(System.currentTimeMillis());
+    }
+
+    public void classLoaderReleased(ClassLoader classLoader, String applicationName, String moduleName) {
+        ClassLoaderInfo info;
+        synchronized (classLoaderInfos) {
+            info = classLoaderInfos.get(classLoader);
+        }
+        if (TC.isDebugEnabled()) {
+            Tr.debug(TC, "Identified class loader: " + info);
+        }
+        info.setStopped(true);
+        info.getGroup().classLoaderStopped();
+        lastUpdated.set(System.currentTimeMillis());
     }
     
     public ThreadInfo[] getThreadInfos() {
