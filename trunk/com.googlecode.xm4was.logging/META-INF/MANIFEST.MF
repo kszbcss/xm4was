@@ -20,5 +20,4 @@ Import-Package: com.googlecode.xm4was.commons,
  com.ibm.wsspi.webcontainer.servlet,
  org.osgi.framework,
  org.osgi.util.tracker
-Export-Package: com.googlecode.xm4was.logging.resources,
- org.osgi.util.tracker
+Export-Package: com.googlecode.xm4was.logging.resources
