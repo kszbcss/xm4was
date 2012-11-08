@@ -11,7 +11,6 @@
                 <services>
                     <provide interface="com.googlecode.xm4was.threadmon.UnmanagedThreadMonitor"/>
                 </services>
-                <dependency type="service" name="com.ibm.ws.runtime.service.ApplicationMgr"/>
             </component>
         </components>
     </extension>

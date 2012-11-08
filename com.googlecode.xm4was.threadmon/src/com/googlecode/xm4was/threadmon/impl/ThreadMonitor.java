@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Timer;
@@ -19,13 +20,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 import com.googlecode.xm4was.commons.AbstractWsComponent;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.deploy.ClassLoaderListener;
-import com.googlecode.xm4was.commons.deploy.ClassLoaderListenerAdapter;
 import com.googlecode.xm4was.threadmon.ModuleInfo;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadListener;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadMonitor;
@@ -33,11 +34,7 @@ import com.googlecode.xm4was.threadmon.activator.Activator;
 import com.googlecode.xm4was.threadmon.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
-import com.ibm.ws.exception.RuntimeError;
 import com.ibm.ws.management.collaborator.DefaultRuntimeCollaborator;
-import com.ibm.ws.runtime.deploy.DeployedObjectListener;
-import com.ibm.ws.runtime.service.ApplicationMgr;
-import com.ibm.wsspi.runtime.service.WsServiceRegistry;
 
 public class ThreadMonitor extends AbstractWsComponent implements ClassLoaderListener, UnmanagedThreadMonitor {
     private static final TraceComponent TC = Tr.register(ThreadMonitor.class, TrConstants.GROUP, Messages.class.getName());
@@ -86,17 +83,11 @@ public class ThreadMonitor extends AbstractWsComponent implements ClassLoaderLis
         }
         pdArrayField.setAccessible(true);
         
-        final ApplicationMgr applicationMgr;
-        try {
-            applicationMgr = WsServiceRegistry.getService(this, ApplicationMgr.class);
-        } catch (Exception ex) {
-            throw new RuntimeError(ex);
-        }
-        final DeployedObjectListener deployedObjectListener = new ClassLoaderListenerAdapter(this);
-        applicationMgr.addDeployedObjectListener(deployedObjectListener);
+        final BundleContext bundleContext = Activator.getBundleContext();
+        final ServiceRegistration classLoaderListenerRegistration = bundleContext.registerService(ClassLoaderListener.class.getName(), this, new Properties());
         addStopAction(new Runnable() {
             public void run() {
-                applicationMgr.removeDeployedObjectListener(deployedObjectListener);
+                classLoaderListenerRegistration.unregister();
             }
         });
         
@@ -106,7 +97,6 @@ public class ThreadMonitor extends AbstractWsComponent implements ClassLoaderLis
         logQueue = new ConcurrentLinkedQueue<ThreadInfo>();
         listeners = new LinkedList<UnmanagedThreadListener>();
 
-        final BundleContext bundleContext = Activator.getBundleContext();
         final ServiceTracker tracker = new ServiceTracker(bundleContext, UnmanagedThreadListener.class.getName(), new ServiceTrackerCustomizer() {
             public Object addingService(ServiceReference reference) {
                 UnmanagedThreadListener listener = (UnmanagedThreadListener)bundleContext.getService(reference);

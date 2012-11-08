@@ -1,6 +1,7 @@
-package com.googlecode.xm4was.commons.deploy;
+package com.googlecode.xm4was.commons.activator;
 
 import com.googlecode.xm4was.commons.TrConstants;
+import com.googlecode.xm4was.commons.deploy.ClassLoaderListener;
 import com.googlecode.xm4was.commons.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
@@ -16,12 +17,12 @@ import com.ibm.ws.runtime.deploy.DeployedObjectListener;
  * {@link DeployedObjectListener} that processes {@link DeployedObjectEvent} events and forwards
  * them to a {@link ClassLoaderListener}.
  */
-public class ClassLoaderListenerAdapter implements DeployedObjectListener {
+class ClassLoaderListenerAdapter implements DeployedObjectListener {
     private static final TraceComponent TC = Tr.register(ClassLoaderListenerAdapter.class, TrConstants.GROUP, Messages.class.getName());
     
     private final ClassLoaderListener listener;
 
-    public ClassLoaderListenerAdapter(ClassLoaderListener listener) {
+    ClassLoaderListenerAdapter(ClassLoaderListener listener) {
         this.listener = listener;
     }
 
