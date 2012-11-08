@@ -18,19 +18,14 @@ import com.googlecode.xm4was.clmon.resources.Messages;
 import com.googlecode.xm4was.commons.AbstractWsComponent;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.deploy.ClassLoaderListener;
-import com.googlecode.xm4was.commons.deploy.ClassLoaderListenerAdapter;
 import com.googlecode.xm4was.threadmon.ModuleInfo;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadListener;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
-import com.ibm.ws.exception.RuntimeError;
 import com.ibm.ws.management.collaborator.DefaultRuntimeCollaborator;
-import com.ibm.ws.runtime.deploy.DeployedObjectListener;
-import com.ibm.ws.runtime.service.ApplicationMgr;
 import com.ibm.wsspi.pmi.factory.StatsFactory;
 import com.ibm.wsspi.pmi.factory.StatsFactoryException;
 import com.ibm.wsspi.pmi.factory.StatsGroup;
-import com.ibm.wsspi.runtime.service.WsServiceRegistry;
 
 public class ClassLoaderMonitor extends AbstractWsComponent implements ClassLoaderListener {
     private static final TraceComponent TC = Tr.register(ClassLoaderMonitor.class, TrConstants.GROUP, Messages.class.getName());
@@ -65,20 +60,6 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements ClassLoad
             }
         });
         
-        final ApplicationMgr applicationMgr;
-        try {
-            applicationMgr = WsServiceRegistry.getService(this, ApplicationMgr.class);
-        } catch (Exception ex) {
-            throw new RuntimeError(ex);
-        }
-        final DeployedObjectListener deployedObjectListener = new ClassLoaderListenerAdapter(this);
-        applicationMgr.addDeployedObjectListener(deployedObjectListener);
-        addStopAction(new Runnable() {
-            public void run() {
-                applicationMgr.removeDeployedObjectListener(deployedObjectListener);
-            }
-        });
-        
         classLoaderInfos = new WeakHashMap<ClassLoader,ClassLoaderInfo>();
         classLoaderInfoQueue = new ReferenceQueue<ClassLoader>();
         final Timer timer = new Timer("Class Loader Monitor");
@@ -96,7 +77,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements ClassLoad
 
         // TODO: make the dependency on threadmon optional
         BundleContext bundleContext = Activator.getBundleContext();
-        final ServiceRegistration listenerRegistration = bundleContext.registerService(UnmanagedThreadListener.class.getName(), new UnmanagedThreadListener() {
+        final ServiceRegistration unmanagedThreadListenerRegistration = bundleContext.registerService(UnmanagedThreadListener.class.getName(), new UnmanagedThreadListener() {
             public void threadStarted(Thread thread, ModuleInfo moduleInfo) {
                 getGroup(moduleInfo.getApplicationName(), moduleInfo.getModuleName()).threadCreated();
             }
@@ -107,7 +88,14 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements ClassLoad
         }, new Properties());
         addStopAction(new Runnable() {
             public void run() {
-                listenerRegistration.unregister();
+                unmanagedThreadListenerRegistration.unregister();
+            }
+        });
+        
+        final ServiceRegistration classLoaderListenerRegistration = bundleContext.registerService(ClassLoaderListener.class.getName(), this, new Properties());
+        addStopAction(new Runnable() {
+            public void run() {
+                classLoaderListenerRegistration.unregister();
             }
         });
         
