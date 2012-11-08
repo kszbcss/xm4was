@@ -3,16 +3,12 @@ package com.googlecode.xm4was.clmon;
 import java.lang.ref.ReferenceQueue;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.management.ObjectName;
-
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 
 import com.googlecode.xm4was.clmon.resources.Messages;
 import com.googlecode.xm4was.commons.AbstractWsComponent;
@@ -76,8 +72,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements ClassLoad
         }, 1000, 1000);
 
         // TODO: make the dependency on threadmon optional
-        BundleContext bundleContext = Activator.getBundleContext();
-        final ServiceRegistration unmanagedThreadListenerRegistration = bundleContext.registerService(UnmanagedThreadListener.class.getName(), new UnmanagedThreadListener() {
+        addService(new UnmanagedThreadListener() {
             public void threadStarted(Thread thread, ModuleInfo moduleInfo) {
                 getGroup(moduleInfo.getApplicationName(), moduleInfo.getModuleName()).threadCreated();
             }
@@ -85,19 +80,9 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements ClassLoad
             public void threadStopped(String name, ModuleInfo moduleInfo) {
                 getGroup(moduleInfo.getApplicationName(), moduleInfo.getModuleName()).threadDestroyed();
             }
-        }, new Properties());
-        addStopAction(new Runnable() {
-            public void run() {
-                unmanagedThreadListenerRegistration.unregister();
-            }
-        });
+        }, UnmanagedThreadListener.class);
         
-        final ServiceRegistration classLoaderListenerRegistration = bundleContext.registerService(ClassLoaderListener.class.getName(), this, new Properties());
-        addStopAction(new Runnable() {
-            public void run() {
-                classLoaderListenerRegistration.unregister();
-            }
-        });
+        addService(this, ClassLoaderListener.class);
         
         ObjectName mbean = activateMBean("XM4WAS.ClassLoaderMonitor",
                 new DefaultRuntimeCollaborator(new ClassLoaderMonitorMBean(this), "ClassLoaderMonitor"),
