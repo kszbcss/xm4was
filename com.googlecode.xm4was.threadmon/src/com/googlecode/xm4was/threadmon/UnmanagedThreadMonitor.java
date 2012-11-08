@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.clmon.thread;
+package com.googlecode.xm4was.threadmon;
 
 public interface UnmanagedThreadMonitor {
     // Note: ideally we would like to return the com.ibm.ws.runtime.metadata.MetaData instance for the

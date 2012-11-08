@@ -6,8 +6,8 @@ Bundle-Version: 0.4.0.qualifier
 Bundle-Activator: com.googlecode.xm4was.logging.Activator
 Require-Bundle: com.ibm.wsspi.extension
 Eclipse-AutoStart: true
-Import-Package: com.googlecode.xm4was.clmon.thread,
- com.googlecode.xm4was.commons,
+Import-Package: com.googlecode.xm4was.commons,
+ com.googlecode.xm4was.threadmon,
  com.ibm.ejs.csi,
  com.ibm.ejs.ras,
  com.ibm.websphere.logging,
@@ -20,4 +20,5 @@ Import-Package: com.googlecode.xm4was.clmon.thread,
  com.ibm.wsspi.webcontainer.servlet,
  org.osgi.framework,
  org.osgi.util.tracker
-Export-Package: com.googlecode.xm4was.logging.resources
+Export-Package: com.googlecode.xm4was.logging.resources,
+ org.osgi.util.tracker

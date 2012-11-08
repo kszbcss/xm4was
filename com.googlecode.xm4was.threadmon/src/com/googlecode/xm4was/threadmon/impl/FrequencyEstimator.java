@@ -1,7 +1,7 @@
-package com.googlecode.xm4was.clmon;
+package com.googlecode.xm4was.threadmon.impl;
 
-import com.googlecode.xm4was.clmon.resources.Messages;
 import com.googlecode.xm4was.commons.TrConstants;
+import com.googlecode.xm4was.threadmon.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 

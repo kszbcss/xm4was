@@ -7,10 +7,10 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
-import com.googlecode.xm4was.clmon.thread.UnmanagedThreadMonitor;
 import com.googlecode.xm4was.commons.AbstractWsComponent;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.logging.resources.Messages;
+import com.googlecode.xm4was.threadmon.UnmanagedThreadMonitor;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.ws.management.collaborator.DefaultRuntimeCollaborator;

@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.clmon.thread;
+package com.googlecode.xm4was.threadmon;
 
 public interface ModuleInfo {
     /**

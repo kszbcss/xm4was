@@ -4,10 +4,10 @@ import java.util.Locale;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
-import com.googlecode.xm4was.clmon.thread.ModuleInfo;
-import com.googlecode.xm4was.clmon.thread.UnmanagedThreadMonitor;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.logging.resources.Messages;
+import com.googlecode.xm4was.threadmon.ModuleInfo;
+import com.googlecode.xm4was.threadmon.UnmanagedThreadMonitor;
 import com.ibm.ejs.csi.DefaultComponentMetaData;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
