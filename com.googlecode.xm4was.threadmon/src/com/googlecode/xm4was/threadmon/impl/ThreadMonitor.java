@@ -19,130 +19,113 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
-import com.googlecode.xm4was.commons.AbstractWsComponent;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.deploy.ClassLoaderListener;
 import com.googlecode.xm4was.threadmon.ModuleInfo;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadListener;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadMonitor;
-import com.googlecode.xm4was.threadmon.activator.Activator;
 import com.googlecode.xm4was.threadmon.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
-import com.ibm.ws.management.collaborator.DefaultRuntimeCollaborator;
 
-public class ThreadMonitor extends AbstractWsComponent implements ClassLoaderListener, UnmanagedThreadMonitor, ThreadMonitorMBean {
+public class ThreadMonitor implements ClassLoaderListener, UnmanagedThreadMonitor, ThreadMonitorMBean {
     private static final TraceComponent TC = Tr.register(ThreadMonitor.class, TrConstants.GROUP, Messages.class.getName());
     
-    private Map<ClassLoader,ModuleInfoImpl> moduleInfos;
+    private final BundleContext bundleContext;
+    
+    private final Object stateLock = new Object();
+    
+    private boolean started;
+    private ServiceRegistration serviceRegistration;
+    private Timer timer;
+    
+    private final Map<ClassLoader,ModuleInfoImpl> moduleInfos = new HashMap<ClassLoader,ModuleInfoImpl>();
     
     /**
      * Maps {@link Thread} objects to {@link ThreadInfo} instances. If a thread is not linked to an
      * application or module and has no associated {@link ThreadInfo} object, then the map contains
      * an entry with a null value for that thread.
      */
-    private Map<Thread,ThreadInfo> threadInfos;
+    private final Map<Thread,ThreadInfo> threadInfos = new WeakHashMap<Thread,ThreadInfo>();
     
-    private ReferenceQueue<Thread> threadInfoQueue;
+    private final ReferenceQueue<Thread> threadInfoQueue = new ReferenceQueue<Thread>();
     
-    private Queue<ThreadInfo> logQueue;
+    private final Queue<ThreadInfo> logQueue = new ConcurrentLinkedQueue<ThreadInfo>();
     
     /**
      * The field in the {@link Thread} class that stores the {@link AccessControlContext}.
      */
-    private Field accessControlContextField;
+    private final Field accessControlContextField;
     
     /**
      * The field in the {@link AccessControlContext} class that stores the array of
      * {@link ProtectionDomain} objects.
      */
-    private Field pdArrayField;
+    private final Field pdArrayField;
     
-    private List<UnmanagedThreadListener> listeners;
+    private final List<UnmanagedThreadListener> listeners = new LinkedList<UnmanagedThreadListener>();
+    private ServiceTracker listenerTracker;
     
-    @Override
-    protected void doStart() throws Exception {
-        addStopAction(new Runnable() {
-            public void run() {
-                Tr.info(TC, Messages._0002I);
-            }
-        });
+    public ThreadMonitor(BundleContext bundleContext) throws Exception {
+        this.bundleContext = bundleContext;
         
         accessControlContextField = Thread.class.getDeclaredField("accessControlContext");
         accessControlContextField.setAccessible(true);
         
+        Field pdArrayField;
         try {
             pdArrayField = AccessControlContext.class.getDeclaredField("context");
         } catch (NoSuchFieldException ex) {
             pdArrayField = AccessControlContext.class.getDeclaredField("domainsArray");
         }
         pdArrayField.setAccessible(true);
-        
-        addService(this, ClassLoaderListener.class);
-        
-        moduleInfos = new HashMap<ClassLoader,ModuleInfoImpl>();
-        threadInfos = new WeakHashMap<Thread,ThreadInfo>();
-        threadInfoQueue = new ReferenceQueue<Thread>();
-        logQueue = new ConcurrentLinkedQueue<ThreadInfo>();
-        listeners = new LinkedList<UnmanagedThreadListener>();
-
-        final BundleContext bundleContext = Activator.getBundleContext();
-        final ServiceTracker tracker = new ServiceTracker(bundleContext, UnmanagedThreadListener.class.getName(), new ServiceTrackerCustomizer() {
-            public Object addingService(ServiceReference reference) {
-                UnmanagedThreadListener listener = (UnmanagedThreadListener)bundleContext.getService(reference);
-                synchronized (listeners) {
-                    listeners.add(listener);
-                }
-                return listener;
-            }
-            
-            public void modifiedService(ServiceReference reference, Object object) {
-            }
-            
-            public void removedService(ServiceReference reference, Object object) {
-                synchronized (listeners) {
-                    listeners.remove((UnmanagedThreadListener)object);
-                }
-                bundleContext.ungetService(reference);
-            }
-        });
-        tracker.open();
-        addStopAction(new Runnable() {
-            public void run() {
-                tracker.close();
-            }
-        });
-        
-        final Timer timer = new Timer("Thread Monitor");
-        addStopAction(new Runnable() {
-            public void run() {
-                timer.cancel();
-            }
-        });
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                updateThreads();
-            }
-        }, 1000, 1000);
-        
-        addService(this, UnmanagedThreadMonitor.class);
-        // TODO: we should register the service once, but with multiple interfaces
-        addService(this, ThreadMonitorMBean.class);
-        
-        activateMBean("XM4WAS.ThreadMonitor",
-                new DefaultRuntimeCollaborator(this, "ThreadMonitor"),
-                null, "/ThreadMonitorMBean.xml");
-        
-        Tr.info(TC, Messages._0001I);
+        this.pdArrayField = pdArrayField;
     }
-
+    
     public void classLoaderCreated(ClassLoader classLoader, String applicationName, String moduleName) {
         synchronized (moduleInfos) {
             moduleInfos.put(classLoader, new ModuleInfoImpl(applicationName, moduleName));
+        }
+        synchronized (stateLock) {
+            if (!started) {
+                listenerTracker = new ServiceTracker(bundleContext, UnmanagedThreadListener.class.getName(), new ServiceTrackerCustomizer() {
+                    public Object addingService(ServiceReference reference) {
+                        UnmanagedThreadListener listener = (UnmanagedThreadListener)bundleContext.getService(reference);
+                        synchronized (listeners) {
+                            listeners.add(listener);
+                        }
+                        return listener;
+                    }
+                    
+                    public void modifiedService(ServiceReference reference, Object object) {
+                    }
+                    
+                    public void removedService(ServiceReference reference, Object object) {
+                        synchronized (listeners) {
+                            listeners.remove((UnmanagedThreadListener)object);
+                        }
+                        bundleContext.ungetService(reference);
+                    }
+                });
+                
+                serviceRegistration = bundleContext.registerService(UnmanagedThreadMonitor.class.getName(), this, null);
+                
+                timer = new Timer("Thread Monitor");
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        updateThreads();
+                    }
+                }, 1000, 1000);
+                
+                started = true;
+                
+                Tr.info(TC, Messages._0001I);
+            }
         }
     }
 
@@ -214,6 +197,35 @@ public class ThreadMonitor extends AbstractWsComponent implements ClassLoaderLis
                     Tr.warning(TC, Messages._0004W, moduleInfo.getName());
                 }
             }
+        }
+        
+        // Stop the thread monitor if there are no more modules and no more unmanaged threads.
+        synchronized (stateLock) {
+            synchronized (moduleInfos) {
+                if (!moduleInfos.isEmpty()) {
+                    return;
+                }
+            }
+            synchronized (threadInfos) {
+                for (ThreadInfo info : threadInfos.values()) {
+                    if (info != null) {
+                        return;
+                    }
+                }
+                threadInfos.clear();
+            }
+            
+            timer.cancel();
+            timer = null;
+            
+            serviceRegistration.unregister();
+            serviceRegistration = null;
+
+            listenerTracker.close();
+            
+            started = false;
+            
+            Tr.info(TC, Messages._0002I);
         }
     }
 
