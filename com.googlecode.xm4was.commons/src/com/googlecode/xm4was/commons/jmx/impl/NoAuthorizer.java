@@ -7,7 +7,7 @@ import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 
 public class NoAuthorizer implements Authorizer {
-    private static final TraceComponent TC = Tr.register(MBeanServerProviderImpl.class, TrConstants.GROUP, Messages.class.getName());
+    private static final TraceComponent TC = Tr.register(ManagementServiceImpl.class, TrConstants.GROUP, Messages.class.getName());
     
     public boolean checkAccess(String role) {
         Tr.debug(TC, "Admin security not enabled; access granted");

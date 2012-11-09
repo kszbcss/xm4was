@@ -16,7 +16,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 import com.googlecode.xm4was.commons.TrConstants;
-import com.googlecode.xm4was.commons.jmx.MBeanServerProvider;
+import com.googlecode.xm4was.commons.jmx.ManagementService;
 import com.googlecode.xm4was.jmx.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
@@ -34,7 +34,7 @@ public class PlatformMXBeansRegistrant implements ServiceTrackerCustomizer {
     }
 
     public Object addingService(ServiceReference reference) {
-        MBeanServerProvider mbeanServerProvider = (MBeanServerProvider)bundleContext.getService(reference);
+        ManagementService managementService = (ManagementService)bundleContext.getService(reference);
         
         PlatformMXBeansRegistrations registrations = null;
         try {
@@ -48,12 +48,12 @@ public class PlatformMXBeansRegistrant implements ServiceTrackerCustomizer {
             if (TC.isDebugEnabled()) {
                 Tr.debug(TC, "accessRules = {0}", accessRules);
             }
-            AccessChecker accessChecker = new AccessChecker(mbeanServerProvider.getAuthorizer(), accessRules);
+            AccessChecker accessChecker = new AccessChecker(managementService.getAuthorizer(), accessRules);
             
             // We use getRawMBeanServer here because we don't want the MBean server to automatically
             // add the cell, node and process as key properties. This will not work for the platform MXBeans
             // (jconsole e.g. would be unable to identify them).
-            registrations = new PlatformMXBeansRegistrations(mbeanServerProvider.getRawMBeanServer(), accessChecker);
+            registrations = new PlatformMXBeansRegistrations(managementService.getRawMBeanServer(), accessChecker);
             registrations.registerMBean(ManagementFactory.getClassLoadingMXBean(),
                     new ObjectName(ManagementFactory.CLASS_LOADING_MXBEAN_NAME));
             registrations.registerMBean(ManagementFactory.getMemoryMXBean(),
