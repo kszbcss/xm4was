@@ -1,9 +1,12 @@
 package com.googlecode.xm4was.commons.jmx.exporter;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import javax.management.JMException;
 import javax.management.MBeanParameterInfo;
@@ -23,6 +26,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 import com.googlecode.xm4was.commons.JmxConstants;
 import com.googlecode.xm4was.commons.TrConstants;
+import com.googlecode.xm4was.commons.jmx.Authorizer;
 import com.googlecode.xm4was.commons.jmx.annotations.MBean;
 import com.googlecode.xm4was.commons.jmx.annotations.Operation;
 import com.googlecode.xm4was.commons.resources.Messages;
@@ -34,10 +38,12 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
     
     private final BundleContext bundleContext;
     private final MBeanServer mbeanServer;
+    private final Authorizer authorizer;
     
-    public MBeanExporter(BundleContext bundleContext, MBeanServer mbeanServer) {
+    public MBeanExporter(BundleContext bundleContext, MBeanServer mbeanServer, Authorizer authorizer) {
         this.bundleContext = bundleContext;
         this.mbeanServer = mbeanServer;
+        this.authorizer = authorizer;
     }
 
     public Object addingService(ServiceReference reference) {
@@ -49,6 +55,7 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
                 if (mbeanAttribute != null) {
                     Object target = bundleContext.getService(reference);
                     List<ModelMBeanOperationInfo> operations = new ArrayList<ModelMBeanOperationInfo>();
+                    Map<Method,String> roles = new HashMap<Method,String>();
                     for (Method method : clazz.getMethods()) {
                         Operation operationAttribute = method.getAnnotation(Operation.class);
                         if (operationAttribute != null) {
@@ -58,6 +65,7 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
                                     parameters.toArray(new MBeanParameterInfo[parameters.size()]),
                                     method.getReturnType().getName(),
                                     operationAttribute.impact()));
+                            roles.put(method, operationAttribute.role());
                         }
                     }
                     RequiredModelMBean mbean = new RequiredModelMBean(new ModelMBeanInfoSupport(target.getClass().getName(),
@@ -66,9 +74,10 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
                             new ModelMBeanConstructorInfo[0],
                             operations.toArray(new ModelMBeanOperationInfo[operations.size()]),
                             new ModelMBeanNotificationInfo[0]));
-                    // TODO: create access checker proxy!!!
+                    Object proxy = Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] { clazz },
+                            new AccessCheckInvocationHandler(target, authorizer, roles));
                     try {
-                        mbean.setManagedResource(target, "ObjectReference");
+                        mbean.setManagedResource(proxy, "ObjectReference");
                     } catch (Exception ex) {
                         // TODO
                         ex.printStackTrace(System.out);

@@ -26,7 +26,7 @@ public class MBeanExporterRegistrar implements ServiceTrackerCustomizer {
             throw new Error("Unexpected exception", ex);
         }
         ServiceTracker mbeanTracker = new ServiceTracker(bundleContext, filter,
-                new MBeanExporter(bundleContext, managementService.getMBeanServer()));
+                new MBeanExporter(bundleContext, managementService.getMBeanServer(), managementService.getAuthorizer()));
         mbeanTracker.open();
         return mbeanTracker;
     }
