@@ -34,7 +34,7 @@ import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.ws.management.collaborator.DefaultRuntimeCollaborator;
 
-public class ThreadMonitor extends AbstractWsComponent implements ClassLoaderListener, UnmanagedThreadMonitor {
+public class ThreadMonitor extends AbstractWsComponent implements ClassLoaderListener, UnmanagedThreadMonitor, ThreadMonitorMBean {
     private static final TraceComponent TC = Tr.register(ThreadMonitor.class, TrConstants.GROUP, Messages.class.getName());
     
     private Map<ClassLoader,ModuleInfoImpl> moduleInfos;
@@ -130,6 +130,8 @@ public class ThreadMonitor extends AbstractWsComponent implements ClassLoaderLis
         }, 1000, 1000);
         
         addService(this, UnmanagedThreadMonitor.class);
+        // TODO: we should register the service once, but with multiple interfaces
+        addService(this, ThreadMonitorMBean.class);
         
         activateMBean("XM4WAS.ThreadMonitor",
                 new DefaultRuntimeCollaborator(this, "ThreadMonitor"),
