@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.commons.jmx.impl;
+package com.googlecode.xm4was.commons.jmx.exporter;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

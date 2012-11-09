@@ -1,41 +1,36 @@
 package com.googlecode.xm4was.commons.activator;
 
-import javax.management.MBeanServer;
-
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
 
+import com.googlecode.xm4was.commons.jmx.ManagementService;
+import com.googlecode.xm4was.commons.jmx.exporter.MBeanExporterRegistrar;
 import com.googlecode.xm4was.commons.jmx.impl.ManagementServiceRegistrar;
-import com.googlecode.xm4was.commons.jmx.impl.MBeanExporter;
-import com.ibm.websphere.management.AdminServiceFactory;
 import com.ibm.ws.runtime.service.ApplicationMgr;
 import com.ibm.ws.security.service.SecurityService;
 
 public class Activator implements BundleActivator {
     private ServiceTracker appMgrTracker;
-    private ServiceTracker mbeanTracker;
-    private ServiceTracker securityServiceTracker;
+    private ServiceTracker mbeanExporterRegistrar;
+    private ServiceTracker managementServiceRegistrar;
     
     public void start(final BundleContext bundleContext) throws Exception {
         appMgrTracker = new ServiceTracker(bundleContext, ApplicationMgr.class.getName(),
                 new ApplicationMgrListener(bundleContext));
         appMgrTracker.open();
         
-        // TODO: apply the workaround for tampered JMX configuration!
-        MBeanServer mbeanServer = AdminServiceFactory.getMBeanFactory().getMBeanServer();
-        mbeanTracker = new ServiceTracker(bundleContext, bundleContext.createFilter("(objectClass=*)"),
-                new MBeanExporter(bundleContext, mbeanServer));
-        mbeanTracker.open();
+        mbeanExporterRegistrar = new ServiceTracker(bundleContext, ManagementService.class.getName(), new MBeanExporterRegistrar(bundleContext));
+        mbeanExporterRegistrar.open();
         
-        securityServiceTracker = new ServiceTracker(bundleContext, SecurityService.class.getName(),
+        managementServiceRegistrar = new ServiceTracker(bundleContext, SecurityService.class.getName(),
                 new ManagementServiceRegistrar(bundleContext));
-        securityServiceTracker.open();
+        managementServiceRegistrar.open();
     }
 
     public void stop(BundleContext bundleContext) throws Exception {
         appMgrTracker.close();
-        mbeanTracker.close();
-        securityServiceTracker.close();
+        mbeanExporterRegistrar.close();
+        managementServiceRegistrar.close();
     }
 }
