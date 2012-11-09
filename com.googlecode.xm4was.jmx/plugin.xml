@@ -16,17 +16,6 @@
     <extension point="com.ibm.wsspi.extension.server-startup">
         <components>
             <component startup="5000"
-                       class="com.googlecode.xm4was.jmx.mxbeans.PlatformMXBeansRegistrant"
-                       processType="Servant"
-                       component-id="XM_PlatformMXBeansRegistrant"
-                       startup-mode="immediate">
-                <dependency type="service" name="com.ibm.websphere.management.authorizer.service.AdminAuthzService"/>
-            </component>
-        </components>
-    </extension>
-    <extension point="com.ibm.wsspi.extension.server-startup">
-        <components>
-            <component startup="5000"
                        class="com.googlecode.xm4was.jmx.main.MainComponent"
                        processType="Servant"
                        component-id="XM_Main"

@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.commons.activator;
+package com.googlecode.xm4was.commons.jmx.impl;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -29,13 +29,13 @@ import com.googlecode.xm4was.commons.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 
-class MBeanExporter implements ServiceTrackerCustomizer {
+public class MBeanExporter implements ServiceTrackerCustomizer {
     private static final TraceComponent TC = Tr.register(MBeanExporter.class, TrConstants.GROUP, Messages.class.getName());
     
     private final BundleContext bundleContext;
     private final MBeanServer mbeanServer;
     
-    MBeanExporter(BundleContext bundleContext, MBeanServer mbeanServer) {
+    public MBeanExporter(BundleContext bundleContext, MBeanServer mbeanServer) {
         this.bundleContext = bundleContext;
         this.mbeanServer = mbeanServer;
     }
