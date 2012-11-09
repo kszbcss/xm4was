@@ -6,7 +6,7 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
 
-import com.googlecode.xm4was.commons.jmx.impl.SecurityServiceListener;
+import com.googlecode.xm4was.commons.jmx.impl.ManagementServiceRegistrar;
 import com.googlecode.xm4was.commons.jmx.impl.MBeanExporter;
 import com.ibm.websphere.management.AdminServiceFactory;
 import com.ibm.ws.runtime.service.ApplicationMgr;
@@ -29,7 +29,7 @@ public class Activator implements BundleActivator {
         mbeanTracker.open();
         
         securityServiceTracker = new ServiceTracker(bundleContext, SecurityService.class.getName(),
-                new SecurityServiceListener(bundleContext));
+                new ManagementServiceRegistrar(bundleContext));
         securityServiceTracker.open();
     }
 

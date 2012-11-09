@@ -9,7 +9,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.jmx.Authorizer;
-import com.googlecode.xm4was.commons.jmx.MBeanServerProvider;
+import com.googlecode.xm4was.commons.jmx.ManagementService;
 import com.googlecode.xm4was.commons.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
@@ -18,12 +18,12 @@ import com.ibm.websphere.management.AdminServiceFactory;
 import com.ibm.ws.management.PlatformMBeanServer;
 import com.ibm.ws.security.service.SecurityService;
 
-public class SecurityServiceListener implements ServiceTrackerCustomizer {
-    private static final TraceComponent TC = Tr.register(SecurityServiceListener.class, TrConstants.GROUP, Messages.class.getName());
+public class ManagementServiceRegistrar implements ServiceTrackerCustomizer {
+    private static final TraceComponent TC = Tr.register(ManagementServiceRegistrar.class, TrConstants.GROUP, Messages.class.getName());
     
     private final BundleContext bundleContext;
     
-    public SecurityServiceListener(BundleContext bundleContext) {
+    public ManagementServiceRegistrar(BundleContext bundleContext) {
         this.bundleContext = bundleContext;
     }
 
@@ -66,7 +66,7 @@ public class SecurityServiceListener implements ServiceTrackerCustomizer {
             Tr.info(TC, Messages._0006I);
         }
         
-        return bundleContext.registerService(MBeanServerProvider.class.getName(), new MBeanServerProviderImpl(mbeanServer, rawMBeanServer, authorizer), null);
+        return bundleContext.registerService(ManagementService.class.getName(), new ManagementServiceImpl(mbeanServer, rawMBeanServer, authorizer), null);
     }
     
     public void modifiedService(ServiceReference reference, Object object) {
