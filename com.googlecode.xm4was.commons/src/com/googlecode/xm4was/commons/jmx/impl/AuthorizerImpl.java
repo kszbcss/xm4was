@@ -20,7 +20,7 @@ public class AuthorizerImpl implements Authorizer {
 
     public synchronized boolean checkAccess(String role) {
         if (adminAuthorizer == null) {
-            AdminAuthorizer adminAuthorizer = AdminAuthorizerFactory.getAdminAuthorizer();
+            adminAuthorizer = AdminAuthorizerFactory.getAdminAuthorizer();
             if (TC.isDebugEnabled()) {
                 Tr.debug(TC, "adminAuthorizer = {0}", adminAuthorizer);
             }
