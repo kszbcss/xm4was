@@ -15,8 +15,9 @@ import javax.management.remote.JMXServiceURL;
 import javax.management.remote.MBeanServerForwarder;
 import javax.naming.Context;
 
-import com.googlecode.xm4was.commons.AbstractWsComponent;
 import com.googlecode.xm4was.commons.TrConstants;
+import com.googlecode.xm4was.commons.osgi.Lifecycle;
+import com.googlecode.xm4was.commons.osgi.annotations.Init;
 import com.googlecode.xm4was.jmx.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
@@ -24,42 +25,26 @@ import com.ibm.websphere.management.AdminServiceFactory;
 import com.ibm.websphere.models.config.ipc.EndPoint;
 import com.ibm.ws.runtime.service.EndPointMgr;
 import com.ibm.ws.security.service.SecurityService;
-import com.ibm.wsspi.runtime.service.WsServiceRegistry;
 
 // * Security concerns in http://blogs.oracle.com/lmalventosa/entry/mimicking_the_out_of_the
 // * Thread pool?
-public class JmxConnector extends AbstractWsComponent {
+public class JmxConnector {
     private static final TraceComponent TC = Tr.register(JmxConnector.class, TrConstants.GROUP, Messages.class.getName());
     
-    private boolean enabled;
-    private int port;
-    private Registry registry;
-    private JMXConnectorServer server;
-    
-    @Override
-    protected void doInitialize() throws Exception {
-        EndPointMgr epMgr = WsServiceRegistry.getService(this, EndPointMgr.class);
+    @Init
+    public void init(Lifecycle lifecycle, EndPointMgr epMgr, SecurityService securityService) throws Exception {
         // We don't use getEndPointInfo, because it only exists in WAS 7.0, but not WAS 6.1
         EndPoint ep = epMgr.getNodeEndPoints("@").getServerEndPoints("@").getEndPoint("JRMP_CONNECTOR_ADDRESS");
-        if (ep == null) {
-            enabled = false;
-        } else {
-            enabled = true;
+        if (ep != null) {
             // TODO: take into account host?
-            port = ep.getPort();
-        }
-    }
-
-    @Override
-    protected void doStart() throws Exception {
-        if (enabled) {
+            int port = ep.getPort();
+            
             JMXServiceURL url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://localhost:" + port + "/jmxrmi");
             Tr.info(TC, Messages._0001I, new Object[] { url.toString() });
-            SecurityService securityService = WsServiceRegistry.getService(this, SecurityService.class);
             boolean securityEnabled = securityService.isSecurityEnabled();
             Tr.info(TC, securityEnabled ? Messages._0003I : Messages._0004I);
-            registry = LocateRegistry.createRegistry(port);
-            addStopAction(new Runnable() {
+            final Registry registry = LocateRegistry.createRegistry(port);
+            lifecycle.addStopAction(new Runnable() {
                 public void run() {
                     try {
                         UnicastRemoteObject.unexportObject(registry, true);
@@ -86,14 +71,14 @@ public class JmxConnector extends AbstractWsComponent {
             if (TC.isDebugEnabled()) {
                 Tr.debug(TC, "Creating JMX connector with env={0}", env);
             }
-            server = JMXConnectorServerFactory.newJMXConnectorServer(url, env,
+            final JMXConnectorServer server = JMXConnectorServerFactory.newJMXConnectorServer(url, env,
                     AdminServiceFactory.getMBeanFactory().getMBeanServer());
             if (securityEnabled) {
                 server.setMBeanServerForwarder((MBeanServerForwarder)Proxy.newProxyInstance(JmxConnector.class.getClassLoader(),
                         new Class<?>[] { MBeanServerForwarder.class }, new WebSphereMBeanServerInvocationHandler()));
             }
             server.start();
-            addStopAction(new Runnable() {
+            lifecycle.addStopAction(new Runnable() {
                 public void run() {
                     try {
                         server.stop();
