@@ -1,9 +1,9 @@
 package com.googlecode.xm4was.commons.osgi;
 
-public class LifecycleInjector implements Injector {
+class LifecycleInjector implements Injector {
     private final LifecycleManager manager;
 
-    public LifecycleInjector(LifecycleManager manager) {
+    LifecycleInjector(LifecycleManager manager) {
         this.manager = manager;
     }
 

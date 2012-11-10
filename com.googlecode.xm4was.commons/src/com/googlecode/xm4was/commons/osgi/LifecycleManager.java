@@ -1,20 +1,24 @@
 package com.googlecode.xm4was.commons.osgi;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.List;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
 import com.googlecode.xm4was.commons.osgi.annotations.Init;
+import com.googlecode.xm4was.commons.osgi.annotations.Inject;
 
 public final class LifecycleManager {
     private final BundleContext bundleContext;
     private final String[] clazzes;
     private final Object service;
     private final Dictionary<String,?> properties;
+    private final List<Injector> injectors = new ArrayList<Injector>();
     private final Method initMethod;
-    private final Injector[] injectors;
+    private final InitParameter[] initParameters;
     private boolean initialized;
     private ServiceRegistration registration;
     private LifecycleImpl lifecycle;
@@ -33,21 +37,32 @@ public final class LifecycleManager {
                 }
                 initMethod = method;
             }
-        }
-        if (initMethod == null) {
-            throw new IllegalArgumentException(implClass.getName() + " doesn't have any method annotated with @" + Init.class.getSimpleName());
-        }
-        this.initMethod = initMethod;
-        Class<?>[] paramTypes = initMethod.getParameterTypes();
-        injectors = new Injector[paramTypes.length];
-        for (int i=0; i<paramTypes.length; i++) {
-            Class<?> parameterType = paramTypes[i];
-            if (parameterType == Lifecycle.class) {
-                injectors[i] = new LifecycleInjector(this);
-            } else {
-                injectors[i] = new ServiceInjector(this, parameterType);
+            if (method.getAnnotation(Inject.class) != null) {
+                createInjector(method.getParameterTypes()[0], new PropertyTarget(service, method));
             }
         }
+        if (initMethod == null) {
+            this.initMethod = null;
+            initParameters = null;
+        } else {
+            this.initMethod = initMethod;
+            Class<?>[] paramTypes = initMethod.getParameterTypes();
+            initParameters = new InitParameter[paramTypes.length];
+            for (int i=0; i<paramTypes.length; i++) {
+                createInjector(paramTypes[i], initParameters[i] = new InitParameter(this));
+            }
+        }
+    }
+    
+    private Injector createInjector(Class<?> clazz, InjectionTarget target) {
+        Injector injector;
+        if (clazz == Lifecycle.class) {
+            injector = new LifecycleInjector(this);
+        } else {
+            injector = new ServiceInjector(this, clazz, target);
+        }
+        injectors.add(injector);
+        return injector;
     }
     
     public void start() {
@@ -65,23 +80,25 @@ public final class LifecycleManager {
     }
     
     void performInitIfNecessary() {
-        Object[] params = new Object[injectors.length];
-        for (Injector injector : injectors) {
-            if (!injector.isReady()) {
-                return;
+        if (initMethod != null) {
+            for (InitParameter param : initParameters) {
+                if (!param.isReady()) {
+                    return;
+                }
             }
-        }
-        for (int i=0; i<injectors.length; i++) {
-            params[i] = injectors[i].getObject();
-        }
-        try {
-            initMethod.invoke(service, params);
-        } catch (Throwable ex) {
-            // TODO Auto-generated catch block
-            ex.printStackTrace();
-        }
-        if (lifecycle != null) {
-            lifecycle.started();
+            Object[] params = new Object[initParameters.length];
+            for (int i=0; i<initParameters.length; i++) {
+                params[i] = initParameters[i].getObject();
+            }
+            try {
+                initMethod.invoke(service, params);
+            } catch (Throwable ex) {
+                // TODO Auto-generated catch block
+                ex.printStackTrace();
+            }
+            if (lifecycle != null) {
+                lifecycle.started();
+            }
         }
         if (clazzes != null) {
             registration = bundleContext.registerService(clazzes, service, properties);
