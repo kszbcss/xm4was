@@ -8,6 +8,8 @@ Eclipse-AutoStart: true
 Import-Package: com.googlecode.xm4was.commons,
  com.googlecode.xm4was.commons.deploy,
  com.googlecode.xm4was.commons.jmx.annotations,
+ com.googlecode.xm4was.commons.osgi,
+ com.googlecode.xm4was.commons.osgi.annotations,
  com.ibm.ejs.ras,
  org.osgi.framework,
  org.osgi.util.tracker
