@@ -4,18 +4,6 @@
     <extension point="com.ibm.wsspi.extension.server-startup">
         <components>
             <component startup="5000"
-                       class="com.googlecode.xm4was.jmx.jrmp.JmxConnector"
-                       processType="Servant"
-                       component-id="XM_JmxConnector"
-                       startup-mode="immediate">
-                <dependency type="service" name="com.ibm.ws.runtime.service.EndPointMgr"/>
-                <dependency type="service" name="com.ibm.ws.security.service.SecurityService"/>
-            </component>
-        </components>
-    </extension>
-    <extension point="com.ibm.wsspi.extension.server-startup">
-        <components>
-            <component startup="5000"
                        class="com.googlecode.xm4was.jmx.main.MainComponent"
                        processType="Servant"
                        component-id="XM_Main"
