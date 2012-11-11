@@ -11,11 +11,15 @@ import com.ibm.ws.runtime.service.ApplicationMgr;
 import com.ibm.ws.security.service.SecurityService;
 
 public class Activator implements BundleActivator {
+    private static BundleContext bundleContext;
+    
     private ServiceTracker appMgrTracker;
     private ServiceTracker mbeanExporterRegistrar;
     private ServiceTracker managementServiceRegistrar;
     
     public void start(final BundleContext bundleContext) throws Exception {
+        Activator.bundleContext = bundleContext;
+        
         appMgrTracker = new ServiceTracker(bundleContext, ApplicationMgr.class.getName(),
                 new ApplicationMgrListener(bundleContext));
         appMgrTracker.open();
@@ -26,6 +30,10 @@ public class Activator implements BundleActivator {
         managementServiceRegistrar = new ServiceTracker(bundleContext, SecurityService.class.getName(),
                 new ManagementServiceRegistrar(bundleContext));
         managementServiceRegistrar.open();
+    }
+
+    public static BundleContext getBundleContext() {
+        return bundleContext;
     }
 
     public void stop(BundleContext bundleContext) throws Exception {
