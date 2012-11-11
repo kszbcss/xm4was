@@ -11,6 +11,7 @@ Import-Package: com.googlecode.xm4was.commons,
  com.googlecode.xm4was.commons.osgi,
  com.googlecode.xm4was.commons.osgi.annotations,
  com.ibm.ejs.ras,
+ com.ibm.ws.util,
  org.osgi.framework,
  org.osgi.util.tracker
 Export-Package: com.googlecode.xm4was.threadmon,

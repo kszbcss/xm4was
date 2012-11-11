@@ -1,5 +1,6 @@
 package com.googlecode.xm4was.commons.jmx.exporter;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.jmx.Authorizer;
 import com.googlecode.xm4was.commons.jmx.annotations.MBean;
 import com.googlecode.xm4was.commons.jmx.annotations.Operation;
+import com.googlecode.xm4was.commons.jmx.annotations.Parameter;
 import com.googlecode.xm4was.commons.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
@@ -59,10 +61,27 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
                     for (Method method : clazz.getMethods()) {
                         Operation operationAttribute = method.getAnnotation(Operation.class);
                         if (operationAttribute != null) {
-                            List<MBeanParameterInfo> parameters = new ArrayList<MBeanParameterInfo>();
+                            Class<?>[] parameterTypes = method.getParameterTypes();
+                            Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+                            MBeanParameterInfo[] parameters = new MBeanParameterInfo[parameterTypes.length];
+                            for (int i=0; i<parameterTypes.length; i++) {
+                                Parameter parameterAnnotation = null;
+                                for (Annotation a : parameterAnnotations[i]) {
+                                    if (a instanceof Parameter) {
+                                        parameterAnnotation = (Parameter)a;
+                                        break;
+                                    }
+                                }
+                                if (parameterAnnotation == null) {
+                                    // TODO
+                                    System.out.println("No @Paremeter annotation!");
+                                    return null;
+                                }
+                                parameters[i] = new MBeanParameterInfo(parameterAnnotation.name(), parameterTypes[i].getName(), parameterAnnotation.description());
+                            }
                             operations.add(new ModelMBeanOperationInfo(method.getName(),
                                     operationAttribute.description(),
-                                    parameters.toArray(new MBeanParameterInfo[parameters.size()]),
+                                    parameters,
                                     method.getReturnType().getName(),
                                     operationAttribute.impact()));
                             roles.put(method, operationAttribute.role());
