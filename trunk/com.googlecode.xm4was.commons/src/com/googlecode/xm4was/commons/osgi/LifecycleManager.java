@@ -57,7 +57,7 @@ public final class LifecycleManager {
     private Injector createInjector(Class<?> clazz, InjectionTarget target) {
         Injector injector;
         if (clazz == Lifecycle.class) {
-            injector = new LifecycleInjector(this);
+            injector = new LifecycleInjector(this, target);
         } else {
             injector = new ServiceInjector(this, clazz, target);
         }
@@ -80,28 +80,30 @@ public final class LifecycleManager {
     }
     
     void performInitIfNecessary() {
-        if (initMethod != null) {
-            for (InitParameter param : initParameters) {
-                if (!param.isReady()) {
-                    return;
+        if (!initialized) {
+            if (initMethod != null) {
+                for (InitParameter param : initParameters) {
+                    if (!param.isReady()) {
+                        return;
+                    }
+                }
+                Object[] params = new Object[initParameters.length];
+                for (int i=0; i<initParameters.length; i++) {
+                    params[i] = initParameters[i].getObject();
+                }
+                try {
+                    initMethod.invoke(service, params);
+                } catch (Throwable ex) {
+                    // TODO Auto-generated catch block
+                    ex.printStackTrace();
+                }
+                if (lifecycle != null) {
+                    lifecycle.started();
                 }
             }
-            Object[] params = new Object[initParameters.length];
-            for (int i=0; i<initParameters.length; i++) {
-                params[i] = initParameters[i].getObject();
+            if (clazzes != null) {
+                registration = bundleContext.registerService(clazzes, service, properties);
             }
-            try {
-                initMethod.invoke(service, params);
-            } catch (Throwable ex) {
-                // TODO Auto-generated catch block
-                ex.printStackTrace();
-            }
-            if (lifecycle != null) {
-                lifecycle.started();
-            }
-        }
-        if (clazzes != null) {
-            registration = bundleContext.registerService(clazzes, service, properties);
         }
         initialized = true;
     }

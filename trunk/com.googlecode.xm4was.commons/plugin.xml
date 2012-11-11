@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+    <extension point="com.ibm.wsspi.extension.server-startup">
+        <components>
+            <component startup="1000"
+                       class="com.googlecode.xm4was.commons.osgi.BootstrapWsComponent"
+                       processType="Servant"
+                       component-id="XM_Bootstrap"
+                       startup-mode="immediate"/>
+        </components>
+    </extension>
+</plugin>
