@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.jmx.main;
+package com.googlecode.xm4was.threadmon.impl;
 
 import java.util.ArrayList;
 import java.util.List;
