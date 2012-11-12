@@ -79,7 +79,7 @@ public class ThreadMonitor implements ThreadMonitorMBean {
     
     private static void dump(StackTraceNode node, String childPrefix, StringBuilder buffer) {
         StackTraceElement frame = node.getFrame();
-        buffer.append(frame != null ? frame.toString() : "<<*>>");
+        buffer.append(frame != null ? frame.toString() : "*");
         int count = node.getCount();
         if (count > 0) {
             buffer.append(" *");
@@ -89,8 +89,8 @@ public class ThreadMonitor implements ThreadMonitorMBean {
         for (ListIterator<StackTraceNode> it = node.getChildren().listIterator(); it.hasNext(); ) {
             StackTraceNode child = it.next();
             buffer.append(childPrefix);
-            buffer.append(it.hasNext() ? "  |-" : "  `-");
-            dump(child, it.hasNext() ? childPrefix + "  | " : childPrefix + "    ", buffer);
+            buffer.append(it.hasNext() ? "|-" : "`-");
+            dump(child, it.hasNext() ? childPrefix + "| " : childPrefix + "  ", buffer);
         }
     }
 }
