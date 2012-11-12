@@ -45,7 +45,7 @@ public class ManagedBundleTrackerCustomizer implements BundleTrackerCustomizer {
                         serviceClassNames[i] = serviceClasses[i].getName();
                     }
                 }
-                managedBundle.addComponent(new LifecycleManager(bundle.getBundleContext(), serviceClassNames, component, null));
+                managedBundle.addComponent(new LifecycleManager(Util.getBundleContext(bundle), serviceClassNames, component, null));
             }
             managedBundle.startComponents();
             return managedBundle;
