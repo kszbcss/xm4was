@@ -4,11 +4,13 @@ import java.lang.reflect.Field;
 import java.util.ListIterator;
 
 import com.googlecode.xm4was.commons.osgi.annotations.Inject;
+import com.googlecode.xm4was.commons.osgi.annotations.Services;
 import com.googlecode.xm4was.threadmon.ModuleInfo;
 import com.googlecode.xm4was.threadmon.ThreadInfo;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadMonitor;
 import com.ibm.ws.util.ThreadPool;
 
+@Services(ThreadMonitorMBean.class)
 public class ThreadMonitor implements ThreadMonitorMBean {
     private final Class<?> workerClass;
     private final Field outerField;

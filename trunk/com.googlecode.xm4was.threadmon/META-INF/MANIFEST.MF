@@ -4,7 +4,6 @@ Bundle-Name: XM4WAS Thread Monitor
 Bundle-SymbolicName: com.googlecode.xm4was.threadmon;singleton:=true
 Bundle-Version: 0.4.0.qualifier
 Bundle-Activator: com.googlecode.xm4was.threadmon.activator.Activator
-Eclipse-AutoStart: true
 Import-Package: com.googlecode.xm4was.commons,
  com.googlecode.xm4was.commons.deploy,
  com.googlecode.xm4was.commons.jmx.annotations,
@@ -16,3 +15,5 @@ Import-Package: com.googlecode.xm4was.commons,
  org.osgi.util.tracker
 Export-Package: com.googlecode.xm4was.threadmon,
  com.googlecode.xm4was.threadmon.resources
+XM4WAS-AutoStart: true
+XM4WAS-Components: com.googlecode.xm4was.threadmon.impl.ThreadMonitor

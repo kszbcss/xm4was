@@ -11,12 +11,10 @@ import java.util.Properties;
 
 import javax.management.ObjectName;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.osgi.util.tracker.ServiceTrackerCustomizer;
-
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.jmx.ManagementService;
+import com.googlecode.xm4was.commons.osgi.Lifecycle;
+import com.googlecode.xm4was.commons.osgi.annotations.Init;
 import com.googlecode.xm4was.jmx.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
@@ -24,19 +22,11 @@ import com.ibm.ejs.ras.TraceComponent;
 /**
  * Registers the platform MXBeans with WebSphere's MBean server.
  */
-public class PlatformMXBeansRegistrant implements ServiceTrackerCustomizer {
+public class PlatformMXBeansRegistrant {
     private static final TraceComponent TC = Tr.register(PlatformMXBeansRegistrant.class, TrConstants.GROUP, Messages.class.getName());
 
-    private final BundleContext bundleContext;
-    
-    public PlatformMXBeansRegistrant(BundleContext bundleContext) {
-        this.bundleContext = bundleContext;
-    }
-
-    public Object addingService(ServiceReference reference) {
-        ManagementService managementService = (ManagementService)bundleContext.getService(reference);
-        
-        PlatformMXBeansRegistrations registrations = null;
+    @Init
+    public void addingService(Lifecycle lifecycle, ManagementService managementService) {
         try {
             Tr.debug(TC, "Configuring access rules for platform MXBeans");
             Properties accessProperties = new Properties();
@@ -53,7 +43,12 @@ public class PlatformMXBeansRegistrant implements ServiceTrackerCustomizer {
             // We use getRawMBeanServer here because we don't want the MBean server to automatically
             // add the cell, node and process as key properties. This will not work for the platform MXBeans
             // (jconsole e.g. would be unable to identify them).
-            registrations = new PlatformMXBeansRegistrations(managementService.getRawMBeanServer(), accessChecker);
+            final PlatformMXBeansRegistrations registrations = new PlatformMXBeansRegistrations(managementService.getRawMBeanServer(), accessChecker);
+            lifecycle.addStopAction(new Runnable() {
+                public void run() {
+                    registrations.unregisterMBeans();
+                }
+            });
             registrations.registerMBean(ManagementFactory.getClassLoadingMXBean(),
                     new ObjectName(ManagementFactory.CLASS_LOADING_MXBEAN_NAME));
             registrations.registerMBean(ManagementFactory.getMemoryMXBean(),
@@ -85,18 +80,5 @@ public class PlatformMXBeansRegistrant implements ServiceTrackerCustomizer {
         } catch (Exception ex) {
             Tr.error(TC, Messages._0103E, ex);
         }
-        
-        return registrations;
-    }
-
-    public void modifiedService(ServiceReference reference, Object object) {
-    }
-
-    public void removedService(ServiceReference reference, Object object) {
-        PlatformMXBeansRegistrations registrations = (PlatformMXBeansRegistrations)object;
-        if (registrations != null) {
-            registrations.unregisterMBeans();
-        }
-        bundleContext.ungetService(reference);
     }
 }
