@@ -35,9 +35,10 @@ public class BootstrapWsComponent extends WsComponentImpl {
                         buffer.append(", ");
                     }
                     buffer.append(bundle.getSymbolicName());
-                    buffer.append(" [");
-                    buffer.append(bundle.getVersion());
-                    buffer.append("]");
+                    // TODO: getVersion() is not available in the OSGi version used by WAS 7.0; do this using reflection
+//                    buffer.append(" [");
+//                    buffer.append(bundle.getVersion());
+//                    buffer.append("]");
                 } catch (BundleException ex) {
                     Tr.error(TC, Messages._0009E, new Object[] { bundle.getSymbolicName(), ex });
                 }
