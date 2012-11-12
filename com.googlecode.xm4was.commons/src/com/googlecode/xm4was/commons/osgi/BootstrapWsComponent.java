@@ -26,8 +26,8 @@ public class BootstrapWsComponent extends WsComponentImpl {
         BundleContext bundleContext = Activator.getBundleContext();
         managedBundleTracker = new BundleTracker(bundleContext, Bundle.ACTIVE, new ManagedBundleTrackerCustomizer());
         managedBundleTracker.open();
+        StringBuilder buffer = new StringBuilder();
         for (Bundle bundle : bundleContext.getBundles()) {
-            StringBuilder buffer = new StringBuilder();
             if ("true".equals(bundle.getHeaders().get("XM4WAS-AutoStart"))) {
                 try {
                     bundle.start();
@@ -43,9 +43,9 @@ public class BootstrapWsComponent extends WsComponentImpl {
                     Tr.error(TC, Messages._0009E, new Object[] { bundle.getSymbolicName(), ex });
                 }
             }
-            if (buffer.length() > 0) {
-                Tr.info(TC, Messages._0010I, buffer.toString());
-            }
+        }
+        if (buffer.length() > 0) {
+            Tr.info(TC, Messages._0010I, buffer.toString());
         }
     }
 
