@@ -1,0 +1,31 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: XM4WAS PMI Metrics
+Bundle-SymbolicName: com.googlecode.xm4was.pmi;singleton:=true
+Bundle-Version: 0.4.0.qualifier
+Bundle-Activator: com.googlecode.xm4was.pmi.activator.Activator
+Eclipse-AutoStart: true
+Require-Bundle: com.ibm.wsspi.extension
+Import-Package: com.googlecode.xm4was.commons,
+ com.ibm.ejs.ras,
+ com.ibm.websphere.management,
+ com.ibm.websphere.pmi.stat,
+ com.ibm.ws.classloader,
+ com.ibm.ws.management.collaborator,
+ com.ibm.ws.webservices.engine.transport.channel,
+ com.ibm.ws.websvcs.transport.http;resolution:=optional,
+ com.ibm.wsspi.bootstrap.osgi,
+ com.ibm.wsspi.pmi.factory,
+ com.ibm.wsspi.pmi.stat,
+ org.osgi.framework
+Export-Package: com.googlecode.xm4was.pmi,
+ com.googlecode.xm4was.pmi.resources
+Bundle-ClassPath: .,
+ lib/jna-no-native.jar
+Bundle-NativeCode: lib/linux-ppc/libjnidispatch.so; processor=ppc;osname=linux,
+ lib/linux-ppc64/libjnidispatch.so; processor=ppc64;osname=linux,
+ lib/linux-i386/libjnidispatch.so; processor=x86;osname=linux,
+ lib/linux-amd64/libjnidispatch.so; processor=x86-64;osname=linux,
+ lib/linux-arm/libjnidispatch.so; processor=arm;osname=linux,
+ lib/linux-ia64/libjnidispatch.so; processor=ia64;osname=linux,
+ *
