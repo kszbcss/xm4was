@@ -7,6 +7,5 @@ Import-Package: com.ibm.websphere.management,
  com.ibm.websphere.management.exception,
  com.ibm.websphere.security,
  com.ibm.websphere.security.auth,
- com.ibm.websphere.ssl,
  com.ibm.ws.exception,
  com.ibm.ws.orb

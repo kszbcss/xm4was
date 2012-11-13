@@ -7,7 +7,12 @@
                        class="com.googlecode.xm4was.clmon.ClassLoaderMonitor"
                        processType="Servant"
                        component-id="XM_ClassLoaderMonitor"
-                       startup-mode="immediate"/>
+                       startup-mode="immediate">
+                <services>
+                    <provide interface="com.googlecode.xm4was.clmon.thread.UnmanagedThreadMonitor"/>
+                </services>
+                <dependency type="service" name="com.ibm.ws.runtime.service.ApplicationMgr"/>
+            </component>
         </components>
     </extension>
     <extension point="com.ibm.wsspi.extension.mbean-provider"/>
