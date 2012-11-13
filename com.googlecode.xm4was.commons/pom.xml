@@ -4,55 +4,9 @@
     <parent>
         <groupId>com.googlecode.xm4was</groupId>
         <artifactId>xm4was</artifactId>
-        <version>0.4.0-SNAPSHOT</version>
+        <version>0.3.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>com.googlecode.xm4was.commons</artifactId>
     <packaging>eclipse-plugin</packaging>
-    <build>
-        <plugins>
-            <!-- We repackage org.osgi.util.tracker because the OSGi version used by WAS 7.0
-                 doesn't have BundleTracker. -->
-            <plugin>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>unpack-osgi-compendium</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>org.osgi</groupId>
-                                    <artifactId>org.osgi.compendium</artifactId>
-                                    <version>4.2.0</version>
-                                </artifactItem>
-                            </artifactItems>
-                            <includes>org/osgi/util/tracker/**</includes>
-                            <outputDirectory>${project.build.directory}/tracker</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>repackage-tracker-jar</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <classesDirectory>${project.build.directory}/tracker</classesDirectory>
-                            <outputDirectory>lib</outputDirectory>
-                            <finalName>tracker</finalName>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>

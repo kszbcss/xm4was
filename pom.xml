@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.googlecode.xm4was</groupId>
     <artifactId>xm4was</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.3.1</version>
     <packaging>pom</packaging>
     <properties>
         <tycho-version>0.14.1</tycho-version>
@@ -707,7 +707,6 @@
         <module>com.googlecode.xm4was.logging.tests</module>
         <module>com.googlecode.xm4was.pmi</module>
         <module>com.googlecode.xm4was.pmi.tests</module>
-        <module>com.googlecode.xm4was.threadmon</module>
         <module>jmx-client-connector</module>
         <module>distribution</module>
     </modules>
