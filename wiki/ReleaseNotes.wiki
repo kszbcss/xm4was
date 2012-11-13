@@ -7,6 +7,7 @@
    * It is now able to identify the source of log events emitted by unmanaged threads.
    * It formats (or attempts to reformat) stack traces into a more readable form (that is also more suitable if there is a limit on the log message size).
  * Added PMI metrics to measure the !VmSize and VmRSS values found in `/proc/<pid>/statm`.
+ * Added PMI metrics to measure the number of minor and major page faults found in `/proc/<pid>/stat`.
 
 = 0.3.0 =
 
