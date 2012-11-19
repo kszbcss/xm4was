@@ -8,7 +8,7 @@ Connects a standard JMX client to a !WebSphere server using the protocols (RMI o
 
 There are two ways supported by IBM to connect to a !WebSphere server using JMX:
   * Using the proprietary !AdminClient API. This API supports multiple protocols, in particular RMI/IIOP and SOAP.
-  * Using the JSR-160 RMI connector which implements the standard JMX API. This connector uses a different protocol (namely the protocol defined by JSR-160), although the underlying communication protocol is still IIOP (when connecting to a !WebSphere server).
+  * Using the JSR-160 RMI connector which implements the standard JMX API. This connector uses a different protocol (namely the protocol defined by JSR-160), although the underlying communication protocol is still IIOP (when connecting to a !WebSphere server; other servers may use JRMP).
 
 This means that it is not possible to connect a standard JMX client (i.e. a client that only uses the JMX API and no vendor extensions or proprietary APIs) to !WebSphere using any protocol other than JSR-160.
 
@@ -53,6 +53,8 @@ The `jmx.remote.protocol.provider.pkgs` system property must be set so that JMX 
 jmx.remote.protocol.provider.pkgs=com.googlecode.xm4was.jmx.client
 }}}
 
+You may also need to change the `java.security.properties` system property in order to enable the signer exchange prompt for SOAP. This is explained in more detail below.
+
 == Required JARs ==
 
 In addition to `jmx-client-connector-<version>.jar`, the following JAR from the WAS runtime must be added to the classpath:
@@ -71,13 +73,22 @@ The first two JARs contain the IBM ORB which is required by !AdminClient. `ibmpk
 
 == Recommended server-side configuration ==
 
-When connecting to !WebSphere using RMI/IIOP, it is recommended to configure the `com.ibm.CORBA.EnableServerKeepAlive` system property on those instances. Setting this property avoids the problem described in [http://www-01.ibm.com/support/docview.wss?uid=swg1PK37506 PK37506]. It enables the `SO_KEEPALIVE` socket option on the server side of IIOP connections. This makes sure that broken connections are detected and that the corresponding resources can be released. If this setting is not enabled, a broken connection may result in an IIOP reader thread permanently blocking on a socket read operation in the server.
+When connecting to !WebSphere using RMI/IIOP, it is recommended to configure the `com.ibm.CORBA.EnableServerKeepAlive` system property on those instances. Setting this property avoids the problem described in [http://www-01.ibm.com/support/docview.wss?uid=swg1PK37506 PK37506]. It enables the `SO_KEEPALIVE` socket option on the server side of IIOP connections. This ensures that broken connections are detected and that the corresponding resources can be released. If this setting is not enabled, a broken connection may result in an IIOP reader thread permanently blocking on a socket read operation in the server.
 
 == Configuration files ==
 
 During the first usage, the connector will automatically create default configuration files in `${user.home}/.xm4was`. This directory will also contain the key and trust stores maintained by the connector. Note that for some part of the configuration, different sets of configuration files are used on IBM and Sun/Oracle JREs. 
 
 The locations of the individual configuration files can be changed using the `com.ibm.SSL.ConfigURL`, `com.ibm.CORBA.ConfigURL` and `com.ibm.SOAP.ConfigURL` system properties. Please refer to the !WebSphere documentation for more information about these system properties and the content of the configuration files.
+
+== Enabling the SSL signer exchange prompt for SOAP (XM4WAS 0.3.1 and above) ==
+
+When connecting using RMI to a secured !WebSphere instance that has an SSL certificate that is not yet trusted, !AdminClient will propose to automatically add the certificate to the trust store. This is a particularly useful feature because it greatly simplifies the management of SSL certificates. However, this feature is not supported out of the box for SOAP. To enable it for SOAP it is necessary to configure a custom `SSLSocketFactory` using the `ssl.SocketFactory.provider` security property. Execute the following steps to set this up:
+  # Create a `java.security` file with the following content:
+    {{{
+    ssl.SocketFactory.provider=com.googlecode.xm4was.jmx.client.WSSSLSocketFactory
+    }}}
+  # Set the `java.security.properties` system property to the location of the file created in the previous step.
 
 = Known issues and limitations =
 

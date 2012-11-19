@@ -49,6 +49,22 @@ http://xm4was.googlecode.com/svn/wiki/visualvm-monitor-was.png
 
 http://xm4was.googlecode.com/svn/wiki/visualvm-mbeans-was.png
 
+= Enabling the SSL signer exchange prompt for SOAP (Optional) =
+
+If you plan to use SOAP to connect to !WebSphere instances with security enabled, then you may want to enable automatic management of the trust store for that protocol. This is supported in XM4WAS 0.3.1 and above. For more details refer to the [JmxClientConnector jmx-client-connector documentation].
+
+To configure this for VisualVM, create `etc/java.security` (under the VisualVM installation directory) with the following content:
+
+{{{
+ssl.SocketFactory.provider=com.googlecode.xm4was.jmx.client.WSSSLSocketFactory
+}}}
+
+Then open the `etc/visualvm.conf` file and change the `default_options` property to set the `java.security.properties` system property to the location of the file created in the previous step. Under Windows [http://stackoverflow.com/questions/13346214/how-to-configure-a-netbeans-rcp-application-with-a-custom-java-security-file you need to specify the absolute path of the file], while under Linux, you can use the `BASEDIR` variable to avoid that:
+
+{{{
+-J-Djava.security.properties=${BASEDIR}/etc/java.security
+}}}
+
 = Creating connections to !WebSphere =
 
 To add a !WebSphere instance to VisualVM, simply create a remote JMX connection that uses a JMX service URL with of one of the forms described in the [JmxClientConnector documentation] of jmx-client-connector:
@@ -62,6 +78,10 @@ http://xm4was.googlecode.com/svn/wiki/signer-exchange.png
 This is not supported with SOAP. In that case, the certificate must be added manually. Alternatively, add an RMI connection first so that the certificate is added automatically (the same certificate is used for RMI and SOAP).
 
 Another important thing to keep in mind when using SOAP is that the proxy settings configured in VisualVM also apply to the SOAP connection to !WebSphere.
+
+= Creating a custom VisualVM distribution =
+
+For legal reasons, the XM4WAS project cannot distribute a customized VisualVM distribution that includes all the changes described in this document. However, since VisualVM is packaged as a simple ZIP file, you can easily create such a customized distribution yourself. In that case you may want to consult [http://veithen.blogspot.be/2012/11/installing-visualvm-plug-ins-into.html this article] for the necessary steps to include the VisualVM-MBeans plug-in in that distribution.
 
 = Known issues =
 
