@@ -85,9 +85,9 @@ The locations of the individual configuration files can be changed using the `co
 
 When connecting using RMI to a secured !WebSphere instance that has an SSL certificate that is not yet trusted, !AdminClient will propose to automatically add the certificate to the trust store. This is a particularly useful feature because it greatly simplifies the management of SSL certificates. However, this feature is not supported out of the box for SOAP. To enable it for SOAP it is necessary to configure a custom `SSLSocketFactory` using the `ssl.SocketFactory.provider` security property. Execute the following steps to set this up:
   # Create a `java.security` file with the following content:
-    {{{
-    ssl.SocketFactory.provider=com.googlecode.xm4was.jmx.client.WSSSLSocketFactory
-    }}}
+{{{
+ssl.SocketFactory.provider=com.googlecode.xm4was.jmx.client.WSSSLSocketFactory
+}}}
   # Set the `java.security.properties` system property to the location of the file created in the previous step.
 
 = Known issues and limitations =
