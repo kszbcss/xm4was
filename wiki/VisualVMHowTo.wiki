@@ -71,11 +71,11 @@ To add a !WebSphere instance to VisualVM, simply create a remote JMX connection 
 
 http://xm4was.googlecode.com/svn/wiki/visualvm-add-jmx-connection.png
 
-Note that when security is enabled, the signer certificate for the !WebSphere instance must be added to the trust store. If RMI is used as protocol, then the connector will propose to add the certificate automatically:
+Note that when security is enabled, the signer certificate for the !WebSphere instance must be added to the trust store. The connector will propose to add the certificate automatically:
 
 http://xm4was.googlecode.com/svn/wiki/signer-exchange.png
 
-This is not supported with SOAP. In that case, the certificate must be added manually. Alternatively, add an RMI connection first so that the certificate is added automatically (the same certificate is used for RMI and SOAP).
+This always works for RMI connections. For SOAP connections, this only works if you implemented the configuration changes described in the previous section. If this is not the case, then the certificate must be added manually. Alternatively, add an RMI connection first so that the certificate is added automatically (the same certificate is used for RMI and SOAP).
 
 Another important thing to keep in mind when using SOAP is that the proxy settings configured in VisualVM also apply to the SOAP connection to !WebSphere.
 
