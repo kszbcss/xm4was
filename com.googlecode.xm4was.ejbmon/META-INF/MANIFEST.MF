@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: XM4WAS EJB Monitor
 Bundle-SymbolicName: com.googlecode.xm4was.ejbmon;singleton:=true
-Bundle-Version: 0.4.0.alpha1
+Bundle-Version: 0.4.0.qualifier
 Import-Package: com.googlecode.xm4was.commons.jmx.annotations,
  com.googlecode.xm4was.commons.osgi.annotations,
  com.ibm.ejs.container,
