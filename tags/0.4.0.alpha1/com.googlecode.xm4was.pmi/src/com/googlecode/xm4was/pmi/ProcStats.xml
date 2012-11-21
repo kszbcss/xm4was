@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Stats SYSTEM "com.ibm.websphere.pmi.xml/stats.dtd">
+<Stats type="com.googlecode.xm4was.pmi.ProcStats">
+    <description>Proc Stats</description>
+    <RangeStatistic ID="1" name="FileDescriptors">
+        <level>high</level>
+        <unit>None</unit>
+        <description>The number of file descriptors allocated by the server process.</description>
+        <updateOnRequest>true</updateOnRequest>
+    </RangeStatistic>
+    <RangeStatistic ID="2" name="VmSize">
+        <level>high</level>
+        <unit>unit.byte</unit>
+        <description>Virtual memory size of the process.</description>
+        <updateOnRequest>true</updateOnRequest>
+    </RangeStatistic>
+    <RangeStatistic ID="3" name="VmRSS">
+        <level>high</level>
+        <unit>unit.byte</unit>
+        <description>Resident set size, i.e. the number of bytes the process has in real memory.</description>
+        <updateOnRequest>true</updateOnRequest>
+    </RangeStatistic>
+    <CountStatistic ID="4" name="MinorFaults">
+        <level>high</level>
+        <unit>None</unit>
+        <description>The number of minor faults the process has made which have not required loading a memory page from disk.</description>
+        <updateOnRequest>true</updateOnRequest>
+    </CountStatistic>
+    <CountStatistic ID="5" name="MajorFaults">
+        <level>high</level>
+        <unit>None</unit>
+        <description>The number of major faults the process has made which have required loading a memory page from disk.</description>
+        <updateOnRequest>true</updateOnRequest>
+    </CountStatistic>
+</Stats>
