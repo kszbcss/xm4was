@@ -702,6 +702,7 @@
         <module>bootstrapstub</module>
         <module>com.googlecode.xm4was.clmon</module>
         <module>com.googlecode.xm4was.commons</module>
+        <module>com.googlecode.xm4was.ejbmon</module>
         <module>com.googlecode.xm4was.jmx</module>
         <module>com.googlecode.xm4was.logging</module>
         <module>com.googlecode.xm4was.logging.tests</module>
