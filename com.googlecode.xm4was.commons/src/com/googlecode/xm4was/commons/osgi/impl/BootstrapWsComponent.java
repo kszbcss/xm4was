@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.commons.osgi;
+package com.googlecode.xm4was.commons.osgi.impl;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -15,7 +15,7 @@ import com.ibm.ws.exception.RuntimeError;
 import com.ibm.ws.exception.RuntimeWarning;
 import com.ibm.wsspi.runtime.component.WsComponentImpl;
 
-public class BootstrapWsComponent extends WsComponentImpl {
+public final class BootstrapWsComponent extends WsComponentImpl {
     private static final TraceComponent TC = Tr.register(AbstractWsComponent.class, TrConstants.GROUP, Messages.class.getName());
     
     private BundleTracker managedBundleTracker;

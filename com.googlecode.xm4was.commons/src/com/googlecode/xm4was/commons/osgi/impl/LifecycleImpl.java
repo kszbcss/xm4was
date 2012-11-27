@@ -1,8 +1,9 @@
-package com.googlecode.xm4was.commons.osgi;
+package com.googlecode.xm4was.commons.osgi.impl;
 
 import java.util.Stack;
 
 import com.googlecode.xm4was.commons.TrConstants;
+import com.googlecode.xm4was.commons.osgi.Lifecycle;
 import com.googlecode.xm4was.commons.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;

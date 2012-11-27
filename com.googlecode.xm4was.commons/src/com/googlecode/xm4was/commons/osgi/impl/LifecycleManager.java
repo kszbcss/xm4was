@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.commons.osgi;
+package com.googlecode.xm4was.commons.osgi.impl;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -8,10 +8,11 @@ import java.util.List;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
+import com.googlecode.xm4was.commons.osgi.Lifecycle;
 import com.googlecode.xm4was.commons.osgi.annotations.Init;
 import com.googlecode.xm4was.commons.osgi.annotations.Inject;
 
-public final class LifecycleManager {
+final class LifecycleManager {
     private final BundleContext bundleContext;
     private final String[] clazzes;
     private final Object service;
@@ -23,7 +24,7 @@ public final class LifecycleManager {
     private ServiceRegistration registration;
     private LifecycleImpl lifecycle;
     
-    public LifecycleManager(BundleContext bundleContext, String[] clazzes, Object service, Dictionary<String,?> properties) {
+    LifecycleManager(BundleContext bundleContext, String[] clazzes, Object service, Dictionary<String,?> properties) {
         this.bundleContext = bundleContext;
         this.clazzes = clazzes;
         this.service = service;
@@ -65,14 +66,14 @@ public final class LifecycleManager {
         return injector;
     }
     
-    public void start() {
+    void start() {
         for (Injector injector : injectors) {
             injector.open();
         }
         performInitIfNecessary();
     }
     
-    public void stop() {
+    void stop() {
         for (Injector injector : injectors) {
             injector.close();
         }

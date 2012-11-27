@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.commons.osgi;
+package com.googlecode.xm4was.commons.osgi.impl;
 
 import java.lang.reflect.Method;
 

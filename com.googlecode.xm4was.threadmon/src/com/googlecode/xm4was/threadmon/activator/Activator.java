@@ -5,9 +5,6 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
 import com.googlecode.xm4was.commons.deploy.ClassLoaderListener;
-import com.googlecode.xm4was.commons.osgi.LifecycleManager;
-import com.googlecode.xm4was.threadmon.impl.ThreadMonitor;
-import com.googlecode.xm4was.threadmon.impl.ThreadMonitorMBean;
 import com.googlecode.xm4was.threadmon.impl.UnmanagedThreadMonitorImpl;
 
 public class Activator implements BundleActivator {

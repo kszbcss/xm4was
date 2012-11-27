@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.commons.osgi;
+package com.googlecode.xm4was.commons.osgi.impl;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
@@ -10,7 +10,7 @@ import com.googlecode.xm4was.commons.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 
-public class ManagedBundleTrackerCustomizer implements BundleTrackerCustomizer {
+final class ManagedBundleTrackerCustomizer implements BundleTrackerCustomizer {
     private static final TraceComponent TC = Tr.register(ManagedBundleTrackerCustomizer.class, TrConstants.GROUP, Messages.class.getName());
 
     public Object addingBundle(Bundle bundle, BundleEvent event) {

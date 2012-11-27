@@ -4,7 +4,7 @@
     <extension point="com.ibm.wsspi.extension.server-startup">
         <components>
             <component startup="1000"
-                       class="com.googlecode.xm4was.commons.osgi.BootstrapWsComponent"
+                       class="com.googlecode.xm4was.commons.osgi.impl.BootstrapWsComponent"
                        processType="Servant"
                        component-id="XM_Bootstrap"
                        startup-mode="immediate"/>
