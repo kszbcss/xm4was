@@ -14,5 +14,7 @@ public interface ThreadMonitorMBean {
     
     @Operation(description="Dump the threads of a given thread pool and summarize the information in tree form",
             role="monitor", impact=MBeanOperationInfo.INFO)
-    String dumpThreads(@Parameter(name="threadPoolName", description="The name of the thread pool") String threadPoolName) throws Exception;
+    String dumpThreads(
+            @Parameter(name="threadPoolName", description="The name of the thread pool") String threadPoolName,
+            @Parameter(name="log", description="Specifies whether the dump should also be written to SystemOut.log") boolean log) throws Exception;
 }

@@ -3,15 +3,22 @@ package com.googlecode.xm4was.threadmon.impl;
 import java.lang.reflect.Field;
 import java.util.ListIterator;
 
+import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.osgi.annotations.Inject;
 import com.googlecode.xm4was.commons.osgi.annotations.Services;
 import com.googlecode.xm4was.threadmon.ModuleInfo;
 import com.googlecode.xm4was.threadmon.ThreadInfo;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadMonitor;
+import com.googlecode.xm4was.threadmon.resources.Messages;
+import com.ibm.ejs.ras.Tr;
+import com.ibm.ejs.ras.TraceComponent;
+import com.ibm.websphere.security.auth.WSSubject;
 import com.ibm.ws.util.ThreadPool;
 
 @Services(ThreadMonitorMBean.class)
 public class ThreadMonitor implements ThreadMonitorMBean {
+    private static final TraceComponent TC = Tr.register(ThreadMonitor.class, TrConstants.GROUP, Messages.class.getName());
+    
     private final Class<?> workerClass;
     private final Field outerField;
     
@@ -60,7 +67,7 @@ public class ThreadMonitor implements ThreadMonitorMBean {
         return buffer.toString();
     }
     
-    public String dumpThreads(String threadPoolName) throws Exception {
+    public String dumpThreads(String threadPoolName, boolean log) throws Exception {
         StackTraceNode root = new StackTraceNode(null);
         for (Thread thread : ThreadUtils.getAllThreads()) {
             if (workerClass.isInstance(thread) && ((ThreadPool)outerField.get(thread)).getName().equals(threadPoolName)) {
@@ -74,7 +81,11 @@ public class ThreadMonitor implements ThreadMonitorMBean {
         }
         StringBuilder buffer = new StringBuilder();
         dump(root, "", buffer);
-        return buffer.toString();
+        String result = buffer.toString();
+        if (log) {
+            Tr.audit(TC, Messages._0005I, new Object[] { WSSubject.getCallerPrincipal(), threadPoolName, result });
+        }
+        return result;
     }
     
     private static void dump(StackTraceNode node, String childPrefix, StringBuilder buffer) {
