@@ -1,22 +1,22 @@
-package com.googlecode.xm4was.commons.osgi;
+package com.googlecode.xm4was.commons.osgi.impl;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ManagedBundle {
+final class ManagedBundle {
     private final List<LifecycleManager> components = new ArrayList<LifecycleManager>();
     
-    public void addComponent(LifecycleManager component) {
+    void addComponent(LifecycleManager component) {
         components.add(component);
     }
     
-    public void startComponents() {
+    void startComponents() {
         for (LifecycleManager component : components) {
             component.start();
         }
     }
     
-    public void stopComponents() {
+    void stopComponents() {
         for (LifecycleManager component : components) {
             component.stop();
         }

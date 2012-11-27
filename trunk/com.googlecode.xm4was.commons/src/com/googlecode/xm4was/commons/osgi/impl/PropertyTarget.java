@@ -1,8 +1,8 @@
-package com.googlecode.xm4was.commons.osgi;
+package com.googlecode.xm4was.commons.osgi.impl;
 
 import java.lang.reflect.Method;
 
-class PropertyTarget implements InjectionTarget {
+final class PropertyTarget implements InjectionTarget {
     private final Object target;
     private final Method method;
 

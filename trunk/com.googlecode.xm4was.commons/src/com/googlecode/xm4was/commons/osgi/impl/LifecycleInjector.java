@@ -1,6 +1,6 @@
-package com.googlecode.xm4was.commons.osgi;
+package com.googlecode.xm4was.commons.osgi.impl;
 
-class LifecycleInjector implements Injector {
+final class LifecycleInjector implements Injector {
     private final LifecycleManager manager;
     private final InjectionTarget target;
 

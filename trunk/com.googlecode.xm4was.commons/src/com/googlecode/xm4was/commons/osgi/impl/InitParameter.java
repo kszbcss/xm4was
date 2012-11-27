@@ -1,6 +1,6 @@
-package com.googlecode.xm4was.commons.osgi;
+package com.googlecode.xm4was.commons.osgi.impl;
 
-class InitParameter implements InjectionTarget {
+final class InitParameter implements InjectionTarget {
     private final LifecycleManager manager;
     private Object object;
 

@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.commons.osgi;
+package com.googlecode.xm4was.commons.osgi.impl;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -6,7 +6,7 @@ import java.util.List;
 import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
 
-class ServiceInjector extends ServiceTracker implements Injector {
+final class ServiceInjector extends ServiceTracker implements Injector {
     private final LifecycleManager manager;
     private final InjectionTarget target;
     private final List<ServiceReference> candidates = new LinkedList<ServiceReference>();
