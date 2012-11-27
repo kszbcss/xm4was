@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: XM4WAS EJB Monitor
+Bundle-SymbolicName: com.googlecode.xm4was.ejbmon;singleton:=true
+Bundle-Version: 0.4.0.alpha2
+Import-Package: com.googlecode.xm4was.commons.jmx.annotations,
+ com.googlecode.xm4was.commons.osgi.annotations,
+ com.ibm.ejs.container,
+ com.ibm.ejs.container.activator,
+ com.ibm.websphere.csi,
+ com.ibm.ws.runtime.metadata,
+ com.ibm.ws.runtime.service,
+ com.ibm.ws.threadContext,
+ javax.ejb
+XM4WAS-AutoStart: true
+XM4WAS-Components: com.googlecode.xm4was.ejbmon.EJBMonitor
