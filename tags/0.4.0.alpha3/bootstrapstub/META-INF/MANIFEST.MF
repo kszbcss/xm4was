@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: WebSphere Bootstrap Stub
+Bundle-SymbolicName: bootstrapstub
+Bundle-Version: 0.4.0.alpha3
