@@ -16,6 +16,8 @@ import com.ibm.ejs.container.activator.Activator;
 import com.ibm.websphere.csi.J2EEName;
 import com.ibm.ws.runtime.service.EJBContainer;
 import com.ibm.ws.threadContext.ComponentMetaDataAccessorImpl;
+import com.ibm.ws.threadContext.EJSDeployedSupportAccessorImpl;
+import com.ibm.ws.threadContext.ThreadContext;
 
 @Services(EJBMonitorMBean.class)
 public class EJBMonitor implements EJBMonitorMBean {
@@ -36,6 +38,9 @@ public class EJBMonitor implements EJBMonitorMBean {
         } catch (Throwable ex) {
             return toStackTrace(ex);
         }
+        if (home == null) {
+            throw new JMException(name + " not found");
+        }
         if (!home.isStatelessSessionHome()) {
             throw new JMException(name + " is not a stateless session bean");
         }
@@ -50,14 +55,21 @@ public class EJBMonitor implements EJBMonitorMBean {
             ClassLoader savedTccl = currentThread.getContextClassLoader();
             currentThread.setContextClassLoader(home.getClassLoader());
             try {
+                ThreadContext threadContext = EJSDeployedSupportAccessorImpl.getEJSDeployedSupportAccessor().getThreadContext();
+                EJSDeployedSupport s = new EJSDeployedSupport();
+                threadContext.beginContext(s);
                 try {
-                    // activateBean will retrieve a bean from the pool or create a new instance.
-                    BeanO beanO = activator.activateBean(null, id);
-                    beanO.preInvoke(new EJSDeployedSupport(), null);
-                    // postInvoke will put the bean back into the pool.
-                    beanO.postInvoke(-1, null);
-                } catch (Throwable ex) {
-                    return toStackTrace(ex);
+                    try {
+                        // activateBean will retrieve a bean from the pool or create a new instance.
+                        BeanO beanO = activator.activateBean(null, id);
+                        beanO.preInvoke(s, null);
+                        // postInvoke will put the bean back into the pool.
+                        beanO.postInvoke(-1, null);
+                    } catch (Throwable ex) {
+                        return toStackTrace(ex);
+                    }
+                } finally {
+                    threadContext.endContext();
                 }
             } finally {
                 currentThread.setContextClassLoader(savedTccl);
