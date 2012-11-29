@@ -11,6 +11,6 @@ Import-Package: com.googlecode.xm4was.commons.jmx.annotations,
  com.ibm.ws.runtime.metadata,
  com.ibm.ws.runtime.service,
  com.ibm.ws.threadContext,
- javax.ejb
+ javax.ejb;resolution:=optional
 XM4WAS-AutoStart: true
 XM4WAS-Components: com.googlecode.xm4was.ejbmon.EJBMonitor
