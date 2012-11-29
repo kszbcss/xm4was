@@ -2,6 +2,8 @@ package com.googlecode.xm4was.ejbmon;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import javax.management.JMException;
 
@@ -9,6 +11,7 @@ import com.googlecode.xm4was.commons.osgi.annotations.Init;
 import com.googlecode.xm4was.commons.osgi.annotations.Services;
 import com.ibm.ejs.container.BeanId;
 import com.ibm.ejs.container.BeanO;
+import com.ibm.ejs.container.ContainerTx;
 import com.ibm.ejs.container.EJSContainer;
 import com.ibm.ejs.container.EJSDeployedSupport;
 import com.ibm.ejs.container.EJSHome;
@@ -22,10 +25,15 @@ import com.ibm.ws.threadContext.ThreadContext;
 @Services(EJBMonitorMBean.class)
 public class EJBMonitor implements EJBMonitorMBean {
     private EJBContainer ejbContainer;
+    private Method preInvokeMethod;
 
     @Init
-    public void init(EJBContainer ejbContainer) {
+    public void init(EJBContainer ejbContainer) throws Exception {
         this.ejbContainer = ejbContainer;
+        // The signature of the BeanO#preInvoke method is different on WAS 6.1 and WAS 7.0
+        // (different return type). To be compatible with both versions, we need to invoke
+        // the method using reflection.
+        preInvokeMethod = BeanO.class.getMethod("preInvoke", EJSDeployedSupport.class, ContainerTx.class);
     }
     
     public String validateStatelessSessionBean(String applicationName, String moduleName, String beanName) throws Exception {
@@ -62,9 +70,11 @@ public class EJBMonitor implements EJBMonitorMBean {
                     try {
                         // activateBean will retrieve a bean from the pool or create a new instance.
                         BeanO beanO = activator.activateBean(null, id);
-                        beanO.preInvoke(s, null);
+                        preInvokeMethod.invoke(beanO, s, null);
                         // postInvoke will put the bean back into the pool.
                         beanO.postInvoke(-1, null);
+                    } catch (InvocationTargetException ex) {
+                        return toStackTrace(ex.getCause());
                     } catch (Throwable ex) {
                         return toStackTrace(ex);
                     }
