@@ -97,7 +97,9 @@ public final class LogMessage {
             maxMessageSize = Integer.MAX_VALUE;
         }
         String formattedMessage;
-        if (parms == null) {
+        if (message == null) {
+            formattedMessage = "<null>";
+        } else if (parms == null) {
             formattedMessage = message;
         } else {
             formattedMessage = TraceNLS.getFormattedMessageFromLocalizedMessage(message, parms, true);
