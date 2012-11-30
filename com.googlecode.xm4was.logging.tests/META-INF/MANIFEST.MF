@@ -11,4 +11,7 @@ Require-Bundle: com.ibm.ws.emf,
  com.ibm.ws.prereq.javamail,
  javax.j2ee.jsp,
  javax.j2ee.connector,
- javax.j2ee.jms
+ javax.j2ee.jms,
+ javax.j2ee.jta,
+ org.eclipse.equinox.registry,
+ org.eclipse.core.runtime
