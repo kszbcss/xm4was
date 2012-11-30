@@ -14,4 +14,7 @@ Require-Bundle: com.ibm.ws.emf,
  javax.j2ee.jms,
  javax.j2ee.jta,
  org.eclipse.equinox.registry,
- org.eclipse.core.runtime
+ org.eclipse.core.runtime,
+ com.ibm.ffdc,
+ com.ibm.ws.wlm,
+ com.ibm.ws.prereq.olt
