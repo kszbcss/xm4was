@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.googlecode.xm4was.clmon.resources.Messages;
+import com.googlecode.xm4was.clmon.thread.ModuleInfo;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
@@ -20,7 +21,7 @@ import com.ibm.wsspi.pmi.stat.SPIStatistic;
  * class collects statistics about the number of created, leaked and destroyed class loaders and
  * exposes them via PMI.
  */
-public class ClassLoaderGroup extends StatisticActions {
+public class ClassLoaderGroup extends StatisticActions implements ModuleInfo {
     private static final TraceComponent TC = Tr.register(ClassLoaderGroup.class, TrConstants.GROUP, Messages.class.getName());
     
     private static final Field resourceRequestCacheField;
