@@ -13,7 +13,6 @@ import com.googlecode.xm4was.logging.resources.Messages;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadMonitor;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
-import com.ibm.ws.management.collaborator.DefaultRuntimeCollaborator;
 
 public class LoggingService extends AbstractWsComponent {
     private static final TraceComponent TC = Tr.register(LoggingService.class, TrConstants.GROUP, Messages.class.getName());
@@ -57,8 +56,7 @@ public class LoggingService extends AbstractWsComponent {
             }
         });
         
-        activateMBean("XM4WAS.LoggingService", new DefaultRuntimeCollaborator(handler, "LoggingService"),
-                null, "/xm4was/LoggingService.xml");
+        addService(handler, LoggingServiceMBean.class);
         
         Tr.info(TC, Messages._0001I);
     }
