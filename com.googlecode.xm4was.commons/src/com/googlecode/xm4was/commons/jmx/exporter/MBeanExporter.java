@@ -102,10 +102,10 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
                         ex.printStackTrace(System.out);
                     }
                     Hashtable<String,String> keyProperties = new Hashtable<String,String>();
-                    keyProperties.put("type", mbeanAttribute.type());
+                    keyProperties.put("type", mbeanAttribute.legacy() ? "XM4WAS." + mbeanAttribute.type() : mbeanAttribute.type());
                     // TODO
                     keyProperties.put("name", mbeanAttribute.type());
-                    return mbeanServer.registerMBean(mbean, new ObjectName(JmxConstants.DOMAIN, keyProperties));
+                    return mbeanServer.registerMBean(mbean, new ObjectName(mbeanAttribute.legacy() ? "WebSphere" : JmxConstants.DOMAIN, keyProperties));
                 }
             } catch (ClassNotFoundException ex) {
                 if (TC.isDebugEnabled()) {

@@ -7,12 +7,12 @@ Bundle-Activator: com.googlecode.xm4was.logging.Activator
 Require-Bundle: com.ibm.wsspi.extension
 Eclipse-AutoStart: true
 Import-Package: com.googlecode.xm4was.commons,
+ com.googlecode.xm4was.commons.jmx.annotations,
  com.googlecode.xm4was.threadmon,
  com.ibm.ejs.csi,
  com.ibm.ejs.ras,
  com.ibm.websphere.logging,
  com.ibm.websphere.management,
- com.ibm.ws.management.collaborator,
  com.ibm.ws.runtime.metadata,
  com.ibm.ws.threadContext,
  com.ibm.wsspi.bootstrap.osgi,

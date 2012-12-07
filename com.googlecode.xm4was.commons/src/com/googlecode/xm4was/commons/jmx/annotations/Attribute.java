@@ -5,10 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(value=ElementType.TYPE)
+@Target(value=ElementType.METHOD)
 @Retention(value=RetentionPolicy.RUNTIME)
-public @interface MBean {
-    String type();
+public @interface Attribute {
     String description();
-    boolean legacy() default false;
 }
