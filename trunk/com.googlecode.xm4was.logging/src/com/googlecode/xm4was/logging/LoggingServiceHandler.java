@@ -3,8 +3,13 @@ package com.googlecode.xm4was.logging;
 import java.util.Locale;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import com.googlecode.xm4was.commons.TrConstants;
+import com.googlecode.xm4was.commons.osgi.Lifecycle;
+import com.googlecode.xm4was.commons.osgi.annotations.Init;
+import com.googlecode.xm4was.commons.osgi.annotations.Inject;
+import com.googlecode.xm4was.commons.osgi.annotations.Services;
 import com.googlecode.xm4was.logging.resources.Messages;
 import com.googlecode.xm4was.threadmon.ModuleInfo;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadMonitor;
@@ -17,31 +22,55 @@ import com.ibm.ws.runtime.metadata.ApplicationMetaData;
 import com.ibm.ws.runtime.metadata.ComponentMetaData;
 import com.ibm.ws.runtime.metadata.MetaData;
 import com.ibm.ws.runtime.metadata.ModuleMetaData;
+import com.ibm.ws.runtime.service.ORB;
 import com.ibm.ws.threadContext.ComponentMetaDataAccessorImpl;
 import com.ibm.wsspi.webcontainer.metadata.WebComponentMetaData;
 import com.ibm.wsspi.webcontainer.servlet.IServletConfig;
 
+@Services(LoggingServiceMBean.class)
 public class LoggingServiceHandler extends Handler implements LoggingServiceMBean {
     private static final TraceComponent TC = Tr.register(LoggingServiceHandler.class, TrConstants.GROUP, Messages.class.getName());
     
-    private final ComponentMetaDataAccessorImpl cmdAccessor = ComponentMetaDataAccessorImpl.getComponentMetaDataAccessor();
+    private ORB orb;
+    private ComponentMetaDataAccessorImpl cmdAccessor;
     private UnmanagedThreadMonitor unmanagedThreadMonitor;
     private final LogMessage[] buffer = new LogMessage[1024];
     private int head;
     // We start at System.currentTimeMillis to make sure that the sequence is strictly increasing
     // even across a server restarts
-    private final long initialSequence;
+    private long initialSequence;
     private long nextSequence;
     
-    public LoggingServiceHandler() {
+    @Init
+    public void init(Lifecycle lifecycle, ORB orb) {
+        this.orb = orb;
+        
         initialSequence = System.currentTimeMillis();
         nextSequence = initialSequence;
+        
+        lifecycle.addStopAction(new Runnable() {
+            public void run() {
+                Tr.info(TC, Messages._0002I);
+            }
+        });
+        
+        Tr.debug(TC, "Registering handler on root logger");
+        Logger.getLogger("").addHandler(this);
+        lifecycle.addStopAction(new Runnable() {
+            public void run() {
+                Tr.debug(TC, "Removing handler from root logger");
+                Logger.getLogger("").removeHandler(LoggingServiceHandler.this);
+            }
+        });
+        
+        Tr.info(TC, Messages._0001I);
     }
     
+    @Inject
     public synchronized void setUnmanagedThreadMonitor(UnmanagedThreadMonitor unmanagedThreadMonitor) {
         this.unmanagedThreadMonitor = unmanagedThreadMonitor;
         if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "unmanagedThreadMonitor = " + unmanagedThreadMonitor.toString());
+            Tr.debug(TC, "unmanagedThreadMonitor = " + unmanagedThreadMonitor);
         }
     }
 
@@ -55,7 +84,16 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                 String applicationName;
                 String moduleName;
                 String componentName;
-                MetaData metaData = cmdAccessor.getComponentMetaData();
+                ComponentMetaDataAccessorImpl cmdAccessor;
+                synchronized (this) {
+                    cmdAccessor = this.cmdAccessor;
+                    // We can only get the metadata accessor after the ORB has been started. Otherwise there
+                    // will be an "ORB already created" failure.
+                    if (cmdAccessor == null && orb.getORB() != null) {
+                        cmdAccessor = this.cmdAccessor = ComponentMetaDataAccessorImpl.getComponentMetaDataAccessor();
+                    }
+                }
+                MetaData metaData = cmdAccessor == null ? null : cmdAccessor.getComponentMetaData();
                 if (metaData instanceof DefaultComponentMetaData) {
                     metaData = null;
                 }
