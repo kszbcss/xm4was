@@ -83,6 +83,7 @@ Another important thing to keep in mind when using SOAP is that the proxy settin
 
 For legal reasons, the XM4WAS project cannot distribute a customized VisualVM distribution that includes all the changes described in this document. However, since VisualVM is packaged as a simple ZIP file, you can easily create such a customized distribution yourself. In that case you may want to consult [http://veithen.blogspot.be/2012/11/installing-visualvm-plug-ins-into.html this article] for the necessary steps to include the VisualVM-MBeans plug-in in that distribution.
 
-= Known issues =
+= Known issues and limitations =
 
   * CPU sampling is not available with VisualVM 1.3.3, but works with 1.3.2 and 1.3.4.
+  * The memory sampling feature in VisualVM relies on MBeans that are only available in Sun/Oracle JREs. Therefore this feature will not be available when connecting to a full !WebSphere profile (which only supports IBM JREs). Since it is possible to run the !WebSphere 8.5 Liberty Profile on a Sun/Oracle JRE, it may be possible to use the memory sampling feature in that setup (but this has not been tested).
