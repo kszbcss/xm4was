@@ -1,5 +1,6 @@
 package com.googlecode.xm4was.ejbmon;
 
+import javax.management.JMException;
 import javax.management.MBeanOperationInfo;
 
 import com.googlecode.xm4was.commons.jmx.annotations.MBean;
@@ -20,5 +21,12 @@ public interface EJBMonitorMBean {
             @Parameter(name="moduleName", description="The name of the module containing the bean")
             String moduleName,
             @Parameter(name="beanName", description="The bean name")
-            String beanName) throws Exception;
+            String beanName) throws JMException;
+    
+    @Operation(description="Validates all stateless session beans. Since this operation forces initialization " +
+    		               "of all beans, it can be used to perform a \"warmup\" of the server. The method returns " +
+    		               "null if the validation/initialization of all beans succeeds. Otherwise it returns a " +
+    		               "report with error information.",
+    		   role="operator", impact=MBeanOperationInfo.ACTION_INFO)
+    String validateAllStatelessSessionBeans() throws JMException;
 }

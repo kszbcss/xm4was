@@ -6,7 +6,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import javax.management.JMException;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 
+import com.googlecode.xm4was.commons.jmx.ManagementService;
 import com.googlecode.xm4was.commons.osgi.annotations.Init;
 import com.googlecode.xm4was.commons.osgi.annotations.Services;
 import com.ibm.ejs.container.BeanId;
@@ -25,18 +28,20 @@ import com.ibm.ws.threadContext.ThreadContext;
 @Services(EJBMonitorMBean.class)
 public class EJBMonitor implements EJBMonitorMBean {
     private EJBContainer ejbContainer;
+    private MBeanServer mbeanServer;
     private Method preInvokeMethod;
 
     @Init
-    public void init(EJBContainer ejbContainer) throws Exception {
+    public void init(EJBContainer ejbContainer, ManagementService managementService) throws Exception {
         this.ejbContainer = ejbContainer;
+        mbeanServer = managementService.getMBeanServer();
         // The signature of the BeanO#preInvoke method is different on WAS 6.1 and WAS 7.0
         // (different return type). To be compatible with both versions, we need to invoke
         // the method using reflection.
         preInvokeMethod = BeanO.class.getMethod("preInvoke", EJSDeployedSupport.class, ContainerTx.class);
     }
     
-    public String validateStatelessSessionBean(String applicationName, String moduleName, String beanName) throws Exception {
+    public String validateStatelessSessionBean(String applicationName, String moduleName, String beanName) throws JMException {
         J2EEName name = ejbContainer.getJ2EENameFactory().create(applicationName, moduleName, beanName);
         EJSContainer ejsContainer = EJSContainer.getDefaultContainer();
         // Get the EJB home. This will also complete the initialization of the bean metadata.
@@ -96,5 +101,23 @@ public class EJBMonitor implements EJBMonitorMBean {
         t.printStackTrace(pw);
         pw.flush();
         return sw.toString();
+    }
+
+    public String validateAllStatelessSessionBeans() throws JMException {
+        StringBuilder report = new StringBuilder();
+        for (ObjectName name : mbeanServer.queryNames(new ObjectName("WebSphere:type=StatelessSessionBean,*"), null)) {
+            String applicationName = name.getKeyProperty("Application");
+            String moduleName = name.getKeyProperty("EJBModule");
+            String beanName = name.getKeyProperty("name");
+            String result = validateStatelessSessionBean(applicationName, moduleName, beanName);
+            if (result != null) {
+                if (report.length() > 0) {
+                    report.append('\n');
+                }
+                report.append("Validation of " + applicationName + "#" + moduleName + "#" + beanName + " failed:\n");
+                report.append(result);
+            }
+        }
+        return report.length() == 0 ? null : report.toString();
     }
 }
