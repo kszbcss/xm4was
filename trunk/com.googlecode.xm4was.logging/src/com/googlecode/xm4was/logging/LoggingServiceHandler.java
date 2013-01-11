@@ -89,7 +89,8 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                     cmdAccessor = this.cmdAccessor;
                     // We can only get the metadata accessor after the ORB has been started. Otherwise there
                     // will be an "ORB already created" failure.
-                    if (cmdAccessor == null && orb.getORB() != null) {
+                    // Note: the orb == null case only occurs in the unit tests
+                    if (cmdAccessor == null && orb != null && orb.getORB() != null) {
                         cmdAccessor = this.cmdAccessor = ComponentMetaDataAccessorImpl.getComponentMetaDataAccessor();
                     }
                 }
