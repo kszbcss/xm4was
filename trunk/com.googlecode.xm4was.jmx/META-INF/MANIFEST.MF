@@ -5,6 +5,7 @@ Bundle-SymbolicName: com.googlecode.xm4was.jmx;singleton:=true
 Bundle-Version: 0.4.0.qualifier
 Import-Package: com.googlecode.xm4was.commons,
  com.googlecode.xm4was.commons.jmx,
+ com.googlecode.xm4was.commons.jmx.annotations,
  com.googlecode.xm4was.commons.osgi,
  com.googlecode.xm4was.commons.osgi.annotations,
  com.ibm.ejs.ras,
@@ -17,4 +18,5 @@ Import-Package: com.googlecode.xm4was.commons,
 Export-Package: com.googlecode.xm4was.jmx.resources
 XM4WAS-AutoStart: true
 XM4WAS-Components: com.googlecode.xm4was.jmx.jrmp.JmxConnector,
- com.googlecode.xm4was.jmx.mxbeans.PlatformMXBeansRegistrant
+ com.googlecode.xm4was.jmx.mxbeans.PlatformMXBeansRegistrant,
+ com.googlecode.xm4was.jmx.jvm.JVM
