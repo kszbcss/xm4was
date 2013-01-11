@@ -13,6 +13,9 @@ public class Messages extends ListResourceBundle {
     public static final String _0008E = "0008E";
     public static final String _0009E = "0009E";
     public static final String _0010I = "0010I";
+    public static final String _0011E = "0011E";
+    public static final String _0012E = "0012E";
+    public static final String _0013E = "0013E";
     
     private static final Object[][] contents = {
         { _0001E, "XMCMN0001E: Failed to execute stop action\n{0}" },
@@ -25,6 +28,9 @@ public class Messages extends ListResourceBundle {
         { _0008E, "XMCMN0008E: The XM4WAS component {0} could not be instantiated:\n{1}" },
         { _0009E, "XMCMN0009E: Failed to auto-start bundle {0}:\n{1}" },
         { _0010I, "XMCMN0010I: Started the following XM4WAS bundles: {0}" },
+        { _0011E, "XMCMN0011E: Missing @Parameter annotation on method {0}" },
+        { _0012E, "XMCMN0012E: Unexpected exception while exporting MBean:\n{0}" },
+        { _0013E, "XMCMN0013E: {0} is not a valid JavaBean getter or setter" },
     };
 
     @Override

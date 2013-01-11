@@ -9,7 +9,7 @@ import com.googlecode.xm4was.commons.jmx.annotations.Parameter;
 
 @MBean(type="LoggingService", description="Provides advanced logging services; alternative to RasLoggingService.", legacy=true)
 public interface LoggingServiceMBean {
-    @Attribute(description="The sequence number of the next expected log message")
+    @Attribute(description="The sequence number of the next expected log message", readRole="monitor")
     long getNextSequence();
 
     @Operation(description="Get the buffered messages starting with a given sequence",
