@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: XM4WAS PMI Metrics
 Bundle-SymbolicName: com.googlecode.xm4was.pmi;singleton:=true
-Bundle-Version: 0.4.0.qualifier
+Bundle-Version: 0.4.0.alpha5
 Bundle-Activator: com.googlecode.xm4was.pmi.activator.Activator
 Eclipse-AutoStart: true
 Require-Bundle: com.ibm.wsspi.extension
