@@ -1,4 +1,5 @@
 #summary jmx-client-connector
+#labels Featured
 
 = Synopsis =
 
