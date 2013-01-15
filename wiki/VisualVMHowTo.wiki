@@ -1,4 +1,5 @@
 #summary How to configure VisualVM to connect to WebSphere
+#labels Featured
 
 = Prerequisites =
 
