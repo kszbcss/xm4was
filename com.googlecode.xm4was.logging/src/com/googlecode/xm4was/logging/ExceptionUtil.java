@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.logging.resources.Messages;
+import com.ibm.ejs.ras.RasHelper;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 

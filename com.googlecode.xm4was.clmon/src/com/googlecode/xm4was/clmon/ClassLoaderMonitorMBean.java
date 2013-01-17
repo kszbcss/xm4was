@@ -12,4 +12,16 @@ public class ClassLoaderMonitorMBean {
     public void clearORBCaches() {
         Utility.clearCaches();
     }
+    
+    public String dumpUnmanagedThreads() {
+        ThreadInfo[] threads = clmon.getThreadInfos();
+        StringBuilder buffer = new StringBuilder();
+        for (ThreadInfo thread : threads) {
+            buffer.append(thread.getClassLoaderInfo().getGroup().getName());
+            buffer.append(": ");
+            buffer.append(thread.getName());
+            buffer.append("\n");
+        }
+        return buffer.toString();
+    }
 }
