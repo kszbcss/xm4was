@@ -68,7 +68,8 @@ public final class ExceptionUtil {
                 // the case, then we remove this duplicate message to shorten the stacktrace.
                 String message = throwables[i].getMessage();
                 String prevMessage = throwables[i+1].getMessage();
-                if (message.endsWith(prevMessage)
+                if (message.length() > prevMessage.length()+2
+                        && message.endsWith(prevMessage)
                         && message.charAt(message.length()-prevMessage.length()-2) == ':'
                         && message.charAt(message.length()-prevMessage.length()-1) == ' ') {
                     message = message.substring(0, message.length()-prevMessage.length()-2);
