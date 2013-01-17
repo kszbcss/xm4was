@@ -86,6 +86,25 @@ public class ExceptionUtilTest {
         appender.assertLine(" \\+ com\\.googlecode\\.xm4was\\.logging\\.ExceptionUtilTest\\.testNoDuplicateMessage\\([0-9]+\\)");
     }
     
+    /**
+     * Tests the case where the wrapper has the same type and message as the wrapped exception (but
+     * doesn't have the same identity). In previous XM4WAS versions this caused a
+     * {@link StringIndexOutOfBoundsException}.
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void testSameCause() throws Exception {
+        Error cause = new Error("MESSAGE");
+        Error ex = new Error("MESSAGE", cause);
+        LineAppenderImpl appender = new LineAppenderImpl();
+        ExceptionUtil.formatStackTrace(ExceptionUtil.process(ex), appender);
+        appender.assertLine("java\\.lang\\.Error: MESSAGE");
+        appender.assertLine(" \\| com\\.googlecode\\.xm4was\\.logging\\.ExceptionUtilTest\\.testSameCause\\([0-9]+\\)");
+        appender.assertLine("Wrapped by: java\\.lang\\.Error: MESSAGE");
+        appender.assertLine(" \\+ com\\.googlecode\\.xm4was\\.logging\\.ExceptionUtilTest\\.testSameCause\\([0-9]+\\)");
+    }
+    
     private static String throwableToString(Throwable t) {
         StringWriter sw = new StringWriter();
         PrintWriter out = new PrintWriter(sw, false);
