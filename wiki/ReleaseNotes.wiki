@@ -1,5 +1,9 @@
 #summary Release notes.
 
+= 0.3.3 =
+
+This is a maintenance release that contains a fix for issue #8.
+
 = 0.3.2 =
 
 This is a maintenance release that fixes a !NullPointerException that may occur when an application logs a null message.
