@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE MBean SYSTEM "MbeanDescriptor.dtd">
+<MBean type="XM4WAS.LoggingService"
+       version="1.0.0"
+       description="Provides advanced logging services; alternative to RasLoggingService.">
+    <attribute name="nextSequence" type="long" getMethod="getNextSequence"
+               description="The sequence number of the next expected log message"/>
+    <operation name="getMessages"
+               role="operation" impact="INFO"
+               type="java.lang.String[]" targetObjectType="objectReference"
+               description="Get the buffered messages starting with a given sequence">
+        <signature>
+            <parameter name="startSequence" type="long"
+                       description="The sequence number of the first message to return"/>
+        </signature>
+    </operation>
+    <operation name="getMessages"
+               role="operation" impact="INFO"
+               type="java.lang.String[]" targetObjectType="objectReference"
+               description="Get the buffered messages starting with a given sequence">
+        <signature>
+            <parameter name="startSequence" type="long"
+                       description="The sequence number of the first message to return"/>
+            <parameter name="maxMessageSize" type="int"
+                       description="The maximum message size (including the stack trace); message longer than the specified size will be truncated"/>
+        </signature>
+    </operation>
+</MBean>
