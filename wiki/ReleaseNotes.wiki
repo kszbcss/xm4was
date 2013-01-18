@@ -1,5 +1,9 @@
 #summary Release notes.
 
+= 0.3.4 (not yet released) =
+
+This is a maintenance release that contains a fix for issue #9.
+
 = 0.3.3 =
 
 This is a maintenance release that contains a fix for issue #8.
