@@ -93,21 +93,28 @@ public class LoggingServiceHandler extends Handler {
                         applicationMetaData = moduleMetaData.getApplicationMetaData();
                     } else if (metaData instanceof ComponentMetaData) {
                         ComponentMetaData cmd = (ComponentMetaData)metaData;
-                        if (cmd instanceof WebComponentMetaData) {
-                            IServletConfig config = ((WebComponentMetaData)cmd).getServletConfig();
-                            // Don't set the component for static web resources (config == null; the name would be "Static File")
-                            // and JSPs (config.getFileName != null). This is especially important for log events generated
-                            // by servlet filters.
-                            if (config == null || config.getFileName() != null) {
-                                componentMetaData = null;
+                        moduleMetaData = cmd.getModuleMetaData();
+                        if (moduleMetaData == null) {
+                            // moduleMetaData may be null for an internal EJB (such as the CEI event service).
+                            // In this case, we ignore the metadata completely.
+                            componentMetaData = null;
+                            applicationMetaData = null;
+                        } else {
+                            if (cmd instanceof WebComponentMetaData) {
+                                IServletConfig config = ((WebComponentMetaData)cmd).getServletConfig();
+                                // Don't set the component for static web resources (config == null; the name would be "Static File")
+                                // and JSPs (config.getFileName != null). This is especially important for log events generated
+                                // by servlet filters.
+                                if (config == null || config.getFileName() != null) {
+                                    componentMetaData = null;
+                                } else {
+                                    componentMetaData = cmd;
+                                }
                             } else {
                                 componentMetaData = cmd;
                             }
-                        } else {
-                            componentMetaData = cmd;
+                            applicationMetaData = moduleMetaData.getApplicationMetaData();
                         }
-                        moduleMetaData = cmd.getModuleMetaData();
-                        applicationMetaData = moduleMetaData.getApplicationMetaData();
                     } else if (metaData instanceof ApplicationMetaData) {
                         componentMetaData = null;
                         moduleMetaData = null;
