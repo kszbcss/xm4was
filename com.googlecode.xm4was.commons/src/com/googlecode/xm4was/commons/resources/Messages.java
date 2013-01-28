@@ -16,6 +16,8 @@ public class Messages extends ListResourceBundle {
     public static final String _0011E = "0011E";
     public static final String _0012E = "0012E";
     public static final String _0013E = "0013E";
+    public static final String _0014E = "0014E";
+    public static final String _0015E = "0015E";
     
     private static final Object[][] contents = {
         { _0001E, "XMCMN0001E: Failed to execute stop action\n{0}" },
@@ -31,6 +33,8 @@ public class Messages extends ListResourceBundle {
         { _0011E, "XMCMN0011E: Missing @Parameter annotation on method {0}" },
         { _0012E, "XMCMN0012E: Unexpected exception while exporting MBean:\n{0}" },
         { _0013E, "XMCMN0013E: {0} is not a valid JavaBean getter or setter" },
+        { _0014E, "XMCMN0014E: Failed to update statistic {0}" },
+        { _0015E, "XMCMN0015E: Failed to register PMI statistics\n{0}" },
     };
 
     @Override
