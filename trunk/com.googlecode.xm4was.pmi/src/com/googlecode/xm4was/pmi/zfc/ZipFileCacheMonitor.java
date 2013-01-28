@@ -1,46 +1,32 @@
 package com.googlecode.xm4was.pmi.zfc;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.Map;
 
-import com.ibm.wsspi.pmi.factory.StatisticActions;
-import com.ibm.wsspi.pmi.stat.SPICountStatistic;
-import com.ibm.wsspi.pmi.stat.SPIStatistic;
+import com.googlecode.xm4was.commons.osgi.annotations.Services;
+import com.ibm.ws.classloader.SinglePathClassProvider;
 
-public class ZipFileCacheMonitor extends StatisticActions {
-    private static final int MOD_COUNT = 1;
-    
+@Services(ZipFileCacheMonitorMBean.class)
+public class ZipFileCacheMonitor implements ZipFileCacheMonitorMBean {
     private final Map<?,?> zipFileCache;
     private final Field modCountField;
-    private SPICountStatistic modCount;
 
-    public ZipFileCacheMonitor(Map<?,?> zipFileCache, Field modCountField) {
-        this.zipFileCache = zipFileCache;
-        this.modCountField = modCountField;
+    public ZipFileCacheMonitor() throws Exception {
+        Field zipFileCacheField = SinglePathClassProvider.class.getDeclaredField("zipFileCache");
+        zipFileCacheField.setAccessible(true);
+        zipFileCache = (Map<?,?>)zipFileCacheField.get(null);
+        
+        modCountField = HashMap.class.getDeclaredField("modCount");
+        modCountField.setAccessible(true);
     }
 
-    @Override
-    public void statisticCreated(SPIStatistic statistic) {
-        switch (statistic.getId()) {
-            case MOD_COUNT:
-                modCount = (SPICountStatistic)statistic;
-                break;
-        }
-    }
-
-    @Override
-    public void updateStatisticOnRequest(int dataId) {
-        switch (dataId) {
-            case MOD_COUNT:
-                synchronized (zipFileCache) {
-                    try {
-                        modCount.setCount(modCountField.getInt(zipFileCache));
-                    } catch (Exception ex) {
-                        // There is no reason why we would get here...
-                        throw new RuntimeException(ex);
-                    }
-                }
-                break;
+    public int getModCount() {
+        try {
+            return modCountField.getInt(zipFileCache);
+        } catch (Exception ex) {
+            // There is no reason why we would get here...
+            throw new RuntimeException(ex);
         }
     }
 }

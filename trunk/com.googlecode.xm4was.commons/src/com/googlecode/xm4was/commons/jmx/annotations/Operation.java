@@ -7,6 +7,10 @@ import java.lang.annotation.Target;
 
 import javax.management.MBeanOperationInfo;
 
+/**
+ * Indicates that a given method should be exposed as JMX operation. If this annotation is used on a
+ * method, then all parameters of that method must be annotated with {@link Parameter}.
+ */
 @Target(value=ElementType.METHOD)
 @Retention(value=RetentionPolicy.RUNTIME)
 public @interface Operation {
