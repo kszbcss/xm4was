@@ -20,7 +20,7 @@ public interface ClassLoaderListener {
     void classLoaderCreated(ClassLoader classLoader, String applicationName, String moduleName);
     
     /**
-     * Invoked when a class loader has been released, i.e. when the corresponding application of
+     * Invoked when a class loader has been released, i.e. when the corresponding application or
      * module has been stopped.
      * 
      * @param classLoader
