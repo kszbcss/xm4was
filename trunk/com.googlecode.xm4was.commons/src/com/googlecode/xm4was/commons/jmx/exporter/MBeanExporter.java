@@ -48,17 +48,40 @@ import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.wsspi.pmi.factory.StatisticActions;
 import com.ibm.wsspi.pmi.factory.StatsFactory;
 import com.ibm.wsspi.pmi.factory.StatsFactoryException;
+import com.ibm.wsspi.pmi.factory.StatsGroup;
 import com.ibm.wsspi.pmi.factory.StatsInstance;
 
 /**
  * Processes OSGi services annotated with {@link MBean} and/or {@link PMIEnabled}.
  */
 public class MBeanExporter implements ServiceTrackerCustomizer {
+    static class StatsGroupHolder {
+        private final StatsGroup statsGroup;
+        private int refCount;
+        
+        StatsGroupHolder(StatsGroup statsGroup) {
+            this.statsGroup = statsGroup;
+        }
+        
+        StatsGroup getStatsGroup() {
+            return statsGroup;
+        }
+
+        void incrementRefCount() {
+            refCount++;
+        }
+        
+        int decrementRefCount() {
+            return --refCount;
+        }
+    }
+    
     private static final TraceComponent TC = Tr.register(MBeanExporter.class, TrConstants.GROUP, Messages.class.getName());
     
     private final BundleContext bundleContext;
     private final MBeanServer mbeanServer;
     private final Authorizer authorizer;
+    private final Map<String,StatsGroupHolder> statGroups = new HashMap<String,StatsGroupHolder>();
     
     public MBeanExporter(BundleContext bundleContext, MBeanServer mbeanServer, Authorizer authorizer) {
         this.bundleContext = bundleContext;
@@ -115,16 +138,58 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
                     }
                 }
                 if (atPMIEnabled != null) {
-                    ClassLoader savedTCCL = Thread.currentThread().getContextClassLoader();
-                    Thread.currentThread().setContextClassLoader(clazz.getClassLoader());
-                    StatsInstance statsInstance;
+                    StatisticActions statisticActions = createStatisticsAction(clazz, target);
+                    final String groupName = atPMIEnabled.groupName();
                     try {
-                        statsInstance = StatsFactory.createStatsInstance(atPMIEnabled.instanceName(), atPMIEnabled.statsTemplate(), pmiObjectName, createStatisticsAction(clazz, target));
-                        registrations.addStopAction(new RemoveStatsInstanceAction(statsInstance));
+                        if (groupName.length() > 0) {
+                            StatsGroup statsGroup;
+                            synchronized (statGroups) {
+                                StatsGroupHolder statsGroupHolder = statGroups.get(groupName);
+                                if (statsGroupHolder == null) {
+                                    ClassLoader savedTCCL = Thread.currentThread().getContextClassLoader();
+                                    Thread.currentThread().setContextClassLoader(clazz.getClassLoader());
+                                    try {
+                                        statsGroup = StatsFactory.createStatsGroup(atPMIEnabled.groupName(), atPMIEnabled.statsTemplate(), null);
+                                    } finally {
+                                        Thread.currentThread().setContextClassLoader(savedTCCL);
+                                    }
+                                    statsGroupHolder = new StatsGroupHolder(statsGroup);
+                                    statGroups.put(groupName, statsGroupHolder);
+                                } else {
+                                    statsGroup = statsGroupHolder.getStatsGroup();
+                                }
+                                registrations.addStopAction(new Runnable() {
+                                    public void run() {
+                                        synchronized (statGroups) {
+                                            StatsGroupHolder statsGroupHolder = statGroups.get(groupName);
+                                            if (statsGroupHolder.decrementRefCount() == 0) {
+                                                try {
+                                                    StatsFactory.removeStatsGroup(statsGroupHolder.getStatsGroup());
+                                                } catch (StatsFactoryException ex) {
+                                                    Tr.error(TC, Messages._0002E, ex);
+                                                }
+                                                statGroups.remove(groupName);
+                                            }
+                                        }
+                                    }
+                                });
+                                statsGroupHolder.incrementRefCount();
+                            }
+                            StatsInstance statsInstance = StatsFactory.createStatsInstance((String)reference.getProperty("name"), statsGroup, pmiObjectName, statisticActions);
+                            registrations.addStopAction(new RemoveStatsInstanceAction(statsInstance));
+                        } else {
+                            ClassLoader savedTCCL = Thread.currentThread().getContextClassLoader();
+                            Thread.currentThread().setContextClassLoader(clazz.getClassLoader());
+                            StatsInstance statsInstance;
+                            try {
+                                statsInstance = StatsFactory.createStatsInstance(atPMIEnabled.instanceName(), atPMIEnabled.statsTemplate(), pmiObjectName, statisticActions);
+                            } finally {
+                                Thread.currentThread().setContextClassLoader(savedTCCL);
+                            }
+                            registrations.addStopAction(new RemoveStatsInstanceAction(statsInstance));
+                        }
                     } catch (StatsFactoryException ex) {
                         Tr.error(TC, Messages._0015E, ex);
-                    } finally {
-                        Thread.currentThread().setContextClassLoader(savedTCCL);
                     }
                 }
             }

@@ -9,10 +9,6 @@ import com.googlecode.xm4was.commons.TrConstants;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.ws.classloader.CompoundClassLoader;
-import com.ibm.wsspi.pmi.factory.StatisticActions;
-import com.ibm.wsspi.pmi.stat.SPICountStatistic;
-import com.ibm.wsspi.pmi.stat.SPIRangeStatistic;
-import com.ibm.wsspi.pmi.stat.SPIStatistic;
 
 /**
  * Represents a group of class loaders. These class loaders may still exist or may have been garbage
@@ -20,7 +16,7 @@ import com.ibm.wsspi.pmi.stat.SPIStatistic;
  * class collects statistics about the number of created, leaked and destroyed class loaders and
  * exposes them via PMI.
  */
-public class ClassLoaderGroup extends StatisticActions {
+public class ClassLoaderGroup implements ClassLoaderGroupMBean {
     private static final TraceComponent TC = Tr.register(ClassLoaderGroup.class, TrConstants.GROUP, Messages.class.getName());
     
     private static final Field resourceRequestCacheField;
@@ -60,22 +56,9 @@ public class ClassLoaderGroup extends StatisticActions {
         }
     }
     
-    private static final int CREATE_COUNT_ID = 1;
-    private static final int STOP_COUNT_ID = 2;
-    private static final int DESTROYED_COUNT_ID = 3;
-    private static final int LEAKED_COUNT_ID = 4;
-    private static final int RESOURCE_REQUEST_CACHE_MOD_COUNT = 5;
-    private static final int UNMANAGED_THREAD_COUNT = 6;
-    
     private final String applicationName;
     private final String moduleName;
     private final String name;
-    private SPICountStatistic createCountStat;
-    private SPICountStatistic stopCountStat;
-    private SPICountStatistic destroyedCountStat;
-    private SPICountStatistic leakedCountStat;
-    private SPICountStatistic resourceRequestCacheModCountStat;
-    private SPIRangeStatistic unmanagedThreadCountStat;
     private int createCount;
     private int stopCount;
     private int destroyedCount;
@@ -161,61 +144,25 @@ public class ClassLoaderGroup extends StatisticActions {
         return destroyedCount;
     }
 
-    @Override
-    public void statisticCreated(SPIStatistic statistic) {
-        switch (statistic.getId()) {
-            case CREATE_COUNT_ID:
-                createCountStat = (SPICountStatistic)statistic;
-                break;
-            case STOP_COUNT_ID:
-                stopCountStat = (SPICountStatistic)statistic;
-                break;
-            case DESTROYED_COUNT_ID:
-                destroyedCountStat = (SPICountStatistic)statistic;
-                break;
-            case LEAKED_COUNT_ID:
-                leakedCountStat = (SPICountStatistic)statistic;
-                break;
-            case RESOURCE_REQUEST_CACHE_MOD_COUNT:
-                if (resourceRequestCache != null) {
-                    resourceRequestCacheModCountStat = (SPICountStatistic)statistic;
+    public synchronized int getLeakedCount() {
+        return stopCount - destroyedCount;
+    }
+
+    public int getResourceRequestCacheModCount() {
+        if (resourceRequestCache != null) {
+            try {
+                synchronized (mutex) {
+                    return modCountField.getInt(resourceRequestCache);
                 }
-                break;
-            case UNMANAGED_THREAD_COUNT:
-                unmanagedThreadCountStat = (SPIRangeStatistic)statistic;
-                break;
+            } catch (IllegalAccessException ex) {
+                throw new IllegalAccessError(ex.getMessage());
+            }
+        } else {
+            return -1;
         }
     }
 
-    @Override
-    public synchronized void updateStatisticOnRequest(int dataId) {
-        switch (dataId) {
-            case CREATE_COUNT_ID:
-                createCountStat.setCount(createCount);
-                break;
-            case STOP_COUNT_ID:
-                stopCountStat.setCount(stopCount);
-                break;
-            case DESTROYED_COUNT_ID:
-                destroyedCountStat.setCount(destroyedCount);
-                break;
-            case LEAKED_COUNT_ID:
-                leakedCountStat.setCount(stopCount - destroyedCount);
-                break;
-            case RESOURCE_REQUEST_CACHE_MOD_COUNT:
-                if (resourceRequestCacheModCountStat != null) {
-                    try {
-                        synchronized (mutex) {
-                            resourceRequestCacheModCountStat.setCount(modCountField.getInt(resourceRequestCache));
-                        }
-                    } catch (IllegalAccessException ex) {
-                        throw new IllegalAccessError(ex.getMessage());
-                    }
-                }
-                break;
-            case UNMANAGED_THREAD_COUNT:
-                unmanagedThreadCountStat.set(unmanagedThreadCount);
-                break;
-        }
+    public synchronized int getUnmanagedThreadCount() {
+        return unmanagedThreadCount;
     }
 }

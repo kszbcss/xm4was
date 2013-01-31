@@ -10,6 +10,7 @@ import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.wsspi.pmi.factory.StatisticActions;
 import com.ibm.wsspi.pmi.stat.SPICountStatistic;
+import com.ibm.wsspi.pmi.stat.SPIRangeStatistic;
 import com.ibm.wsspi.pmi.stat.SPIStatistic;
 
 final class StatisticActionsImpl extends StatisticActions {
@@ -32,6 +33,8 @@ final class StatisticActionsImpl extends StatisticActions {
         int id = statistic.getId();
         if (statistic instanceof SPICountStatistic) {
             statisticUpdaters.put(id, new CountStatisticUpdater(target, methods.get(id), (SPICountStatistic)statistic));
+        } else if (statistic instanceof SPIRangeStatistic) {
+            statisticUpdaters.put(id, new RangeStatisticUpdater(target, methods.get(id), (SPIRangeStatistic)statistic));
         }
     }
 
