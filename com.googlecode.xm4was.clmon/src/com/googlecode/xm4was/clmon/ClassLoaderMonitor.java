@@ -3,6 +3,7 @@ package com.googlecode.xm4was.clmon;
 import java.lang.ref.ReferenceQueue;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.WeakHashMap;
@@ -19,9 +20,6 @@ import com.googlecode.xm4was.threadmon.UnmanagedThreadListener;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.ws.management.collaborator.DefaultRuntimeCollaborator;
-import com.ibm.wsspi.pmi.factory.StatsFactory;
-import com.ibm.wsspi.pmi.factory.StatsFactoryException;
-import com.ibm.wsspi.pmi.factory.StatsGroup;
 
 public class ClassLoaderMonitor extends AbstractWsComponent implements ClassLoaderListener {
     private static final TraceComponent TC = Tr.register(ClassLoaderMonitor.class, TrConstants.GROUP, Messages.class.getName());
@@ -45,7 +43,6 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements ClassLoad
     private final AtomicLong lastUpdated = new AtomicLong();
     private Map<ClassLoader,ClassLoaderInfo> classLoaderInfos;
     private ReferenceQueue<ClassLoader> classLoaderInfoQueue;
-    private StatsGroup statsGroup;
     private Map<String,ClassLoaderGroup> classLoaderGroups;
     
     @Override
@@ -88,9 +85,6 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements ClassLoad
                 new DefaultRuntimeCollaborator(new ClassLoaderMonitorMBean(this), "ClassLoaderMonitor"),
                 null, "/ClassLoaderMonitorMBean.xml");
         
-        if (StatsFactory.isPMIEnabled()) {
-            statsGroup = createStatsGroup("ClassLoaderStats", "/com/googlecode/xm4was/clmon/pmi/ClassLoaderStats.xml", mbean);
-        }
         classLoaderGroups = new HashMap<String,ClassLoaderGroup>();
         
         Tr.info(TC, Messages._0001I);
@@ -145,13 +139,9 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements ClassLoad
             if (group == null) {
                 group = new ClassLoaderGroup(applicationName, moduleName);
                 classLoaderGroups.put(groupKey, group);
-                if (StatsFactory.isPMIEnabled()) {
-                    try {
-                        StatsFactory.createStatsInstance(groupKey, statsGroup, null, group);
-                    } catch (StatsFactoryException ex) {
-                        Tr.error(TC, Messages._0004E, new Object[] { groupKey, ex });
-                    }
-                }
+                Properties props = new Properties();
+                props.setProperty("name", groupKey);
+                Activator.getBundleContext().registerService(ClassLoaderGroupMBean.class.getName(), group, props);
             }
         }
         return group;

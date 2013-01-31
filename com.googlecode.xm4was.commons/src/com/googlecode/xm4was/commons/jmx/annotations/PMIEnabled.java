@@ -16,6 +16,17 @@ import java.lang.annotation.Target;
 @Target(value=ElementType.TYPE)
 @Retention(value=RetentionPolicy.RUNTIME)
 public @interface PMIEnabled {
-    String instanceName();
+    /**
+     * The instance name. Use this if there is only a single instance of the PMI module.
+     */
+    String instanceName() default "";
+    
+    /**
+     * The group name. Use this if there are multiple instances of the PMI module. In this case, the
+     * OSGi service must be registered with a <literal>name</literal> property that specifies the
+     * name of the instance.
+     */
+    String groupName() default "";
+    
     String statsTemplate();
 }
