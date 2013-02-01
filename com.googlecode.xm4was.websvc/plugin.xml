@@ -13,13 +13,13 @@
 
 	<!-- TODO: Probably we should use the custom-handler-(client|server) extension points -->
 	
-   	<extension id="XM4WAS-Server" name="XM4WAS Module (server-side)" point="com.ibm.wsfp.main.ibmaxis2-qos-module-server">
+   	<!--extension id="XM4WAS-Server" name="XM4WAS Module (server-side)" point="com.ibm.wsfp.main.ibmaxis2-qos-module-server">
     	<filename>META-INF/xm4was-server-module.xml</filename>
        	<global>true</global>
-   	</extension>
+   	</extension-->
 
-   	<extension id="XM4WAS-Client" name="XM4WAS Module (client-side)" point="com.ibm.wsfp.main.ibmaxis2-qos-module-client">
+   	<!--extension id="XM4WAS-Client" name="XM4WAS Module (client-side)" point="com.ibm.wsfp.main.ibmaxis2-qos-module-client">
        	<filename>META-INF/xm4was-client-module.xml</filename>
        	<global>true</global>
-   	</extension>
+   	</extension-->
 </plugin>

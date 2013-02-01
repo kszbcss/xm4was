@@ -709,6 +709,7 @@
         <module>com.googlecode.xm4was.pmi</module>
         <module>com.googlecode.xm4was.pmi.tests</module>
         <module>com.googlecode.xm4was.threadmon</module>
+        <module>com.googlecode.xm4was.websvc</module>
         <module>jmx-client-connector</module>
         <module>distribution</module>
     </modules>
