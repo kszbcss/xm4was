@@ -1,6 +1,8 @@
 package com.googlecode.xm4was.commons.osgi.impl;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.List;
@@ -9,6 +11,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
 import com.googlecode.xm4was.commons.osgi.Lifecycle;
+import com.googlecode.xm4was.commons.osgi.ServiceSet;
 import com.googlecode.xm4was.commons.osgi.annotations.Init;
 import com.googlecode.xm4was.commons.osgi.annotations.Inject;
 
@@ -39,7 +42,7 @@ final class LifecycleManager {
                 initMethod = method;
             }
             if (method.getAnnotation(Inject.class) != null) {
-                createInjector(method.getParameterTypes()[0], new PropertyTarget(service, method));
+                createInjector(method.getGenericParameterTypes()[0], new PropertyTarget(service, method));
             }
         }
         if (initMethod == null) {
@@ -47,7 +50,7 @@ final class LifecycleManager {
             initParameters = null;
         } else {
             this.initMethod = initMethod;
-            Class<?>[] paramTypes = initMethod.getParameterTypes();
+            Type[] paramTypes = initMethod.getGenericParameterTypes();
             initParameters = new InitParameter[paramTypes.length];
             for (int i=0; i<paramTypes.length; i++) {
                 createInjector(paramTypes[i], initParameters[i] = new InitParameter(this));
@@ -55,14 +58,16 @@ final class LifecycleManager {
         }
     }
     
-    private Injector createInjector(Class<?> clazz, InjectionTarget target) {
+    private Injector createInjector(Type type, InjectionTarget target) {
         Injector injector;
-        if (clazz == Lifecycle.class) {
+        if (type == Lifecycle.class) {
             injector = new LifecycleInjector(this, target);
-        } else if (clazz == BundleContext.class) {
+        } else if (type == BundleContext.class) {
             injector = new StaticInjector(bundleContext, target);
+        } else if (type instanceof ParameterizedType && ((ParameterizedType)type).getRawType() == ServiceSet.class) {
+            injector = new ServiceSetInjector(bundleContext, (Class<?>)((ParameterizedType)type).getActualTypeArguments()[0], target);
         } else {
-            injector = new ServiceInjector(this, clazz, target);
+            injector = new ServiceInjector(bundleContext, (Class<?>)type, target);
         }
         injectors.add(injector);
         return injector;

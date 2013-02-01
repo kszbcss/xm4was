@@ -8,5 +8,5 @@ import com.googlecode.xm4was.commons.jmx.annotations.Operation;
 @MBean(type="ClassLoaderMonitor", description="Class Loader Monitor.")
 public interface ClassLoaderMonitorMBean {
     @Operation(description="TODO", impact=MBeanOperationInfo.ACTION, role="operator")
-    void clearORBCaches();
+    void clearCaches();
 }

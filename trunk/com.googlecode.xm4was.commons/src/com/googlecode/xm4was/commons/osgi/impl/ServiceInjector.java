@@ -3,18 +3,19 @@ package com.googlecode.xm4was.commons.osgi.impl;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
 
 final class ServiceInjector extends ServiceTracker implements Injector {
-    private final LifecycleManager manager;
+    private final BundleContext bundleContext;
     private final InjectionTarget target;
     private final List<ServiceReference> candidates = new LinkedList<ServiceReference>();
     private ServiceReference currentReference;
     
-    ServiceInjector(LifecycleManager manager, Class<?> clazz, InjectionTarget target) {
-        super(manager.getBundleContext(), clazz.getName(), null);
-        this.manager = manager;
+    ServiceInjector(BundleContext bundleContext, Class<?> clazz, InjectionTarget target) {
+        super(bundleContext, clazz.getName(), null);
+        this.bundleContext = bundleContext;
         this.target = target;
     }
 
@@ -23,7 +24,7 @@ final class ServiceInjector extends ServiceTracker implements Injector {
         candidates.add(reference);
         if (currentReference == null) {
             currentReference = reference;
-            target.setObject(manager.getBundleContext().getService(reference));
+            target.setObject(bundleContext.getService(reference));
         }
         return null;
     }
@@ -39,10 +40,10 @@ final class ServiceInjector extends ServiceTracker implements Injector {
                 newService = null;
             } else {
                 newReference = candidates.get(0);
-                newService = manager.getBundleContext().getService(newReference);
+                newService = bundleContext.getService(newReference);
             }
             target.setObject(newService);
-            manager.getBundleContext().ungetService(currentReference);
+            bundleContext.ungetService(currentReference);
             currentReference = newReference;
         }
     }

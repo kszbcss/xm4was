@@ -12,7 +12,9 @@ Import-Package: com.googlecode.xm4was.commons,
  com.ibm.ejs.ras,
  com.ibm.ws.classloader,
  org.osgi.framework
-Export-Package: com.googlecode.xm4was.clmon.pmi,
+Export-Package: com.googlecode.xm4was.clmon,
+ com.googlecode.xm4was.clmon.pmi,
  com.googlecode.xm4was.clmon.resources
 XM4WAS-AutoStart: true
-XM4WAS-Components: com.googlecode.xm4was.clmon.impl.ClassLoaderMonitor
+XM4WAS-Components: com.googlecode.xm4was.clmon.impl.ClassLoaderMonitor,
+ com.googlecode.xm4was.clmon.impl.ORBCacheCleaner

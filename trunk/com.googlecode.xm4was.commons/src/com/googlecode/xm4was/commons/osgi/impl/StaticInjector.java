@@ -1,10 +1,10 @@
 package com.googlecode.xm4was.commons.osgi.impl;
 
-public class StaticInjector implements Injector {
+final class StaticInjector implements Injector {
     private final Object object;
     private final InjectionTarget target;
 
-    public StaticInjector(Object object, InjectionTarget target) {
+    StaticInjector(Object object, InjectionTarget target) {
         this.object = object;
         this.target = target;
     }

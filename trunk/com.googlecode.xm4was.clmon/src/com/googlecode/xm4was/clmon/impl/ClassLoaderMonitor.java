@@ -11,17 +11,19 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.osgi.framework.BundleContext;
 
+import com.googlecode.xm4was.clmon.CacheCleaner;
 import com.googlecode.xm4was.clmon.resources.Messages;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.deploy.ClassLoaderListener;
 import com.googlecode.xm4was.commons.osgi.Lifecycle;
+import com.googlecode.xm4was.commons.osgi.ServiceSet;
+import com.googlecode.xm4was.commons.osgi.ServiceVisitor;
 import com.googlecode.xm4was.commons.osgi.annotations.Init;
 import com.googlecode.xm4was.commons.osgi.annotations.Services;
 import com.googlecode.xm4was.threadmon.ModuleInfo;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadListener;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
-import com.ibm.rmi.util.Utility;
 
 @Services({ ClassLoaderListener.class, UnmanagedThreadListener.class, ClassLoaderMonitorMBean.class })
 public class ClassLoaderMonitor implements ClassLoaderListener, UnmanagedThreadListener, ClassLoaderMonitorMBean {
@@ -43,6 +45,7 @@ public class ClassLoaderMonitor implements ClassLoaderListener, UnmanagedThreadL
     private static final int STATS_MAX_DELAY = 30000;
     
     private BundleContext bundleContext;
+    private ServiceSet<CacheCleaner> cacheCleaners;
     private long lastDumped;
     private final AtomicLong lastUpdated = new AtomicLong();
     private Map<ClassLoader,ClassLoaderInfo> classLoaderInfos;
@@ -50,8 +53,9 @@ public class ClassLoaderMonitor implements ClassLoaderListener, UnmanagedThreadL
     private Map<String,ClassLoaderGroup> classLoaderGroups;
     
     @Init
-    public void init(Lifecycle lifecycle, BundleContext bundleContext) throws Exception {
+    public void init(Lifecycle lifecycle, BundleContext bundleContext, ServiceSet<CacheCleaner> cacheCleaners) throws Exception {
         this.bundleContext = bundleContext;
+        this.cacheCleaners = cacheCleaners;
         
         lifecycle.addStopAction(new Runnable() {
             public void run() {
@@ -156,6 +160,9 @@ public class ClassLoaderMonitor implements ClassLoaderListener, UnmanagedThreadL
         info.setStopped(true);
         info.getGroup().classLoaderStopped();
         lastUpdated.set(System.currentTimeMillis());
+        if (moduleName == null && "true".equals(System.getProperty("com.googlecode.xm4was.clmon.autoClearCaches"))) {
+            clearCaches();
+        }
     }
 
     public void threadStarted(Thread thread, ModuleInfo moduleInfo) {
@@ -166,7 +173,11 @@ public class ClassLoaderMonitor implements ClassLoaderListener, UnmanagedThreadL
         getGroup(moduleInfo.getApplicationName(), moduleInfo.getModuleName()).threadDestroyed();
     }
 
-    public void clearORBCaches() {
-        Utility.clearCaches();
+    public void clearCaches() {
+        cacheCleaners.visit(new ServiceVisitor<CacheCleaner>() {
+            public void visit(CacheCleaner cacheCleaner) {
+                cacheCleaner.clearCache();
+            }
+        });
     }
 }
