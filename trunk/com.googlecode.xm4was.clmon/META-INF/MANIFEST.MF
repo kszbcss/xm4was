@@ -15,4 +15,4 @@ Import-Package: com.googlecode.xm4was.commons,
 Export-Package: com.googlecode.xm4was.clmon.pmi,
  com.googlecode.xm4was.clmon.resources
 XM4WAS-AutoStart: true
-XM4WAS-Components: com.googlecode.xm4was.clmon.ClassLoaderMonitor
+XM4WAS-Components: com.googlecode.xm4was.clmon.impl.ClassLoaderMonitor

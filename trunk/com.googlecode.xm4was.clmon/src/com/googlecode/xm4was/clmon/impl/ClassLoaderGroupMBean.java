@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.clmon;
+package com.googlecode.xm4was.clmon.impl;
 
 import com.googlecode.xm4was.commons.jmx.annotations.PMIEnabled;
 import com.googlecode.xm4was.commons.jmx.annotations.Statistic;
