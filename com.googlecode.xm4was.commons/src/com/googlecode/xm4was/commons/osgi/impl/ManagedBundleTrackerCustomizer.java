@@ -1,5 +1,7 @@
 package com.googlecode.xm4was.commons.osgi.impl;
 
+import java.util.Arrays;
+
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
 import org.osgi.util.tracker.BundleTrackerCustomizer;
@@ -44,6 +46,12 @@ final class ManagedBundleTrackerCustomizer implements BundleTrackerCustomizer {
                     for (int i=0; i<serviceClasses.length; i++) {
                         serviceClassNames[i] = serviceClasses[i].getName();
                     }
+                }
+                if (TC.isDebugEnabled()) {
+                    Tr.debug(TC, "Adding component; bundle={0}, class={1}, services={2}", new Object[] {
+                            bundle.getSymbolicName(),
+                            component.getClass().getName(),
+                            serviceClassNames == null ? "<none>" : Arrays.asList(serviceClassNames).toString() });
                 }
                 managedBundle.addComponent(new LifecycleManager(Util.getBundleContext(bundle), serviceClassNames, component, null));
             }
