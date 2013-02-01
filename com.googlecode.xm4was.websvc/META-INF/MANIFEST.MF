@@ -6,9 +6,11 @@ Bundle-Version: 0.4.0.qualifier
 Bundle-Activator: com.googlecode.xm4was.websvc.Activator
 Eclipse-AutoStart: true
 Import-Package: com.googlecode.arit.rbeans,
+ com.googlecode.xm4was.clmon,
  com.googlecode.xm4was.commons,
  com.googlecode.xm4was.commons.jmx.annotations,
  com.googlecode.xm4was.commons.osgi.annotations,
+ com.ibm.ejs.ras,
  com.ibm.wsspi.bootstrap.osgi,
  com.ibm.wsspi.runtime.component,
  javax.servlet,
@@ -23,6 +25,7 @@ Import-Package: com.googlecode.arit.rbeans,
  org.osgi.framework
 Require-Bundle: com.ibm.wsfp.main,
  com.ibm.wsspi.extension
-Export-Package: com.googlecode.xm4was.websvc.jaxws
+Export-Package: com.googlecode.xm4was.websvc.jaxws,
+ com.googlecode.xm4was.websvc.resources
 XM4WAS-AutoStart: true
 XM4WAS-Components: com.googlecode.xm4was.websvc.jaxws.cleaner.JAXWSCacheCleaner
