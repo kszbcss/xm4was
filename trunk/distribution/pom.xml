@@ -47,6 +47,11 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>com.googlecode.xm4was.websvc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>jmx-client-connector</artifactId>
             <version>${project.version}</version>
         </dependency>
