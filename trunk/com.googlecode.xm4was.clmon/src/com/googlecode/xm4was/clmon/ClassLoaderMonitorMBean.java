@@ -1,15 +1,12 @@
 package com.googlecode.xm4was.clmon;
 
-import com.ibm.rmi.util.Utility;
+import javax.management.MBeanOperationInfo;
 
-public class ClassLoaderMonitorMBean {
-    private final ClassLoaderMonitor clmon;
-    
-    public ClassLoaderMonitorMBean(ClassLoaderMonitor clmon) {
-        this.clmon = clmon;
-    }
+import com.googlecode.xm4was.commons.jmx.annotations.MBean;
+import com.googlecode.xm4was.commons.jmx.annotations.Operation;
 
-    public void clearORBCaches() {
-        Utility.clearCaches();
-    }
+@MBean(type="ClassLoaderMonitor", description="Class Loader Monitor.")
+public interface ClassLoaderMonitorMBean {
+    @Operation(description="TODO", impact=MBeanOperationInfo.ACTION, role="operator")
+    void clearORBCaches();
 }

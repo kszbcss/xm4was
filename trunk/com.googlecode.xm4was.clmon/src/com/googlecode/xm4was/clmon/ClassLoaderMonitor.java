@@ -9,19 +9,22 @@ import java.util.TimerTask;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.management.ObjectName;
+import org.osgi.framework.BundleContext;
 
 import com.googlecode.xm4was.clmon.resources.Messages;
-import com.googlecode.xm4was.commons.AbstractWsComponent;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.deploy.ClassLoaderListener;
+import com.googlecode.xm4was.commons.osgi.Lifecycle;
+import com.googlecode.xm4was.commons.osgi.annotations.Init;
+import com.googlecode.xm4was.commons.osgi.annotations.Services;
 import com.googlecode.xm4was.threadmon.ModuleInfo;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadListener;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
-import com.ibm.ws.management.collaborator.DefaultRuntimeCollaborator;
+import com.ibm.rmi.util.Utility;
 
-public class ClassLoaderMonitor extends AbstractWsComponent implements ClassLoaderListener {
+@Services({ ClassLoaderListener.class, UnmanagedThreadListener.class, ClassLoaderMonitorMBean.class })
+public class ClassLoaderMonitor implements ClassLoaderListener, UnmanagedThreadListener, ClassLoaderMonitorMBean {
     private static final TraceComponent TC = Tr.register(ClassLoaderMonitor.class, TrConstants.GROUP, Messages.class.getName());
     
     /**
@@ -39,15 +42,18 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements ClassLoad
      */
     private static final int STATS_MAX_DELAY = 30000;
     
+    private BundleContext bundleContext;
     private long lastDumped;
     private final AtomicLong lastUpdated = new AtomicLong();
     private Map<ClassLoader,ClassLoaderInfo> classLoaderInfos;
     private ReferenceQueue<ClassLoader> classLoaderInfoQueue;
     private Map<String,ClassLoaderGroup> classLoaderGroups;
     
-    @Override
-    protected void doStart() throws Exception {
-        addStopAction(new Runnable() {
+    @Init
+    public void init(Lifecycle lifecycle, BundleContext bundleContext) throws Exception {
+        this.bundleContext = bundleContext;
+        
+        lifecycle.addStopAction(new Runnable() {
             public void run() {
                 Tr.info(TC, Messages._0002I);
             }
@@ -56,7 +62,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements ClassLoad
         classLoaderInfos = new WeakHashMap<ClassLoader,ClassLoaderInfo>();
         classLoaderInfoQueue = new ReferenceQueue<ClassLoader>();
         final Timer timer = new Timer("Class Loader Monitor");
-        addStopAction(new Runnable() {
+        lifecycle.addStopAction(new Runnable() {
             public void run() {
                 timer.cancel();
             }
@@ -68,23 +74,6 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements ClassLoad
             }
         }, 1000, 1000);
 
-        // TODO: make the dependency on threadmon optional
-        addService(new UnmanagedThreadListener() {
-            public void threadStarted(Thread thread, ModuleInfo moduleInfo) {
-                getGroup(moduleInfo.getApplicationName(), moduleInfo.getModuleName()).threadCreated();
-            }
-            
-            public void threadStopped(String name, ModuleInfo moduleInfo) {
-                getGroup(moduleInfo.getApplicationName(), moduleInfo.getModuleName()).threadDestroyed();
-            }
-        }, UnmanagedThreadListener.class);
-        
-        addService(this, ClassLoaderListener.class);
-        
-        ObjectName mbean = activateMBean("XM4WAS.ClassLoaderMonitor",
-                new DefaultRuntimeCollaborator(new ClassLoaderMonitorMBean(this), "ClassLoaderMonitor"),
-                null, "/ClassLoaderMonitorMBean.xml");
-        
         classLoaderGroups = new HashMap<String,ClassLoaderGroup>();
         
         Tr.info(TC, Messages._0001I);
@@ -126,7 +115,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements ClassLoad
         }
     }
     
-    ClassLoaderGroup getGroup(String applicationName, String moduleName) {
+    private ClassLoaderGroup getGroup(String applicationName, String moduleName) {
         String groupKey;
         if (moduleName != null) {
             groupKey = applicationName + "#" + moduleName;
@@ -141,7 +130,7 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements ClassLoad
                 classLoaderGroups.put(groupKey, group);
                 Properties props = new Properties();
                 props.setProperty("name", groupKey);
-                Activator.getBundleContext().registerService(ClassLoaderGroupMBean.class.getName(), group, props);
+                bundleContext.registerService(ClassLoaderGroupMBean.class.getName(), group, props);
             }
         }
         return group;
@@ -167,5 +156,17 @@ public class ClassLoaderMonitor extends AbstractWsComponent implements ClassLoad
         info.setStopped(true);
         info.getGroup().classLoaderStopped();
         lastUpdated.set(System.currentTimeMillis());
+    }
+
+    public void threadStarted(Thread thread, ModuleInfo moduleInfo) {
+        getGroup(moduleInfo.getApplicationName(), moduleInfo.getModuleName()).threadCreated();
+    }
+    
+    public void threadStopped(String name, ModuleInfo moduleInfo) {
+        getGroup(moduleInfo.getApplicationName(), moduleInfo.getModuleName()).threadDestroyed();
+    }
+
+    public void clearORBCaches() {
+        Utility.clearCaches();
     }
 }

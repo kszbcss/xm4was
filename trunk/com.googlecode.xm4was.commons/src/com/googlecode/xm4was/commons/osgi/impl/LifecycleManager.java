@@ -59,6 +59,8 @@ final class LifecycleManager {
         Injector injector;
         if (clazz == Lifecycle.class) {
             injector = new LifecycleInjector(this, target);
+        } else if (clazz == BundleContext.class) {
+            injector = new StaticInjector(bundleContext, target);
         } else {
             injector = new ServiceInjector(this, clazz, target);
         }
