@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.clmon;
+package com.googlecode.xm4was.clmon.impl;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;

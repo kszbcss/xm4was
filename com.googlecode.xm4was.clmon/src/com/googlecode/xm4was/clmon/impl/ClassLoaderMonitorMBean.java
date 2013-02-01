@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.clmon;
+package com.googlecode.xm4was.clmon.impl;
 
 import javax.management.MBeanOperationInfo;
 
