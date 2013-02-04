@@ -18,6 +18,7 @@ public class Messages extends ListResourceBundle {
     public static final String _0013E = "0013E";
     public static final String _0014E = "0014E";
     public static final String _0015E = "0015E";
+    public static final String _0016E = "0016E";
     
     private static final Object[][] contents = {
         { _0001E, "XMCMN0001E: Failed to execute stop action\n{0}" },
@@ -35,6 +36,7 @@ public class Messages extends ListResourceBundle {
         { _0013E, "XMCMN0013E: {0} is not a valid JavaBean getter or setter" },
         { _0014E, "XMCMN0014E: Failed to update statistic {0}" },
         { _0015E, "XMCMN0015E: Failed to register PMI statistics\n{0}" },
+        { _0016E, "XMCMN0016E: Unknown PMI statistic type {0}" },
     };
 
     @Override
