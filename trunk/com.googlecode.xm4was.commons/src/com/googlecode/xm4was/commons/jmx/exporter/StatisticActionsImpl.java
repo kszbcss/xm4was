@@ -30,12 +30,23 @@ final class StatisticActionsImpl extends StatisticActions {
     
     @Override
     public void statisticCreated(SPIStatistic statistic) {
-        int id = statistic.getId();
-        if (statistic instanceof SPICountStatistic) {
-            statisticUpdaters.put(id, new CountStatisticUpdater(target, methods.get(id), (SPICountStatistic)statistic));
-        } else if (statistic instanceof SPIRangeStatistic) {
-            statisticUpdaters.put(id, new RangeStatisticUpdater(target, methods.get(id), (SPIRangeStatistic)statistic));
+        if (TC.isDebugEnabled()) {
+            Tr.debug(TC, "Statistic created: {0}", statistic);
         }
+        int id = statistic.getId();
+        StatisticUpdater updater;
+        if (statistic instanceof SPICountStatistic) {
+            updater = new CountStatisticUpdater(target, methods.get(id), (SPICountStatistic)statistic);
+        } else if (statistic instanceof SPIRangeStatistic) {
+            updater = new RangeStatisticUpdater(target, methods.get(id), (SPIRangeStatistic)statistic);
+        } else {
+            Tr.error(TC, Messages._0016E, statistic.getClass().getName());
+            return;
+        }
+        if (TC.isDebugEnabled()) {
+            Tr.debug(TC, "Created updater for statistic {0}: {1}", new Object[] { id, updater });
+        }
+        statisticUpdaters.put(id, updater);
     }
 
     @Override
