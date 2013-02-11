@@ -33,7 +33,6 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 import com.googlecode.xm4was.commons.JmxConstants;
-import com.googlecode.xm4was.commons.RemoveStatsInstanceAction;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.jmx.Authorizer;
 import com.googlecode.xm4was.commons.jmx.annotations.Attribute;

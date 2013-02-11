@@ -1,27 +1,15 @@
 package com.googlecode.xm4was.commons;
 
-import java.util.Properties;
 import java.util.Stack;
-
-import javax.management.ObjectName;
 
 import com.googlecode.xm4was.commons.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
-import com.ibm.websphere.management.AdminServiceFactory;
-import com.ibm.websphere.management.MBeanFactory;
-import com.ibm.websphere.management.RuntimeCollaborator;
-import com.ibm.websphere.management.exception.AdminException;
 import com.ibm.ws.exception.ComponentDisabledException;
 import com.ibm.ws.exception.ConfigurationError;
 import com.ibm.ws.exception.ConfigurationWarning;
 import com.ibm.ws.exception.RuntimeError;
 import com.ibm.ws.exception.RuntimeWarning;
-import com.ibm.wsspi.pmi.factory.StatisticActions;
-import com.ibm.wsspi.pmi.factory.StatsFactory;
-import com.ibm.wsspi.pmi.factory.StatsFactoryException;
-import com.ibm.wsspi.pmi.factory.StatsGroup;
-import com.ibm.wsspi.pmi.factory.StatsInstance;
 import com.ibm.wsspi.runtime.component.WsComponent;
 import com.ibm.wsspi.runtime.service.WsServiceRegistry;
 
@@ -92,59 +80,6 @@ public abstract class AbstractWsComponent implements WsComponent {
     }
 
     protected void doDestroy() {
-    }
-    
-    protected final StatsGroup createStatsGroup(String groupName, String statsTemplate, ObjectName mBean) throws StatsFactoryException {
-        ClassLoader savedTCCL = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-        StatsGroup statsGroup;
-        try {
-            statsGroup = StatsFactory.createStatsGroup(groupName, statsTemplate, mBean);
-        } finally {
-            Thread.currentThread().setContextClassLoader(savedTCCL);
-        }
-        addStopAction(new RemoveStatsGroupAction(statsGroup));
-        return statsGroup;
-    }
-    
-    protected final StatsInstance createStatsInstance(String instanceName, String statsTemplate, ObjectName mBean, StatisticActions listener) throws StatsFactoryException {
-        ClassLoader savedTCCL = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-        StatsInstance statsInstance;
-        try {
-            statsInstance = StatsFactory.createStatsInstance(instanceName, statsTemplate, mBean, listener);
-        } finally {
-            Thread.currentThread().setContextClassLoader(savedTCCL);
-        }
-        addStopAction(new RemoveStatsInstanceAction(statsInstance));
-        return statsInstance;
-    }
-    
-    protected final StatsInstance createStatsInstance(String instanceName, StatsGroup parentGroup, ObjectName mBean, StatisticActions listener) throws StatsFactoryException {
-        ClassLoader savedTCCL = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-        StatsInstance statsInstance;
-        try {
-            statsInstance = StatsFactory.createStatsInstance(instanceName, parentGroup, mBean, listener);
-        } finally {
-            Thread.currentThread().setContextClassLoader(savedTCCL);
-        }
-        addStopAction(new RemoveStatsInstanceAction(statsInstance));
-        return statsInstance;
-    }
-    
-    protected final ObjectName activateMBean(String type, RuntimeCollaborator collaborator, String configId, String descriptor) throws AdminException {
-        MBeanFactory mbeanFactory = AdminServiceFactory.getMBeanFactory();
-        ObjectName name = mbeanFactory.activateMBean(type, collaborator, configId, descriptor);
-        addStopAction(new DeactivateMBeanAction(mbeanFactory, name));
-        return name;
-    }
-    
-    protected final ObjectName activateMBean(String type, RuntimeCollaborator collaborator, String configId, String descriptor, Properties props) throws AdminException {
-        MBeanFactory mbeanFactory = AdminServiceFactory.getMBeanFactory();
-        ObjectName name = mbeanFactory.activateMBean(type, collaborator, configId, descriptor, props);
-        addStopAction(new DeactivateMBeanAction(mbeanFactory, name));
-        return name;
     }
     
     protected void addService(Object serviceImplementation, Class<?> serviceInterface) throws Exception {
