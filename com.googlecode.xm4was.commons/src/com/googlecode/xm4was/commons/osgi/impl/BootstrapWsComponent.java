@@ -5,7 +5,6 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.util.tracker.BundleTracker;
 
-import com.googlecode.xm4was.commons.AbstractWsComponent;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.activator.Activator;
 import com.googlecode.xm4was.commons.resources.Messages;
@@ -16,7 +15,7 @@ import com.ibm.ws.exception.RuntimeWarning;
 import com.ibm.wsspi.runtime.component.WsComponentImpl;
 
 public final class BootstrapWsComponent extends WsComponentImpl {
-    private static final TraceComponent TC = Tr.register(AbstractWsComponent.class, TrConstants.GROUP, Messages.class.getName());
+    private static final TraceComponent TC = Tr.register(BootstrapWsComponent.class, TrConstants.GROUP, Messages.class.getName());
     
     private BundleTracker managedBundleTracker;
     
