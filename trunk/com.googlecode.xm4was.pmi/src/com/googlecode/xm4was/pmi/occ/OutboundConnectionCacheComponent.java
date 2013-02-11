@@ -2,24 +2,19 @@ package com.googlecode.xm4was.pmi.occ;
 
 import java.util.Properties;
 
-import javax.management.ObjectName;
-
-import com.googlecode.xm4was.commons.AbstractWsComponent;
-import com.ibm.ws.management.collaborator.DefaultRuntimeCollaborator;
+import com.googlecode.xm4was.commons.osgi.Lifecycle;
+import com.googlecode.xm4was.commons.osgi.annotations.Init;
 import com.ibm.ws.webservices.engine.transport.channel.OutboundConnectionCache;
-import com.ibm.wsspi.pmi.factory.StatsFactory;
-import com.ibm.wsspi.pmi.factory.StatsGroup;
 
-public class OutboundConnectionCacheComponent extends AbstractWsComponent {
-    @Override
-    protected void doStart() throws Exception {
-        StatsGroup group = StatsFactory.isPMIEnabled() ? createStatsGroup("OutboundConnectionCache", "/com/googlecode/xm4was/pmi/OutboundConnectionCacheStats.xml", null) : null;
+public class OutboundConnectionCacheComponent {
+    @Init
+    public void init(Lifecycle lifecycle) throws Exception {
         // The JAX-RPC cache is part of com.ibm.ws.runtime.jar and is visible to the application class loader.
-        setupOutboundConnectionCacheMonitor(group, OutboundConnectionCache.class, "JAX-RPC");
+        setupOutboundConnectionCacheMonitor(lifecycle, OutboundConnectionCache.class, "JAX-RPC");
         // The JAX-WS cache is part of the Axis2 OSGi bundle, but is not exported. We get the class loader
         // from an exported class.
         try {
-            setupOutboundConnectionCacheMonitor(group, OutboundConnectionCacheComponent.class.getClassLoader().loadClass(
+            setupOutboundConnectionCacheMonitor(lifecycle, OutboundConnectionCacheComponent.class.getClassLoader().loadClass(
                     "com.ibm.ws.websvcs.transport.http.SOAPOverHTTPSender").getClassLoader().loadClass(
                     "com.ibm.ws.websvcs.transport.channel.OutboundConnectionCache"), "JAX-WS");
         } catch (ClassNotFoundException ex) {
@@ -27,21 +22,15 @@ public class OutboundConnectionCacheComponent extends AbstractWsComponent {
         }
     }
 
-    private void setupOutboundConnectionCacheMonitor(StatsGroup group, Class<?> outboundConnectionCacheClass, String moduleName) throws Exception {
+    private void setupOutboundConnectionCacheMonitor(Lifecycle lifecycle, Class<?> outboundConnectionCacheClass, String moduleName) throws Exception {
         // Create the monitor component
         OutboundConnectionCacheMonitor monitor = new OutboundConnectionCacheMonitor(outboundConnectionCacheClass);
         
         // Expose it as an MBean
-        Properties keyProperties = new Properties();
-        keyProperties.put("cacheClass", outboundConnectionCacheClass.getName());
+        Properties properties = new Properties();
+        properties.put("name", moduleName);
+        properties.put("cacheClass", outboundConnectionCacheClass.getName());
         
-        ObjectName mbeanName = activateMBean("XM4WAS.OutboundConnectionCache",
-                new DefaultRuntimeCollaborator(monitor, moduleName),
-                null, "/OutboundConnectionCache.xml", keyProperties);
-        
-        if (group != null) {
-            // Create a PMI module
-            createStatsInstance(moduleName, group, mbeanName, monitor);
-        }
+        lifecycle.addService(OutboundConnectionCacheMonitorMBean.class, monitor, properties);
     }
 }

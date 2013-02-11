@@ -1,6 +1,10 @@
 package com.googlecode.xm4was.commons.osgi.impl;
 
+import java.util.Dictionary;
 import java.util.Stack;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.osgi.Lifecycle;
@@ -13,8 +17,13 @@ final class LifecycleImpl implements Lifecycle {
     
     private enum State { STARTING, STARTED, STOPPING, STOPPED };
     
+    private final BundleContext bundleContext;
     private final Stack<Runnable> stopActions = new Stack<Runnable>();
     private State state = State.STARTING;
+
+    LifecycleImpl(BundleContext bundleContext) {
+        this.bundleContext = bundleContext;
+    }
 
     public void addStopAction(Runnable action) {
         if (state != State.STARTING) {
@@ -23,6 +32,15 @@ final class LifecycleImpl implements Lifecycle {
         stopActions.push(action);
     }
     
+    public <T> void addService(Class<T> clazz, T service, Dictionary<?, ?> properties) {
+        final ServiceRegistration registration = bundleContext.registerService(clazz.getName(), service, properties);
+        addStopAction(new Runnable() {
+            public void run() {
+                registration.unregister();
+            }
+        });
+    }
+
     void started() {
         if (state != State.STARTING) {
             throw new IllegalStateException();

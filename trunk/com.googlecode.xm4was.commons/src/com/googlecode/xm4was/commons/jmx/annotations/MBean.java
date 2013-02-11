@@ -15,5 +15,15 @@ import java.lang.annotation.Target;
 public @interface MBean {
     String type();
     String description();
+    
+    /**
+     * Determines if the MBean should be register with its legacy (pre 0.4.0) name as well.
+     */
     boolean legacy() default false;
+    
+    /**
+     * Defines a set of OSGi service properties that will be added to the key properties of the
+     * object name under which the MBean will be registered.
+     */
+    String[] keyProperties() default {};
 }

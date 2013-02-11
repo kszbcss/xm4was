@@ -110,10 +110,16 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
                 ObjectName pmiObjectName = null;
                 if (atMBean != null) {
                     try {
-                        if (atMBean.legacy()) {
-                            registerMBean(clazz, atMBean, target, registrations, true);
+                        Hashtable<String,String> keyProperties = new Hashtable<String,String>();
+                        for (String keyProperty : atMBean.keyProperties()) {
+                            keyProperties.put(keyProperty, (String)reference.getProperty(keyProperty));
                         }
-                        pmiObjectName = registerMBean(clazz, atMBean, target, registrations, false);
+                        String name = (String)reference.getProperty("name");
+                        keyProperties.put("name", name == null ? atMBean.type() : name);
+                        if (atMBean.legacy()) {
+                            registerMBean(clazz, atMBean, keyProperties, target, registrations, true);
+                        }
+                        pmiObjectName = registerMBean(clazz, atMBean, keyProperties, target, registrations, false);
                     } catch (JMException ex) {
                         Tr.error(TC, Messages._0012E, ex);
                     } catch (InvalidTargetObjectTypeException ex) {
@@ -180,7 +186,7 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
         return registrations;
     }
 
-    private ObjectName registerMBean(Class<?> clazz, MBean atMBean, Object target, Registrations registrations, boolean legacy) throws JMException, InvalidTargetObjectTypeException {
+    private ObjectName registerMBean(Class<?> clazz, MBean atMBean, Hashtable<String,String> extraKeyProperties, Object target, Registrations registrations, boolean legacy) throws JMException, InvalidTargetObjectTypeException {
         Map<Method,String> roles = new HashMap<Method,String>();
         RequiredModelMBean mbean = assembleMBean(clazz, atMBean, target.getClass().getName(), roles);
         Object proxy = Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] { clazz },
@@ -188,8 +194,7 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
         mbean.setManagedResource(proxy, "ObjectReference");
         Hashtable<String,String> keyProperties = new Hashtable<String,String>();
         keyProperties.put("type", legacy ? "XM4WAS." + atMBean.type() : atMBean.type());
-        // TODO
-        keyProperties.put("name", atMBean.type());
+        keyProperties.putAll(extraKeyProperties);
         final MBeanServer mbeanServer = this.mbeanServer;
         final ObjectName objectName = mbeanServer.registerMBean(mbean, new ObjectName(legacy ? "WebSphere" : JmxConstants.DOMAIN, keyProperties)).getObjectName();
         registrations.addStopAction(new Runnable() {
