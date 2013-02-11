@@ -110,27 +110,10 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
                 ObjectName pmiObjectName = null;
                 if (atMBean != null) {
                     try {
-                        Map<Method,String> roles = new HashMap<Method,String>();
-                        RequiredModelMBean mbean = assembleMBean(clazz, atMBean, target.getClass().getName(), roles);
-                        Object proxy = Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] { clazz },
-                                new AccessCheckInvocationHandler(target, authorizer, roles));
-                        mbean.setManagedResource(proxy, "ObjectReference");
-                        Hashtable<String,String> keyProperties = new Hashtable<String,String>();
-                        keyProperties.put("type", atMBean.legacy() ? "XM4WAS." + atMBean.type() : atMBean.type());
-                        // TODO
-                        keyProperties.put("name", atMBean.type());
-                        final MBeanServer mbeanServer = this.mbeanServer;
-                        final ObjectName objectName = mbeanServer.registerMBean(mbean, new ObjectName(atMBean.legacy() ? "WebSphere" : JmxConstants.DOMAIN, keyProperties)).getObjectName();
-                        registrations.addStopAction(new Runnable() {
-                            public void run() {
-                                try {
-                                    mbeanServer.unregisterMBean(objectName);
-                                } catch (JMException ex) {
-                                    Tr.error(TC, Messages._0003E, ex);
-                                }
-                            }
-                        });
-                        pmiObjectName = objectName;
+                        if (atMBean.legacy()) {
+                            registerMBean(clazz, atMBean, target, registrations, true);
+                        }
+                        pmiObjectName = registerMBean(clazz, atMBean, target, registrations, false);
                     } catch (JMException ex) {
                         Tr.error(TC, Messages._0012E, ex);
                     } catch (InvalidTargetObjectTypeException ex) {
@@ -197,6 +180,30 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
         return registrations;
     }
 
+    private ObjectName registerMBean(Class<?> clazz, MBean atMBean, Object target, Registrations registrations, boolean legacy) throws JMException, InvalidTargetObjectTypeException {
+        Map<Method,String> roles = new HashMap<Method,String>();
+        RequiredModelMBean mbean = assembleMBean(clazz, atMBean, target.getClass().getName(), roles);
+        Object proxy = Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] { clazz },
+                new AccessCheckInvocationHandler(target, authorizer, roles));
+        mbean.setManagedResource(proxy, "ObjectReference");
+        Hashtable<String,String> keyProperties = new Hashtable<String,String>();
+        keyProperties.put("type", legacy ? "XM4WAS." + atMBean.type() : atMBean.type());
+        // TODO
+        keyProperties.put("name", atMBean.type());
+        final MBeanServer mbeanServer = this.mbeanServer;
+        final ObjectName objectName = mbeanServer.registerMBean(mbean, new ObjectName(legacy ? "WebSphere" : JmxConstants.DOMAIN, keyProperties)).getObjectName();
+        registrations.addStopAction(new Runnable() {
+            public void run() {
+                try {
+                    mbeanServer.unregisterMBean(objectName);
+                } catch (JMException ex) {
+                    Tr.error(TC, Messages._0003E, ex);
+                }
+            }
+        });
+        return objectName;
+    }
+    
     private RequiredModelMBean assembleMBean(Class<?> clazz, MBean atMBean, String className, Map<Method,String> roles) throws MBeanException {
         List<ModelMBeanOperationInfo> operations = new ArrayList<ModelMBeanOperationInfo>();
         List<ModelMBeanAttributeInfo> attributes = new ArrayList<ModelMBeanAttributeInfo>();
