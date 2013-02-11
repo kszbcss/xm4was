@@ -8,7 +8,6 @@ Eclipse-AutoStart: true
 Import-Package: com.ibm.ejs.ras,
  com.ibm.websphere.management,
  com.ibm.websphere.management.authorizer,
- com.ibm.websphere.management.exception,
  com.ibm.websphere.pmi.stat,
  com.ibm.ws.exception,
  com.ibm.ws.management,

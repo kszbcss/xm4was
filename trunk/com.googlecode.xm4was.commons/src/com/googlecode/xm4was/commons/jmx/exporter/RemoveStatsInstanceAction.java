@@ -1,5 +1,6 @@
-package com.googlecode.xm4was.commons;
+package com.googlecode.xm4was.commons.jmx.exporter;
 
+import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
@@ -7,7 +8,7 @@ import com.ibm.wsspi.pmi.factory.StatsFactory;
 import com.ibm.wsspi.pmi.factory.StatsFactoryException;
 import com.ibm.wsspi.pmi.factory.StatsInstance;
 
-public class RemoveStatsInstanceAction implements Runnable {
+final class RemoveStatsInstanceAction implements Runnable {
     private static final TraceComponent TC = Tr.register(RemoveStatsInstanceAction.class, TrConstants.GROUP, Messages.class.getName());
     
     private final StatsInstance statsInstance;
