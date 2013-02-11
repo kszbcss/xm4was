@@ -120,7 +120,7 @@ final class LifecycleManager {
         if (lifecycle != null) {
             throw new IllegalStateException();
         }
-        lifecycle = new LifecycleImpl();
+        lifecycle = new LifecycleImpl(bundleContext);
         return lifecycle;
     }
     
