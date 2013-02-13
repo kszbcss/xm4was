@@ -154,6 +154,11 @@ public class ClassLoaderMonitor implements ClassLoaderListener, UnmanagedThreadL
         synchronized (classLoaderInfos) {
             info = classLoaderInfos.get(classLoader);
         }
+        if (info == null) {
+            // We may get here if something went badly wrong during startup of the application
+            Tr.warning(TC, Messages._0005W);
+            return;
+        }
         if (TC.isDebugEnabled()) {
             Tr.debug(TC, "Identified class loader: " + info);
         }
