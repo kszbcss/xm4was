@@ -31,3 +31,4 @@ Require-Bundle: com.ibm.wsspi.extension
 Bundle-ClassPath: lib/tracker.jar,
  .,
  lib/rbeans.jar
+XM4WAS-Components: com.googlecode.xm4was.commons.jmx.impl.ManagementServiceImpl
