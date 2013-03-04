@@ -30,17 +30,21 @@ import javax.management.modelmbean.RequiredModelMBean;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 import com.googlecode.xm4was.commons.JmxConstants;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.jmx.Authorizer;
+import com.googlecode.xm4was.commons.jmx.ManagementService;
 import com.googlecode.xm4was.commons.jmx.annotations.Attribute;
 import com.googlecode.xm4was.commons.jmx.annotations.MBean;
 import com.googlecode.xm4was.commons.jmx.annotations.Operation;
 import com.googlecode.xm4was.commons.jmx.annotations.PMIEnabled;
 import com.googlecode.xm4was.commons.jmx.annotations.Parameter;
 import com.googlecode.xm4was.commons.jmx.annotations.Statistic;
+import com.googlecode.xm4was.commons.osgi.Lifecycle;
+import com.googlecode.xm4was.commons.osgi.annotations.Init;
 import com.googlecode.xm4was.commons.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
@@ -77,17 +81,26 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
     
     private static final TraceComponent TC = Tr.register(MBeanExporter.class, TrConstants.GROUP, Messages.class.getName());
     
-    private final BundleContext bundleContext;
-    private final MBeanServer mbeanServer;
-    private final Authorizer authorizer;
+    private BundleContext bundleContext;
+    private MBeanServer mbeanServer;
+    private Authorizer authorizer;
     private final Map<String,StatsGroupHolder> statGroups = new HashMap<String,StatsGroupHolder>();
     
-    public MBeanExporter(BundleContext bundleContext, MBeanServer mbeanServer, Authorizer authorizer) {
+    @Init
+    public void init(Lifecycle lifecycle, BundleContext bundleContext, ManagementService managementService) throws Exception {
         this.bundleContext = bundleContext;
-        this.mbeanServer = mbeanServer;
-        this.authorizer = authorizer;
+        mbeanServer = managementService.getMBeanServer();
+        authorizer = managementService.getAuthorizer();
+        final ServiceTracker mbeanTracker = new ServiceTracker(bundleContext,
+                bundleContext.createFilter("(objectClass=*)"), this);
+        mbeanTracker.open();
+        lifecycle.addStopAction(new Runnable() {
+            public void run() {
+                mbeanTracker.close();
+            }
+        });
     }
-
+    
     public Object addingService(ServiceReference reference) {
         Registrations registrations = null;
         Bundle bundle = reference.getBundle();
