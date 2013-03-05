@@ -3,6 +3,7 @@ package com.googlecode.xm4was.commons.osgi.impl;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.util.tracker.BundleTracker;
 
 import com.googlecode.xm4was.commons.TrConstants;
@@ -18,12 +19,15 @@ public final class BootstrapWsComponent extends WsComponentImpl {
     private static final TraceComponent TC = Tr.register(BootstrapWsComponent.class, TrConstants.GROUP, Messages.class.getName());
     
     private BundleTracker managedBundleTracker;
+    private ServiceRegistration bundleManagerRegistration;
     
     @Override
     public void start() throws RuntimeError, RuntimeWarning {
         super.start();
         BundleContext bundleContext = Activator.getBundleContext();
-        managedBundleTracker = new BundleTracker(bundleContext, Bundle.ACTIVE, new ManagedBundleTrackerCustomizer());
+        BundleManagerImpl bundleManager = new BundleManagerImpl();
+        bundleManagerRegistration = bundleContext.registerService(BundleManager.class.getName(), bundleManager, null);
+        managedBundleTracker = new BundleTracker(bundleContext, Bundle.ACTIVE, bundleManager);
         managedBundleTracker.open();
         StringBuilder buffer = new StringBuilder();
         for (Bundle bundle : bundleContext.getBundles()) {
@@ -50,6 +54,7 @@ public final class BootstrapWsComponent extends WsComponentImpl {
 
     @Override
     public void stop() {
+        bundleManagerRegistration.unregister();
         managedBundleTracker.close();
         super.stop();
     }

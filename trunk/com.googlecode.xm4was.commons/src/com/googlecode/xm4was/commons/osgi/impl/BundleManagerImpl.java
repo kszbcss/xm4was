@@ -1,6 +1,8 @@
 package com.googlecode.xm4was.commons.osgi.impl;
 
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
@@ -12,15 +14,27 @@ import com.googlecode.xm4was.commons.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 
-final class ManagedBundleTrackerCustomizer implements BundleTrackerCustomizer {
-    private static final TraceComponent TC = Tr.register(ManagedBundleTrackerCustomizer.class, TrConstants.GROUP, Messages.class.getName());
+final class BundleManagerImpl implements BundleManager, BundleTrackerCustomizer {
+    private static final TraceComponent TC = Tr.register(BundleManagerImpl.class, TrConstants.GROUP, Messages.class.getName());
+
+    private final List<ManagedBundle> managedBundles = new LinkedList<ManagedBundle>();
+    
+    public boolean isManaged(Bundle bundle) {
+        for (ManagedBundle managedBundle : managedBundles) {
+            if (managedBundle.getBundle().equals(bundle)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public Object addingBundle(Bundle bundle, BundleEvent event) {
         String header = (String)bundle.getHeaders().get("XM4WAS-Components");
         if (header == null) {
             return null;
         } else {
-            ManagedBundle managedBundle = new ManagedBundle();
+            ManagedBundle managedBundle = new ManagedBundle(bundle);
+            managedBundles.add(managedBundle);
             for (String className : header.trim().split("\\s*,\\s*")) {
                 Class<?> clazz;
                 try {
@@ -66,6 +80,7 @@ final class ManagedBundleTrackerCustomizer implements BundleTrackerCustomizer {
     public void removedBundle(Bundle bundle, BundleEvent event, Object object) {
         if (object != null) {
             ((ManagedBundle)object).stopComponents();
+            managedBundles.remove(object);
         }
     }
 }

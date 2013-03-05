@@ -45,6 +45,7 @@ import com.googlecode.xm4was.commons.jmx.annotations.Parameter;
 import com.googlecode.xm4was.commons.jmx.annotations.Statistic;
 import com.googlecode.xm4was.commons.osgi.Lifecycle;
 import com.googlecode.xm4was.commons.osgi.annotations.Init;
+import com.googlecode.xm4was.commons.osgi.impl.BundleManager;
 import com.googlecode.xm4was.commons.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
@@ -84,13 +85,15 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
     private BundleContext bundleContext;
     private MBeanServer mbeanServer;
     private Authorizer authorizer;
+    private BundleManager bundleManager;
     private final Map<String,StatsGroupHolder> statGroups = new HashMap<String,StatsGroupHolder>();
     
     @Init
-    public void init(Lifecycle lifecycle, BundleContext bundleContext, ManagementService managementService) throws Exception {
+    public void init(Lifecycle lifecycle, BundleContext bundleContext, ManagementService managementService, BundleManager bundleManager) throws Exception {
         this.bundleContext = bundleContext;
         mbeanServer = managementService.getMBeanServer();
         authorizer = managementService.getAuthorizer();
+        this.bundleManager = bundleManager;
         final ServiceTracker mbeanTracker = new ServiceTracker(bundleContext,
                 bundleContext.createFilter("(objectClass=*)"), this);
         mbeanTracker.open();
@@ -102,8 +105,11 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
     }
     
     public Object addingService(ServiceReference reference) {
-        Registrations registrations = null;
         Bundle bundle = reference.getBundle();
+        if (!bundleManager.isManaged(bundle)) {
+            return null;
+        }
+        Registrations registrations = null;
         for (String className : (String[])reference.getProperty("objectClass")) {
             Class<?> clazz;
             try {
