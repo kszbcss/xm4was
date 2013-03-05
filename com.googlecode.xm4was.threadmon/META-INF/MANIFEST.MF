@@ -16,5 +16,5 @@ Import-Package: com.googlecode.xm4was.commons,
  org.osgi.util.tracker
 Export-Package: com.googlecode.xm4was.threadmon,
  com.googlecode.xm4was.threadmon.resources
-XM4WAS-AutoStart: true
+Eclipse-AutoStart: true
 XM4WAS-Components: com.googlecode.xm4was.threadmon.impl.ThreadMonitor

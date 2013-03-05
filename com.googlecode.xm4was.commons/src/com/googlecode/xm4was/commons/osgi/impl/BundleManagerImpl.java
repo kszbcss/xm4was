@@ -14,6 +14,16 @@ import com.googlecode.xm4was.commons.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 
+/**
+ * Manages bundles containing XM4WAS components. It looks for bundles having a manifest with an
+ * <tt>XM4WAS-Components</tt> attribute and creates the components specified by that attribute.
+ * <p>
+ * <b>Note:</b> It is expected that bundles specifying an <tt>XM4WAS-Components</tt> attribute have
+ * <tt>Eclipse-AutoStart: true</tt> set in their manifest. Earlier versions of XM4WAS attempted to
+ * start the bundles explicitly, but this caused an issue on WAS 8.5 (because starting a bundle
+ * explicitly modifies the state of the Equinox container and this causes an issue when the
+ * WebSphere instance is restarted).
+ */
 final class BundleManagerImpl implements BundleManager, BundleTrackerCustomizer {
     private static final TraceComponent TC = Tr.register(BundleManagerImpl.class, TrConstants.GROUP, Messages.class.getName());
 
@@ -33,6 +43,10 @@ final class BundleManagerImpl implements BundleManager, BundleTrackerCustomizer 
         if (header == null) {
             return null;
         } else {
+            int state = bundle.getState();
+            if (TC.isDebugEnabled()) {
+                Tr.debug(TC, "Discovered managed bundle {0}; state {1}", new Object[] { bundle.getSymbolicName(), state });
+            }
             ManagedBundle managedBundle = new ManagedBundle(bundle);
             managedBundles.add(managedBundle);
             for (String className : header.trim().split("\\s*,\\s*")) {
@@ -69,16 +83,29 @@ final class BundleManagerImpl implements BundleManager, BundleTrackerCustomizer 
                 }
                 managedBundle.addComponent(new LifecycleManager(Util.getBundleContext(bundle), serviceClassNames, component, null));
             }
-            managedBundle.startComponents();
+            if (state == Bundle.ACTIVE) {
+                managedBundle.startComponents();
+            }
             return managedBundle;
         }
     }
 
     public void modifiedBundle(Bundle bundle, BundleEvent event, Object object) {
+        if (object != null) {
+            if (TC.isDebugEnabled()) {
+                Tr.debug(TC, "Managed bundle {0} changed to state {1}", new Object[] { bundle.getSymbolicName(), bundle.getState()});
+            }
+            if (event.getType() == Bundle.ACTIVE) {
+                ((ManagedBundle)object).startComponents();
+            }
+        }
     }
 
     public void removedBundle(Bundle bundle, BundleEvent event, Object object) {
         if (object != null) {
+            if (TC.isDebugEnabled()) {
+                Tr.debug(TC, "Bundle {0} no longer managed; new state is {1}", new Object[] { bundle.getSymbolicName(), bundle.getState()});
+            }
             ((ManagedBundle)object).stopComponents();
             managedBundles.remove(object);
         }
