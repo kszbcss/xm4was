@@ -16,7 +16,7 @@ Import-Package: com.googlecode.xm4was.commons,
  com.ibm.ws.runtime.service,
  com.ibm.ws.security.service
 Export-Package: com.googlecode.xm4was.jmx.resources
-XM4WAS-AutoStart: true
+Eclipse-AutoStart: true
 XM4WAS-Components: com.googlecode.xm4was.jmx.jrmp.JmxConnector,
  com.googlecode.xm4was.jmx.mxbeans.PlatformMXBeansRegistrant,
  com.googlecode.xm4was.jmx.jvm.JVM

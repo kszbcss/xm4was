@@ -13,5 +13,5 @@ Import-Package: com.googlecode.xm4was.commons.jmx,
  com.ibm.ws.runtime.service,
  com.ibm.ws.threadContext,
  javax.ejb;resolution:=optional
-XM4WAS-AutoStart: true
+Eclipse-AutoStart: true
 XM4WAS-Components: com.googlecode.xm4was.ejbmon.EJBMonitor

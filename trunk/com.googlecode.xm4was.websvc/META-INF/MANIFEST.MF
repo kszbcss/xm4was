@@ -27,5 +27,4 @@ Require-Bundle: com.ibm.wsfp.main,
  com.ibm.wsspi.extension
 Export-Package: com.googlecode.xm4was.websvc.jaxws,
  com.googlecode.xm4was.websvc.resources
-XM4WAS-AutoStart: true
 XM4WAS-Components: com.googlecode.xm4was.websvc.jaxws.cleaner.JAXWSCacheCleaner
