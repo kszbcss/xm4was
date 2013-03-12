@@ -26,7 +26,8 @@ Export-Package: com.googlecode.arit.rbeans,
  com.googlecode.xm4was.commons.jmx.annotations,
  com.googlecode.xm4was.commons.osgi,
  com.googlecode.xm4was.commons.osgi.annotations,
- com.googlecode.xm4was.commons.resources
+ com.googlecode.xm4was.commons.resources,
+ com.googlecode.xm4was.commons.utils.jvm
 Require-Bundle: com.ibm.wsspi.extension
 Bundle-ClassPath: lib/tracker.jar,
  .,

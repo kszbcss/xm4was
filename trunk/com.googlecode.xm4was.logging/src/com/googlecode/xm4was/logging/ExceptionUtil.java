@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.googlecode.xm4was.commons.TrConstants;
+import com.googlecode.xm4was.commons.utils.jvm.StackTraceUtil;
 import com.googlecode.xm4was.logging.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
@@ -79,16 +80,13 @@ public final class ExceptionUtil {
             }
             for (int j = 0; j < trace.length-commonFrames; j++) {
                 StackTraceElement frame = trace[j];
-                String className = frame.getClassName();
-                String methodName = frame.getMethodName();
-                if (className.startsWith("sun.reflect.") && methodName.startsWith("invoke")) {
+                if (StackTraceUtil.isReflectiveInvocationFrame(frame)) {
                     // Skip frames related to reflective invocation; they are generally
                     // non deterministic (they contain things such as
                     // sun.reflect.GeneratedMethodAccessor1026)
                     continue;
-                } else if (className.startsWith("$Proxy")) {
-                    className = "[proxy]";
                 }
+                String className = StackTraceUtil.getDisplayClassName(frame.getClassName());
                 StringBuilder buffer = new StringBuilder();
                 buffer.append(' ');
                 if (j < newFrames) {
@@ -101,7 +99,7 @@ public final class ExceptionUtil {
                 buffer.append(' ');
                 buffer.append(className);
                 buffer.append('.');
-                buffer.append(methodName);
+                buffer.append(frame.getMethodName());
                 String fileName = frame.getFileName();
                 if (fileName != null) {
                     buffer.append('(');
