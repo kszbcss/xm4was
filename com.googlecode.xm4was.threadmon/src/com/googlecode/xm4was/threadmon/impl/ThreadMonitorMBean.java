@@ -16,5 +16,6 @@ public interface ThreadMonitorMBean {
             role="monitor", impact=MBeanOperationInfo.INFO)
     String dumpThreads(
             @Parameter(name="threadPoolName", description="The name of the thread pool") String threadPoolName,
-            @Parameter(name="log", description="Specifies whether the dump should also be written to SystemOut.log") boolean log) throws Exception;
+            @Parameter(name="log", description="Specifies if the dump should also be written to SystemOut.log") boolean log,
+            @Parameter(name="shorten", description="Specifies if the stack traces should be shortened using trace groups for WebSphere components") boolean shorten) throws Exception;
 }

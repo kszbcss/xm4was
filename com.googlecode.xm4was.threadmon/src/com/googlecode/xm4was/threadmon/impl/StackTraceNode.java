@@ -5,26 +5,26 @@ import java.util.List;
 
 class StackTraceNode {
     private final List<StackTraceNode> children = new ArrayList<StackTraceNode>();
-    private final StackTraceElement frame;
+    private final Object content;
     private int count;
     
-    StackTraceNode(StackTraceElement frame) {
-        this.frame = frame;
+    StackTraceNode(Object content) {
+        this.content = content;
     }
     
-    StackTraceNode addOrCreateChild(StackTraceElement frame) {
+    StackTraceNode addOrCreateChild(Object content) {
         for (StackTraceNode child : children) {
-            if (child.frame.equals(frame)) {
+            if (child.content.equals(content)) {
                 return child;
             }
         }
-        StackTraceNode child = new StackTraceNode(frame);
+        StackTraceNode child = new StackTraceNode(content);
         children.add(child);
         return child;
     }
     
-    StackTraceElement getFrame() {
-        return frame;
+    Object getContent() {
+        return content;
     }
 
     List<StackTraceNode> getChildren() {

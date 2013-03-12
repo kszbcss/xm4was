@@ -1,15 +1,21 @@
 package com.googlecode.xm4was.threadmon.impl;
 
+import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.ListIterator;
+import java.util.Map;
+import java.util.Properties;
 
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.osgi.annotations.Inject;
 import com.googlecode.xm4was.commons.osgi.annotations.Services;
+import com.googlecode.xm4was.commons.utils.jvm.StackTraceUtil;
 import com.googlecode.xm4was.threadmon.ModuleInfo;
 import com.googlecode.xm4was.threadmon.ThreadInfo;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadMonitor;
 import com.googlecode.xm4was.threadmon.resources.Messages;
+import com.ibm.ejs.ras.ManagerAdmin;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.security.auth.WSSubject;
@@ -21,6 +27,7 @@ public class ThreadMonitor implements ThreadMonitorMBean {
     
     private final Class<?> workerClass;
     private final Field outerField;
+    private final Map<String,String> groups = new HashMap<String,String>();
     
     private UnmanagedThreadMonitor unmanagedThreadMonitor;
 
@@ -38,6 +45,17 @@ public class ThreadMonitor implements ThreadMonitorMBean {
             throw new NoSuchFieldException("No field of type " + ThreadPool.class.getName() + " found");
         }
         this.outerField = outerField;
+        
+        Properties groups = new Properties();
+        InputStream in = ThreadMonitor.class.getResourceAsStream("groups.properties");
+        try {
+            groups.load(in);
+        } finally {
+            in.close();
+        }
+        for (Map.Entry<Object,Object> entry : groups.entrySet()) {
+            this.groups.put((String)entry.getKey(), (String)entry.getValue());
+        }
     }
     
     @Inject
@@ -67,14 +85,51 @@ public class ThreadMonitor implements ThreadMonitorMBean {
         return buffer.toString();
     }
     
-    public String dumpThreads(String threadPoolName, boolean log) throws Exception {
+    private static String getPackageName(String className) {
+        int idx = className.lastIndexOf('.');
+        return idx == -1 ? null : className.substring(0, idx);
+    }
+    
+    public String dumpThreads(String threadPoolName, boolean log, boolean shorten) throws Exception {
+        Map<String,String> groupByComponent = shorten ? buildComponentToGroupMap() : null;
         StackTraceNode root = new StackTraceNode(null);
         for (Thread thread : ThreadUtils.getAllThreads()) {
             if (workerClass.isInstance(thread) && ((ThreadPool)outerField.get(thread)).getName().equals(threadPoolName)) {
                 StackTraceElement[] frames = thread.getStackTrace();
                 StackTraceNode node = root;
+                String lastGroup = null;
                 for (int i=frames.length-1; i>=0; i--) {
-                    node = node.addOrCreateChild(frames[i]);
+                    StackTraceElement frame = frames[i];
+                    if (shorten && StackTraceUtil.isReflectiveInvocationFrame(frame)) {
+                        continue;
+                    }
+                    String className = frame.getClassName();
+                    String displayClassName = StackTraceUtil.getDisplayClassName(className);
+                    String group;
+                    if (displayClassName != className) {
+                        frame = new StackTraceElement(displayClassName, frame.getMethodName(), null, -1);
+                        group = null;
+                    } else if (shorten) {
+                        String comp = className;
+                        // Inner classes usually don't have their own logger, but use the logger of the outer class
+                        int idx = comp.indexOf('$');
+                        if (idx != -1) {
+                            comp = comp.substring(0, idx);
+                        }
+                        group = groupByComponent.get(comp);
+                        while (group == null && comp != null) {
+                            group = groups.get(comp);
+                            comp = getPackageName(comp);
+                        }
+                    } else {
+                        group = null;
+                    }
+                    if (group == null) {
+                        node = node.addOrCreateChild(frame);
+                    } else if (group != lastGroup) {
+                        node = node.addOrCreateChild("<" + group + ">");
+                    }
+                    lastGroup = group;
                 }
                 node.incrementCount();
             }
@@ -89,8 +144,8 @@ public class ThreadMonitor implements ThreadMonitorMBean {
     }
     
     private static void dump(StackTraceNode node, String childPrefix, StringBuilder buffer) {
-        StackTraceElement frame = node.getFrame();
-        buffer.append(frame != null ? frame.toString() : "*");
+        Object content = node.getContent();
+        buffer.append(content != null ? content.toString() : "*");
         int count = node.getCount();
         if (count > 0) {
             buffer.append(" *");
@@ -103,5 +158,15 @@ public class ThreadMonitor implements ThreadMonitorMBean {
             buffer.append(it.hasNext() ? "|-" : "`-");
             dump(child, it.hasNext() ? childPrefix + "| " : childPrefix + "  ", buffer);
         }
+    }
+    
+    private static Map<String,String> buildComponentToGroupMap() {
+        Map<String,String> map = new HashMap<String,String>();
+        for (String group : ManagerAdmin.listAllRegisteredGroups()) {
+            for (String component : ManagerAdmin.listComponentsInGroup(group)) {
+                map.put(component, group);
+            }
+        }
+        return map;
     }
 }
