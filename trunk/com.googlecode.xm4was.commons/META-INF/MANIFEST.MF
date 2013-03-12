@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: XM4WAS Commons
 Bundle-SymbolicName: com.googlecode.xm4was.commons;singleton:=true
-Bundle-Version: 0.4.0.beta2
+Bundle-Version: 0.4.0.qualifier
 Bundle-Activator: com.googlecode.xm4was.commons.activator.Activator
 Eclipse-AutoStart: true
 Import-Package: com.ibm.ejs.ras,
