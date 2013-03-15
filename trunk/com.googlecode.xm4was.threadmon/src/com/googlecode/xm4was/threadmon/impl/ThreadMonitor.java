@@ -126,7 +126,7 @@ public class ThreadMonitor implements ThreadMonitorMBean {
                     }
                     if (group == null) {
                         node = node.addOrCreateChild(frame);
-                    } else if (group != lastGroup) {
+                    } else if (!group.equals(lastGroup)) {
                         node = node.addOrCreateChild("<" + group + ">");
                     }
                     lastGroup = group;
