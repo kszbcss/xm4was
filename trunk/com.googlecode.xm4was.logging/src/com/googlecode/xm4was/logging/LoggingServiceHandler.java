@@ -18,6 +18,8 @@ import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.ejs.ras.TraceNLS;
 import com.ibm.websphere.logging.WsLevel;
+import com.ibm.websphere.management.AdminService;
+import com.ibm.websphere.management.AdminServiceFactory;
 import com.ibm.ws.runtime.metadata.ApplicationMetaData;
 import com.ibm.ws.runtime.metadata.ComponentMetaData;
 import com.ibm.ws.runtime.metadata.MetaData;
@@ -34,19 +36,11 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
     private ORB orb;
     private ComponentMetaDataAccessorImpl cmdAccessor;
     private UnmanagedThreadMonitor unmanagedThreadMonitor;
-    private final LogMessage[] buffer = new LogMessage[1024];
-    private int head;
-    // We start at System.currentTimeMillis to make sure that the sequence is strictly increasing
-    // even across a server restarts
-    private long initialSequence;
-    private long nextSequence;
+    private final LogBuffer buffer = new LogBuffer();
     
     @Init
     public void init(Lifecycle lifecycle, ORB orb) {
         this.orb = orb;
-        
-        initialSequence = System.currentTimeMillis();
-        nextSequence = initialSequence;
         
         lifecycle.addStopAction(new Runnable() {
             public void run() {
@@ -62,6 +56,23 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                 Logger.getLogger("").removeHandler(LoggingServiceHandler.this);
             }
         });
+        
+        String logstashAddress = System.getProperty("com.googlecode.xm4was.logging.logstashAddress");
+        if (logstashAddress != null) {
+            int idx = logstashAddress.indexOf(':');
+            if (idx != -1) {
+                AdminService adminService = AdminServiceFactory.getAdminService();
+                final LogstashTransmitter xmitter = new LogstashTransmitter(logstashAddress.substring(0, idx),
+                        Integer.parseInt(logstashAddress.substring(idx+1)), buffer,
+                        adminService.getCellName(), adminService.getNodeName(), adminService.getProcessName());
+                xmitter.start();
+                lifecycle.addStopAction(new Runnable() {
+                    public void run() {
+                        xmitter.interrupt();
+                    }
+                });
+            }
+        }
         
         Tr.info(TC, Messages._0001I);
     }
@@ -188,13 +199,7 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                         localizedMessage,
                         convertParameters(record.getParameters()),
                         record.getThrown());
-                synchronized (this) {
-                    message.setSequence(nextSequence++);
-                    buffer[head++] = message;
-                    if (head == buffer.length) {
-                        head = 0;
-                    }
-                }
+                buffer.put(message);
             } catch (Throwable ex) {
                 System.out.println("OOPS! Exception caught in logging handler");
                 ex.printStackTrace(System.out);
@@ -240,10 +245,7 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
     }
     
     public long getNextSequence() {
-        long result;
-        synchronized (this) {
-            result = nextSequence;
-        }
+        long result = buffer.getNextSequence();
         if (TC.isDebugEnabled()) {
             Tr.debug(TC, "getNextSequence returning " + result);
         }
@@ -259,28 +261,12 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
             Tr.debug(TC, "Entering getMessages with startSequence = " + startSequence);
         }
         LogMessage[] messages;
-        synchronized (this) {
-            if (startSequence < initialSequence) {
-                startSequence = initialSequence;
-            }
-            int bufferSize = buffer.length;
-            int position;
-            long longCount = nextSequence-startSequence;
-            int count;
-            if (longCount > bufferSize) {
-                position = head;
-                count = bufferSize;
-            } else {
-                count = (int)longCount;
-                position = (head+bufferSize-count) % bufferSize;
-            }
-            messages = new LogMessage[count];
-            for (int i=0; i<count; i++) {
-                messages[i] = buffer[position++];
-                if (position == bufferSize) {
-                    position = 0;
-                }
-            }
+        try {
+            messages = buffer.getMessages(startSequence, -1);
+        } catch (InterruptedException ex) {
+            // Since we use timeout=-1 we should never get here
+            messages = new LogMessage[0];
+            Thread.currentThread().interrupt();
         }
         String[] formattedMessages = new String[messages.length];
         for (int i=0; i<messages.length; i++) {
