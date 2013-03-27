@@ -64,6 +64,16 @@ public final class LogMessage {
         return message;
     }
     
+    public String getFormattedMessage() {
+        if (message == null) {
+            return "<null>";
+        } else if (parms == null) {
+            return message;
+        } else {
+            return TraceNLS.getFormattedMessageFromLocalizedMessage(message, parms, true);
+        }
+    }
+    
     public String format(int maxMessageSize) {
         // The format is designed to be forward compatible. The string contains a sequence of
         // colon-separated fields enclosed in brackets, followed by the log message itself.
@@ -96,14 +106,7 @@ public final class LogMessage {
         if (maxMessageSize < 0) {
             maxMessageSize = Integer.MAX_VALUE;
         }
-        String formattedMessage;
-        if (message == null) {
-            formattedMessage = "<null>";
-        } else if (parms == null) {
-            formattedMessage = message;
-        } else {
-            formattedMessage = TraceNLS.getFormattedMessageFromLocalizedMessage(message, parms, true);
-        }
+        String formattedMessage = getFormattedMessage();
         if (formattedMessage.length() > maxMessageSize) {
             buffer.append(formattedMessage.substring(0, maxMessageSize));
             maxMessageSize = 0; 
