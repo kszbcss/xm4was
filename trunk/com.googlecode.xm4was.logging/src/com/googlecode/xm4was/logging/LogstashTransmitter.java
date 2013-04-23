@@ -62,7 +62,7 @@ final class LogstashTransmitter extends Thread {
                         for (LogMessage message : messages) {
                             out.write("{ \"@timestamp\": \"");
                             out.write(df.format(new Date(message.getTimestamp())));
-                            out.write("\", \"@fields\": { ");
+                            out.write("\", \"@tags\": [], \"@source\": \"WebSphere\", \"@fields\": { ");
                             writeField(out, "cell", cell);
                             out.write(", ");
                             writeField(out, "node", node);
