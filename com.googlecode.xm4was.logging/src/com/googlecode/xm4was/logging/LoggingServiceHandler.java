@@ -18,8 +18,6 @@ import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.ejs.ras.TraceNLS;
 import com.ibm.websphere.logging.WsLevel;
-import com.ibm.websphere.management.AdminService;
-import com.ibm.websphere.management.AdminServiceFactory;
 import com.ibm.ws.runtime.metadata.ApplicationMetaData;
 import com.ibm.ws.runtime.metadata.ComponentMetaData;
 import com.ibm.ws.runtime.metadata.MetaData;
@@ -56,23 +54,6 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                 Logger.getLogger("").removeHandler(LoggingServiceHandler.this);
             }
         });
-        
-        String logstashAddress = System.getProperty("com.googlecode.xm4was.logging.logstashAddress");
-        if (logstashAddress != null) {
-            int idx = logstashAddress.indexOf(':');
-            if (idx != -1) {
-                AdminService adminService = AdminServiceFactory.getAdminService();
-                final LogstashTransmitter xmitter = new LogstashTransmitter(logstashAddress.substring(0, idx),
-                        Integer.parseInt(logstashAddress.substring(idx+1)), buffer,
-                        adminService.getCellName(), adminService.getNodeName(), adminService.getProcessName());
-                xmitter.start();
-                lifecycle.addStopAction(new Runnable() {
-                    public void run() {
-                        xmitter.interrupt();
-                    }
-                });
-            }
-        }
         
         Tr.info(TC, Messages._0001I);
     }
