@@ -57,9 +57,9 @@ final class BundleManagerImpl implements BundleManager, BundleTrackerCustomizer 
                     Tr.error(TC, Messages._0007E, new Object[] { className, bundle.getSymbolicName(), ex });
                     continue;
                 }
-                Object component;
+                Object componentObject;
                 try {
-                    component = clazz.newInstance();
+                    componentObject = clazz.newInstance();
                 } catch (Throwable ex) {
                     Tr.error(TC, Messages._0008E, new Object[] { clazz.getName(), ex });
                     continue;
@@ -75,13 +75,11 @@ final class BundleManagerImpl implements BundleManager, BundleTrackerCustomizer 
                         serviceClassNames[i] = serviceClasses[i].getName();
                     }
                 }
+                LifecycleManager component = new LifecycleManager(Util.getBundleContext(bundle), serviceClassNames, componentObject, null);
                 if (TC.isDebugEnabled()) {
-                    Tr.debug(TC, "Adding component; bundle={0}, class={1}, services={2}", new Object[] {
-                            bundle.getSymbolicName(),
-                            component.getClass().getName(),
-                            serviceClassNames == null ? "<none>" : Arrays.asList(serviceClassNames).toString() });
+                    Tr.debug(TC, "Adding component {0}", component);
                 }
-                managedBundle.addComponent(new LifecycleManager(Util.getBundleContext(bundle), serviceClassNames, component, null));
+                managedBundle.addComponent(component);
             }
             if (state == Bundle.ACTIVE) {
                 managedBundle.startComponents();
