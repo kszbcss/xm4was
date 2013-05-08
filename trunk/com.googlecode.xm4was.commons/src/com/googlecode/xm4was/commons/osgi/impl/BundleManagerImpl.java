@@ -80,22 +80,12 @@ final class BundleManagerImpl implements BundleManager, BundleTrackerCustomizer 
                 }
                 managedBundle.addComponent(component);
             }
-            if (state == Bundle.ACTIVE) {
-                managedBundle.startComponents();
-            }
+            managedBundle.startComponents();
             return managedBundle;
         }
     }
 
     public void modifiedBundle(Bundle bundle, BundleEvent event, Object object) {
-        if (object != null) {
-            if (TC.isDebugEnabled()) {
-                Tr.debug(TC, "Managed bundle {0} changed to state {1}", new Object[] { bundle.getSymbolicName(), bundle.getState()});
-            }
-            if (event.getType() == Bundle.ACTIVE) {
-                ((ManagedBundle)object).startComponents();
-            }
-        }
     }
 
     public void removedBundle(Bundle bundle, BundleEvent event, Object object) {
