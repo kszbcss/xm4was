@@ -21,8 +21,8 @@ public final class BootstrapWsComponent extends WsComponentImpl {
         BundleManagerImpl bundleManager = new BundleManagerImpl();
         bundleManagerRegistration = bundleContext.registerService(BundleManager.class.getName(), bundleManager, null);
         // Managed bundles are expected to have "Eclipse-AutoStart: true"; if they have not yet
-        // been activated, they will be in state STARTING
-        managedBundleTracker = new BundleTracker(bundleContext, Bundle.STARTING | Bundle.ACTIVE, bundleManager);
+        // been activated, they will be in state RESOLVED on WAS 7.0 and in state STARTING on WAS 8.5
+        managedBundleTracker = new BundleTracker(bundleContext, Bundle.RESOLVED | Bundle.STARTING | Bundle.ACTIVE, bundleManager);
         managedBundleTracker.open();
     }
 
