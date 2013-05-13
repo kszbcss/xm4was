@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 
 import com.googlecode.xm4was.commons.osgi.annotations.Init;
 import com.googlecode.xm4was.commons.osgi.annotations.Services;
@@ -30,6 +31,26 @@ public class OSGiMBeanImpl implements OSGiMBean {
         this.bundleContext = bundleContext;
     }
     
+    public String getOSName() {
+        return bundleContext.getProperty(Constants.FRAMEWORK_OS_NAME);
+    }
+
+    public String getOSVersion() {
+        return bundleContext.getProperty(Constants.FRAMEWORK_OS_VERSION);
+    }
+
+    public String getProcessor() {
+        return bundleContext.getProperty(Constants.FRAMEWORK_PROCESSOR);
+    }
+
+    public String getFrameworkVendor() {
+        return bundleContext.getProperty(Constants.FRAMEWORK_VENDOR);
+    }
+
+    public String getFrameworkVersion() {
+        return bundleContext.getProperty(Constants.FRAMEWORK_VERSION);
+    }
+
     private static void pad(String s, StringBuilder buffer, int len) {
         buffer.append(s);
         for (int i=s.length(); i<len; i++) {

@@ -282,12 +282,16 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
                 Method readMethod = pd.getReadMethod();
                 Method writeMethod = pd.getWriteMethod();
                 DescriptorSupport descriptor = new DescriptorSupport();
-                descriptor.setField("name", pd.getName());
+                String name = atAttribute.name();
+                if (name.length() == 0) {
+                    name = pd.getName();
+                }
+                descriptor.setField("name", name);
                 descriptor.setField("descriptorType", "attribute");
                 if (readMethod != null) {
                     descriptor.setField("getMethod", readMethod.getName());
                     operations.add(new ModelMBeanOperationInfo(readMethod.getName(),
-                            "Get the value of the " + pd.getName() + " attribute",
+                            "Get the value of the " + name + " attribute",
                             new MBeanParameterInfo[0],
                             pd.getPropertyType().getName(),
                             MBeanOperationInfo.INFO));
@@ -296,13 +300,13 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
                 if (writeMethod != null) {
                     descriptor.setField("setMethod", writeMethod.getName());
                     operations.add(new ModelMBeanOperationInfo(writeMethod.getName(),
-                            "Set the value of the " + pd.getName() + " attribute",
-                            new MBeanParameterInfo[] { new MBeanParameterInfo(pd.getName(), pd.getPropertyType().toString(), "The new value") },
+                            "Set the value of the " + name + " attribute",
+                            new MBeanParameterInfo[] { new MBeanParameterInfo(name, pd.getPropertyType().getName(), "The new value") },
                             "void",
                             MBeanOperationInfo.ACTION));
                     roles.put(writeMethod, atAttribute.writeRole());
                 }
-                attributes.add(new ModelMBeanAttributeInfo(pd.getName(), pd.getPropertyType().toString(),
+                attributes.add(new ModelMBeanAttributeInfo(name, pd.getPropertyType().getName(),
                         atAttribute.description(), readMethod != null, writeMethod != null, false, descriptor));
             }
         }
