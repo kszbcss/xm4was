@@ -20,7 +20,7 @@ Bundle-ClassPath: .,
 Bundle-NativeCode: lib/linux-ppc/libjnidispatch.so; processor=ppc;osname=linux,
  lib/linux-ppc64/libjnidispatch.so; processor=ppc64;osname=linux,
  lib/linux-i386/libjnidispatch.so; processor=x86;osname=linux,
- lib/linux-amd64/libjnidispatch.so; processor=x86-64;osname=linux,
+ lib/linux-amd64/libjnidispatch.so; processor=x86-64;processor=amd64;osname=linux,
  lib/linux-arm/libjnidispatch.so; processor=arm;osname=linux,
  lib/linux-ia64/libjnidispatch.so; processor=ia64;osname=linux,
  *
