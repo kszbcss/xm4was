@@ -43,9 +43,9 @@
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>com.googlecode.arit</groupId>
-                                    <artifactId>arit-rbeans</artifactId>
-                                    <version>0.7.2</version>
+                                    <groupId>com.github.veithen.rbeans</groupId>
+                                    <artifactId>rbeans</artifactId>
+                                    <version>0.1.0</version>
                                     <destFileName>rbeans.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>

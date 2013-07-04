@@ -19,7 +19,7 @@ Import-Package: com.ibm.ejs.ras,
  com.ibm.wsspi.runtime.component,
  com.ibm.wsspi.runtime.service,
  org.osgi.framework
-Export-Package: com.googlecode.arit.rbeans,
+Export-Package: com.github.veithen.rbeans,
  com.googlecode.xm4was.commons,
  com.googlecode.xm4was.commons.deploy,
  com.googlecode.xm4was.commons.jmx,
