@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: XM4WAS Thread Monitor
+Bundle-SymbolicName: com.googlecode.xm4was.threadmon;singleton:=true
+Bundle-Version: 0.4.0.qualifier
+Bundle-Activator: com.googlecode.xm4was.threadmon.activator.Activator
+Import-Package: com.googlecode.xm4was.commons,
+ com.googlecode.xm4was.commons.deploy,
+ com.googlecode.xm4was.commons.jmx.annotations,
+ com.googlecode.xm4was.commons.osgi,
+ com.googlecode.xm4was.commons.osgi.annotations,
+ com.googlecode.xm4was.commons.utils.jvm,
+ com.ibm.ejs.ras,
+ com.ibm.websphere.security.auth,
+ com.ibm.ws.util,
+ org.osgi.framework,
+ org.osgi.util.tracker
+Export-Package: com.googlecode.xm4was.threadmon,
+ com.googlecode.xm4was.threadmon.resources
+Eclipse-AutoStart: true
+XM4WAS-Components: com.googlecode.xm4was.threadmon.impl.ThreadMonitor
