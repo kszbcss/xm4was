@@ -17,7 +17,6 @@ Import-Package: com.ibm.ejs.ras,
  com.ibm.wsspi.pmi.factory,
  com.ibm.wsspi.pmi.stat,
  com.ibm.wsspi.runtime.component,
- com.ibm.wsspi.runtime.service,
  org.osgi.framework
 Export-Package: com.github.veithen.rbeans,
  com.googlecode.xm4was.commons,
