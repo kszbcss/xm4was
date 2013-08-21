@@ -26,6 +26,8 @@ import org.eclipse.equinox.p2.publisher.PublisherInfo;
 import org.eclipse.equinox.p2.publisher.eclipse.BundlesAction;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRepository;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRepositoryManager;
+import org.eclipse.equinox.p2.repository.metadata.IMetadataRepository;
+import org.eclipse.equinox.p2.repository.metadata.IMetadataRepositoryManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.EntityResolver;
@@ -43,6 +45,7 @@ public class Importer {
     private static final Set<String> ignore = new HashSet<String>(Arrays.asList("META-INF/ECLIPSEF.RSA", "META-INF/ECLIPSEF.SF"));
     
     public static void main(String[] args) throws Exception {
+        URI repoURI = new URI(args[args.length-1]);
         File outputDir = Files.createTempDir();
         IPublisherAction[] publisherActions = new IPublisherAction[args.length-1];
         for (int i=0; i<args.length-1; i++) {
@@ -51,10 +54,13 @@ public class Importer {
         
         Runtime runtime = Runtime.getInstance(Configuration.newDefault().logger(SimpleLogger.INSTANCE).initializer(new P2Initializer(new File("p2-data"))).build());
         IProvisioningAgent agent = runtime.getService(IProvisioningAgent.class);
-        IArtifactRepositoryManager repoman = (IArtifactRepositoryManager)agent.getService(IArtifactRepositoryManager.SERVICE_NAME);
-        IArtifactRepository repository = repoman.createRepository(new URI("file:///home/veithen/was_repo2"), "WebSphere Repository", IArtifactRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
+        IArtifactRepositoryManager artifactRepositoryManager = (IArtifactRepositoryManager)agent.getService(IArtifactRepositoryManager.SERVICE_NAME);
+        IMetadataRepositoryManager metadataRepositoryManager = (IMetadataRepositoryManager)agent.getService(IMetadataRepositoryManager.SERVICE_NAME);
+        IArtifactRepository artifactRepository = artifactRepositoryManager.createRepository(repoURI, "WebSphere Artifact Repository", IArtifactRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
+        IMetadataRepository metadataRepository = metadataRepositoryManager.createRepository(repoURI, "WebSphere Metadata Repository", IMetadataRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
         PublisherInfo publisherInfo = new PublisherInfo();
-        publisherInfo.setArtifactRepository(repository);
+        publisherInfo.setArtifactRepository(artifactRepository);
+        publisherInfo.setMetadataRepository(metadataRepository);
         publisherInfo.setArtifactOptions(IPublisherInfo.A_PUBLISH | IPublisherInfo.A_INDEX);
         Publisher publisher = new Publisher(publisherInfo);
         publisher.publish(publisherActions, new SystemOutProgressMonitor());
