@@ -19,7 +19,7 @@ public final class ExceptionUtil {
     
     public static ThrowableInfo[] process(Throwable throwable) {
         List<ThrowableInfo> list = new ArrayList<ThrowableInfo>();
-        while (throwable != null && list.contains(throwable) == false) {
+        while (throwable != null) {
             list.add(new ThrowableInfo(throwable.toString(), throwable.getStackTrace()));
             throwable = throwable.getCause();
         }
