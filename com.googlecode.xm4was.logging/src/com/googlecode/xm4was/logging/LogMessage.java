@@ -12,7 +12,8 @@ public final class LogMessage {
     private final String componentName;
     private final String message;
     private final Object[] parms;
-    private final Throwable throwable;
+    // Note: we don't store the Throwable itself because this would cause a class loader leak
+    private final ThrowableInfo[] throwableChain;
     
     public LogMessage(int level, long timestamp, String loggerName,
             String applicationName, String moduleName, String componentName,
@@ -25,7 +26,7 @@ public final class LogMessage {
         this.componentName = componentName;
         this.message = message;
         this.parms = parms;
-        this.throwable = throwable;
+        throwableChain = ExceptionUtil.process(throwable);
     }
     
     void setSequence(long sequence) {
@@ -114,8 +115,8 @@ public final class LogMessage {
             buffer.append(formattedMessage);
             maxMessageSize -= formattedMessage.length();
         }
-        if (throwable != null && maxMessageSize > 0) {
-            ExceptionUtil.formatStackTrace(ExceptionUtil.process(throwable), new LengthLimitedStringBuilderLineAppender(buffer, maxMessageSize));
+        if (throwableChain != null && maxMessageSize > 0) {
+            ExceptionUtil.formatStackTrace(throwableChain, new LengthLimitedStringBuilderLineAppender(buffer, maxMessageSize));
         }
         return buffer.toString();
     }
