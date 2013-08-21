@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.googlecode.xm4was</groupId>
+    <artifactId>plugin-importer</artifactId>
+    <version>1-SNAPSHOT</version>
+    <dependencies>
+        <dependency>
+            <groupId>com.github.veithen.cosmos</groupId>
+            <artifactId>cosmos-p2</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>14.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>osgi.bundle</groupId>
+            <artifactId>org.eclipse.equinox.p2.publisher.eclipse</artifactId>
+            <version>1.1.200.v20130516-1953</version>
+        </dependency>
+    </dependencies>
+    <repositories>
+        <repository>
+            <id>kepler</id>
+            <name>Eclipse Kepler P2 Repository</name>
+            <url>p2:http://download.eclipse.org/releases/kepler</url>
+        </repository>
+    </repositories>
+    <build>
+        <extensions>
+            <extension>
+                <groupId>com.github.veithen.cosmos</groupId>
+                <artifactId>wagon-p2</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </extension>
+        </extensions>
+    </build>
+</project>
