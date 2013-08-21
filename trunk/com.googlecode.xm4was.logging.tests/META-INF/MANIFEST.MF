@@ -17,4 +17,5 @@ Require-Bundle: com.ibm.ws.emf,
  org.eclipse.core.runtime,
  com.ibm.ffdc,
  com.ibm.ws.wlm,
- com.ibm.ws.prereq.olt
+ com.ibm.ws.prereq.olt,
+ javax.j2ee.servlet
