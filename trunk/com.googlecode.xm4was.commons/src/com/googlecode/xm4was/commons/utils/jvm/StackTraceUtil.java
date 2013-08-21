@@ -35,7 +35,7 @@ public final class StackTraceUtil {
      * @return the display name
      */
     public static String getDisplayClassName(String className) {
-        if (className.startsWith("$Proxy")) {
+        if (className.startsWith("$Proxy") || className.startsWith("com.sun.proxy.$Proxy")) {
             return "[proxy]";
         } else {
             return className;
