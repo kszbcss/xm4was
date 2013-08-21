@@ -39,6 +39,11 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>was</id>
+            <layout>p2</layout>
+            <url>${was.p2.repo.url}</url>
+        </repository>
     </repositories>
     <build>
         <plugins>
