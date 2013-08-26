@@ -18,12 +18,16 @@ import java.util.zip.ZipOutputStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
+import org.eclipse.equinox.p2.metadata.IArtifactKey;
 import org.eclipse.equinox.p2.publisher.IPublisherAction;
 import org.eclipse.equinox.p2.publisher.IPublisherInfo;
 import org.eclipse.equinox.p2.publisher.Publisher;
 import org.eclipse.equinox.p2.publisher.PublisherInfo;
 import org.eclipse.equinox.p2.publisher.eclipse.BundlesAction;
+import org.eclipse.equinox.p2.repository.artifact.ArtifactKeyQuery;
+import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRepository;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRepositoryManager;
 import org.eclipse.equinox.p2.repository.metadata.IMetadataRepository;
@@ -43,32 +47,40 @@ import com.google.common.io.Files;
 
 public class Importer {
     private static final Set<String> ignore = new HashSet<String>(Arrays.asList("META-INF/ECLIPSEF.RSA", "META-INF/ECLIPSEF.SF"));
+    // These bundles are required to run the unit tests
+    private static String[] eclipsePlugins = { "org.eclipse.equinox.launcher", "org.junit", "org.hamcrest.core" };
     
     public static void main(String[] args) throws Exception {
         URI repoURI = new URI(args[args.length-1]);
-        File outputDir = Files.createTempDir();
-        IPublisherAction[] publisherActions = new IPublisherAction[args.length-1];
-        for (int i=0; i<args.length-1; i++) {
-            publisherActions[i] = new BundlesAction(processPlugins(new File(args[i]), outputDir));
-        }
-        
         Runtime runtime = Runtime.getInstance(Configuration.newDefault().logger(SimpleLogger.INSTANCE).initializer(new P2Initializer(new File("p2-data"))).build());
+        IProgressMonitor monitor = new SystemOutProgressMonitor();
         IProvisioningAgent agent = runtime.getService(IProvisioningAgent.class);
         IArtifactRepositoryManager artifactRepositoryManager = (IArtifactRepositoryManager)agent.getService(IArtifactRepositoryManager.SERVICE_NAME);
         IMetadataRepositoryManager metadataRepositoryManager = (IMetadataRepositoryManager)agent.getService(IMetadataRepositoryManager.SERVICE_NAME);
+
+        // Create repository early so that we can fail early
         IArtifactRepository artifactRepository = artifactRepositoryManager.createRepository(repoURI, "WebSphere Artifact Repository", IArtifactRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
         IMetadataRepository metadataRepository = metadataRepositoryManager.createRepository(repoURI, "WebSphere Metadata Repository", IMetadataRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
+        
+        File outputDir = Files.createTempDir();
+        List<IPublisherAction> publisherActions = new ArrayList<IPublisherAction>();
+        for (int i=0; i<args.length-1; i++) {
+            publisherActions.add(new BundlesAction(processWASPlugins(new File(args[i]), outputDir)));
+        }
+        
+        publisherActions.add(new BundlesAction(downloadEclipsePlugins(artifactRepositoryManager, outputDir, monitor)));
+        
         PublisherInfo publisherInfo = new PublisherInfo();
         publisherInfo.setArtifactRepository(artifactRepository);
         publisherInfo.setMetadataRepository(metadataRepository);
         publisherInfo.setArtifactOptions(IPublisherInfo.A_PUBLISH | IPublisherInfo.A_INDEX);
         Publisher publisher = new Publisher(publisherInfo);
-        publisher.publish(publisherActions, new SystemOutProgressMonitor());
+        publisher.publish(publisherActions.toArray(new IPublisherAction[publisherActions.size()]), monitor);
         // TODO: need a shutdown method for the OSGi runtime (to stop non daemon threads)
         System.exit(0);
     }
     
-    private static File[] processPlugins(final File wasDir, File outputDir) throws Exception {
+    private static File[] processWASPlugins(final File wasDir, File outputDir) throws Exception {
         List<File> outputFiles = new ArrayList<File>();
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(false);
@@ -130,5 +142,24 @@ public class Importer {
             }
         }
         return outputFiles.toArray(new File[outputFiles.size()]);
+    }
+    
+    private static File[] downloadEclipsePlugins(IArtifactRepositoryManager artifactRepositoryManager, File outputDir, IProgressMonitor monitor) throws Exception {
+        IArtifactRepository artifactRepository = artifactRepositoryManager.loadRepository(new URI("http://download.eclipse.org/releases/kepler"), monitor);
+        List<File> result = new ArrayList<File>();
+        for (String id : eclipsePlugins) {
+            for (IArtifactKey key : artifactRepository.query(new ArtifactKeyQuery("osgi.bundle", id, null), monitor)) {
+                IArtifactDescriptor[] descriptors = artifactRepository.getArtifactDescriptors(key);
+                File outputFile = new File(outputDir, id + "_" + key.getVersion() + ".jar");
+                FileOutputStream out = new FileOutputStream(outputFile);
+                try {
+                    artifactRepository.getArtifact(descriptors[0], out, monitor);
+                } finally {
+                    out.close();
+                }
+                result.add(outputFile);
+            }
+        }
+        return result.toArray(new File[result.size()]);
     }
 }
