@@ -79,6 +79,12 @@
                     </dependencies>
                 </configuration>
             </plugin>
+            <plugin>
+                <!-- This is here to make the release process reproducible -->
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-versions-plugin</artifactId>
+                <version>${tycho-version}</version>
+            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
