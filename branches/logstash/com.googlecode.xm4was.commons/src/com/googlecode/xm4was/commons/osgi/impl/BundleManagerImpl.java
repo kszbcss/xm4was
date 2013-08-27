@@ -1,6 +1,5 @@
 package com.googlecode.xm4was.commons.osgi.impl;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -57,9 +56,9 @@ final class BundleManagerImpl implements BundleManager, BundleTrackerCustomizer 
                     Tr.error(TC, Messages._0007E, new Object[] { className, bundle.getSymbolicName(), ex });
                     continue;
                 }
-                Object component;
+                Object componentObject;
                 try {
-                    component = clazz.newInstance();
+                    componentObject = clazz.newInstance();
                 } catch (Throwable ex) {
                     Tr.error(TC, Messages._0008E, new Object[] { clazz.getName(), ex });
                     continue;
@@ -75,30 +74,18 @@ final class BundleManagerImpl implements BundleManager, BundleTrackerCustomizer 
                         serviceClassNames[i] = serviceClasses[i].getName();
                     }
                 }
+                LifecycleManager component = new LifecycleManager(Util.getBundleContext(bundle), serviceClassNames, componentObject, null);
                 if (TC.isDebugEnabled()) {
-                    Tr.debug(TC, "Adding component; bundle={0}, class={1}, services={2}", new Object[] {
-                            bundle.getSymbolicName(),
-                            component.getClass().getName(),
-                            serviceClassNames == null ? "<none>" : Arrays.asList(serviceClassNames).toString() });
+                    Tr.debug(TC, "Adding component {0}", component);
                 }
-                managedBundle.addComponent(new LifecycleManager(Util.getBundleContext(bundle), serviceClassNames, component, null));
+                managedBundle.addComponent(component);
             }
-            if (state == Bundle.ACTIVE) {
-                managedBundle.startComponents();
-            }
+            managedBundle.startComponents();
             return managedBundle;
         }
     }
 
     public void modifiedBundle(Bundle bundle, BundleEvent event, Object object) {
-        if (object != null) {
-            if (TC.isDebugEnabled()) {
-                Tr.debug(TC, "Managed bundle {0} changed to state {1}", new Object[] { bundle.getSymbolicName(), bundle.getState()});
-            }
-            if (event.getType() == Bundle.ACTIVE) {
-                ((ManagedBundle)object).startComponents();
-            }
-        }
     }
 
     public void removedBundle(Bundle bundle, BundleEvent event, Object object) {

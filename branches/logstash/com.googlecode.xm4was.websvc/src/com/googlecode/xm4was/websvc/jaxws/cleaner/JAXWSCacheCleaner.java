@@ -5,8 +5,8 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
 
-import com.googlecode.arit.rbeans.RBeanFactory;
-import com.googlecode.arit.rbeans.RBeanFactoryException;
+import com.github.veithen.rbeans.RBeanFactory;
+import com.github.veithen.rbeans.RBeanFactoryException;
 import com.googlecode.xm4was.clmon.CacheCleaner;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.osgi.annotations.Init;

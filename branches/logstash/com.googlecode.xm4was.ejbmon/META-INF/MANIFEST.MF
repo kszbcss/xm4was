@@ -15,3 +15,4 @@ Import-Package: com.googlecode.xm4was.commons.jmx,
  javax.ejb;resolution:=optional
 Eclipse-AutoStart: true
 XM4WAS-Components: com.googlecode.xm4was.ejbmon.EJBMonitor
+Export-Package: com.googlecode.xm4was.ejbmon.helper

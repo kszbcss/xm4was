@@ -11,7 +11,6 @@ import com.ibm.ws.exception.ConfigurationWarning;
 import com.ibm.ws.exception.RuntimeError;
 import com.ibm.ws.exception.RuntimeWarning;
 import com.ibm.wsspi.runtime.component.WsComponent;
-import com.ibm.wsspi.runtime.service.WsServiceRegistry;
 
 public abstract class AbstractWsComponent implements WsComponent {
     private static final TraceComponent TC = Tr.register(AbstractWsComponent.class, TrConstants.GROUP, Messages.class.getName());
@@ -80,14 +79,5 @@ public abstract class AbstractWsComponent implements WsComponent {
     }
 
     protected void doDestroy() {
-    }
-    
-    protected void addService(Object serviceImplementation, Class<?> serviceInterface) throws Exception {
-        final Object token = WsServiceRegistry.addService(serviceImplementation, serviceInterface);
-        addStopAction(new Runnable() {
-            public void run() {
-                WsServiceRegistry.unregisterService(token);
-            }
-        });
     }
 }

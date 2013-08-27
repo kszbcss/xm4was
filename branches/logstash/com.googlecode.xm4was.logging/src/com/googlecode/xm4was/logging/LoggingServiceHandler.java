@@ -22,7 +22,6 @@ import com.ibm.websphere.management.AdminService;
 import com.ibm.websphere.management.AdminServiceFactory;
 import com.ibm.ws.runtime.metadata.ApplicationMetaData;
 import com.ibm.ws.runtime.metadata.ComponentMetaData;
-import com.ibm.ws.runtime.metadata.MetaData;
 import com.ibm.ws.runtime.metadata.ModuleMetaData;
 import com.ibm.ws.runtime.service.ORB;
 import com.ibm.ws.threadContext.ComponentMetaDataAccessorImpl;
@@ -105,11 +104,11 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                         cmdAccessor = this.cmdAccessor = ComponentMetaDataAccessorImpl.getComponentMetaDataAccessor();
                     }
                 }
-                MetaData metaData = cmdAccessor == null ? null : cmdAccessor.getComponentMetaData();
-                if (metaData instanceof DefaultComponentMetaData) {
-                    metaData = null;
+                ComponentMetaData cmd = cmdAccessor == null ? null : cmdAccessor.getComponentMetaData();
+                if (cmd instanceof DefaultComponentMetaData) {
+                    cmd = null;
                 }
-                if (metaData == null) {
+                if (cmd == null) {
                     ModuleInfo moduleInfo;
                     synchronized (this) {
                         // Attempt to determine the application or module for an unmanaged thread
@@ -132,17 +131,13 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                     final ComponentMetaData componentMetaData;
                     final ModuleMetaData moduleMetaData;
                     final ApplicationMetaData applicationMetaData;
-                    if (metaData instanceof ModuleMetaData) {
-                        // We get here in two cases:
-                        //  * The log event was emitted by an unmanaged thread and the metadata was
-                        //    identified using the thread context class loader.
-                        //  * For servlet context listeners, the component meta data is the same as the
-                        //    module meta data. If we are in this case, we leave the component name empty.
+                    if (cmd instanceof ModuleMetaData) {
+                        // We get here if we are in a servlet context listeners. In this case the component meta
+                        // data is the same as the module meta data and we leave the component name empty.
                         componentMetaData = null;
-                        moduleMetaData = (ModuleMetaData)metaData;
+                        moduleMetaData = (ModuleMetaData)cmd;
                         applicationMetaData = moduleMetaData.getApplicationMetaData();
-                    } else if (metaData instanceof ComponentMetaData) {
-                        ComponentMetaData cmd = (ComponentMetaData)metaData;
+                    } else {
                         moduleMetaData = cmd.getModuleMetaData();
                         if (moduleMetaData == null) {
                             // moduleMetaData may be null for an internal EJB (such as the CEI event service).
@@ -165,14 +160,6 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                             }
                             applicationMetaData = moduleMetaData.getApplicationMetaData();
                         }
-                    } else if (metaData instanceof ApplicationMetaData) {
-                        componentMetaData = null;
-                        moduleMetaData = null;
-                        applicationMetaData = (ApplicationMetaData)metaData;
-                    } else {
-                        componentMetaData = null;
-                        moduleMetaData = null;
-                        applicationMetaData = null;
                     }
                     applicationName = applicationMetaData == null ? null : applicationMetaData.getName();
                     moduleName = moduleMetaData == null ? null : moduleMetaData.getName();

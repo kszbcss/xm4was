@@ -6,9 +6,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.axis2.jaxws.message.databinding.JAXBUtils;
 
-import com.googlecode.arit.rbeans.Accessor;
-import com.googlecode.arit.rbeans.StaticRBean;
-import com.googlecode.arit.rbeans.TargetClass;
+import com.github.veithen.rbeans.Accessor;
+import com.github.veithen.rbeans.StaticRBean;
+import com.github.veithen.rbeans.TargetClass;
 
 @TargetClass(JAXBUtils.class)
 public interface JAXBUtilsRBean extends StaticRBean {

@@ -5,7 +5,6 @@
         <groupId>com.googlecode.xm4was</groupId>
         <artifactId>xm4was</artifactId>
         <version>0.4.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>com.googlecode.xm4was.commons</artifactId>
     <packaging>eclipse-plugin</packaging>
@@ -43,9 +42,9 @@
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>com.googlecode.arit</groupId>
-                                    <artifactId>arit-rbeans</artifactId>
-                                    <version>0.7.2</version>
+                                    <groupId>com.github.veithen.rbeans</groupId>
+                                    <artifactId>rbeans</artifactId>
+                                    <version>0.1.0</version>
                                     <destFileName>rbeans.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
