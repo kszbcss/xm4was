@@ -2,8 +2,6 @@ package com.googlecode.xm4was.ejbmon;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import javax.management.JMException;
 import javax.management.MBeanServer;
@@ -12,9 +10,9 @@ import javax.management.ObjectName;
 import com.googlecode.xm4was.commons.jmx.ManagementService;
 import com.googlecode.xm4was.commons.osgi.annotations.Init;
 import com.googlecode.xm4was.commons.osgi.annotations.Services;
+import com.googlecode.xm4was.ejbmon.helper.EJBMonitorHelper;
 import com.ibm.ejs.container.BeanId;
 import com.ibm.ejs.container.BeanO;
-import com.ibm.ejs.container.ContainerTx;
 import com.ibm.ejs.container.EJSContainer;
 import com.ibm.ejs.container.EJSDeployedSupport;
 import com.ibm.ejs.container.EJSHome;
@@ -29,16 +27,13 @@ import com.ibm.ws.threadContext.ThreadContext;
 public class EJBMonitor implements EJBMonitorMBean {
     private EJBContainer ejbContainer;
     private MBeanServer mbeanServer;
-    private Method preInvokeMethod;
+    private EJBMonitorHelper helper;
 
     @Init
-    public void init(EJBContainer ejbContainer, ManagementService managementService) throws Exception {
+    public void init(EJBContainer ejbContainer, ManagementService managementService, EJBMonitorHelper helper) throws Exception {
         this.ejbContainer = ejbContainer;
         mbeanServer = managementService.getMBeanServer();
-        // The signature of the BeanO#preInvoke method is different on WAS 6.1 and WAS 7.0
-        // (different return type). To be compatible with both versions, we need to invoke
-        // the method using reflection.
-        preInvokeMethod = BeanO.class.getMethod("preInvoke", EJSDeployedSupport.class, ContainerTx.class);
+        this.helper = helper;
     }
     
     public String validateStatelessSessionBean(String applicationName, String moduleName, String beanName) throws JMException {
@@ -74,12 +69,10 @@ public class EJBMonitor implements EJBMonitorMBean {
                 try {
                     try {
                         // activateBean will retrieve a bean from the pool or create a new instance.
-                        BeanO beanO = activator.activateBean(null, id);
-                        preInvokeMethod.invoke(beanO, s, null);
+                        BeanO beanO = helper.activateBean(activator, id);
+                        helper.preInvoke(beanO, s);
                         // postInvoke will put the bean back into the pool.
                         beanO.postInvoke(-1, null);
-                    } catch (InvocationTargetException ex) {
-                        return toStackTrace(ex.getCause());
                     } catch (Throwable ex) {
                         return toStackTrace(ex);
                     }
