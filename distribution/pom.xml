@@ -26,6 +26,21 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>com.googlecode.xm4was.ejbmon.was61</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>com.googlecode.xm4was.ejbmon.was7</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>com.googlecode.xm4was.ejbmon.was85</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>com.googlecode.xm4was.jmx</artifactId>
             <version>${project.version}</version>
         </dependency>
