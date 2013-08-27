@@ -26,7 +26,7 @@ public final class LogMessage {
         this.componentName = componentName;
         this.message = message;
         this.parms = parms;
-        throwableChain = ExceptionUtil.process(throwable);
+        throwableChain = throwable == null ? null : ExceptionUtil.process(throwable);
     }
     
     void setSequence(long sequence) {
