@@ -12,6 +12,11 @@ import java.lang.annotation.Target;
 @Target(value=ElementType.METHOD)
 @Retention(value=RetentionPolicy.RUNTIME)
 public @interface Attribute {
+    /**
+     * The attribute name. Defaults to the name of the JavaBeans property.
+     */
+    String name() default "";
+    
     String description();
     String readRole() default "";
     String writeRole() default "";

@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.List;
 
@@ -56,6 +57,11 @@ final class LifecycleManager {
                 createInjector(paramTypes[i], initParameters[i] = new InitParameter(this));
             }
         }
+    }
+    
+    public String toString() {
+        return service.getClass().getName() + "[bundle=" + bundleContext.getBundle().getSymbolicName()
+                + ", services=" + (clazzes == null ? "<none>" : Arrays.asList(clazzes).toString()) + "]";
     }
     
     private Injector createInjector(Type type, InjectionTarget target) {

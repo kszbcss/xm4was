@@ -6,9 +6,9 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
 
-import com.googlecode.arit.rbeans.Accessor;
-import com.googlecode.arit.rbeans.RBean;
-import com.googlecode.arit.rbeans.Target;
+import com.github.veithen.rbeans.Accessor;
+import com.github.veithen.rbeans.RBean;
+import com.github.veithen.rbeans.Target;
 
 @Target("org.apache.axis2.jaxws.message.databinding.JAXBUtils$Pool")
 public interface PoolRBean extends RBean {
