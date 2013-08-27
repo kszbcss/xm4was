@@ -97,27 +97,17 @@ public class Importer {
             }
         });
         Document document = documentBuilder.parse(new File(wasDir, "properties/version/WAS.product"));
-        String wasVersion = ((Element)document.getElementsByTagName("version").item(0)).getTextContent();
+        final String wasVersion = ((Element)document.getElementsByTagName("version").item(0)).getTextContent();
         System.out.println("WAS version is " + wasVersion);
-        String bundleVersionSuffix = "WAS_" + wasVersion.replace(".", "_");
-        byte[] buffer = new byte[4096];
+        final String bundleVersionSuffix = "WAS_" + wasVersion.replace(".", "_");
         for (File plugin : new File(wasDir, "plugins").listFiles()) {
             String name = plugin.getName();
             if (plugin.isFile() && name.endsWith(".jar")) {
                 System.out.println(plugin);
-                ZipInputStream zin = new ZipInputStream(new FileInputStream(plugin));
                 File outputFile = new File(outputDir, name.substring(0, name.length()-4) + "_" + wasVersion + ".jar");
-                outputFiles.add(outputFile);
-                ZipOutputStream zout = new ZipOutputStream(new FileOutputStream(outputFile));
-                ZipEntry entry;
-                while ((entry = zin.getNextEntry()) != null) {
-                    String entryName = entry.getName();
-                    if (ignore.contains(entryName)) {
-                        continue;
-                    }
-                    zout.putNextEntry(new ZipEntry(entryName));
-                    if (entryName.equals("META-INF/MANIFEST.MF")) {
-                        Manifest manifest = new Manifest(zin);
+                transformJAR(plugin, outputFile, new ManifestTransformer() {
+                    @Override
+                    public void transformManifest(Manifest manifest) {
                         Attributes atts = manifest.getMainAttributes();
                         String bundleVersion = atts.getValue("Bundle-Version");
                         int dots = 0;
@@ -129,19 +119,64 @@ public class Importer {
                         atts.putValue("Bundle-Version", bundleVersion + (dots == 3 ? "_" : (dots == 2 ? "." : ".0.")) + bundleVersionSuffix);
                         // Remove signatures
                         manifest.getEntries().clear();
-                        manifest.write(zout);
-                    } else {
-                        int c;
-                        while ((c = zin.read(buffer)) != -1) {
-                            zout.write(buffer, 0, c);
-                        }
                     }
-                }
-                zin.close();
-                zout.close();
+                });
+                outputFiles.add(outputFile);
             }
         }
+        // Hack: bootstrap.jar is configured as visible to all bundles (using org.osgi.framework.bootdelegation);
+        // Instead we load it as a fragment into com.ibm.ws.bootstrap and com.ibm.ws.runtime.
+        File outputFile = new File(outputDir, "bootstrap-" + wasVersion + ".jar");
+        transformJAR(new File(wasDir, "lib/bootstrap.jar"), outputFile, new ManifestTransformer() {
+            @Override
+            public void transformManifest(Manifest manifest) {
+                Attributes atts = manifest.getMainAttributes();
+                atts.putValue("Bundle-ManifestVersion", "2");
+                atts.putValue("Bundle-SymbolicName", "bootstrap");
+                atts.putValue("Bundle-Version", wasVersion);
+                atts.putValue("Fragment-Host", "com.ibm.ws.bootstrap");
+            }
+        });
+        outputFiles.add(outputDir);
+        outputFile = new File(outputDir, "bootstrap-runtime-" + wasVersion + ".jar");
+        transformJAR(new File(wasDir, "lib/bootstrap.jar"), outputFile, new ManifestTransformer() {
+            @Override
+            public void transformManifest(Manifest manifest) {
+                Attributes atts = manifest.getMainAttributes();
+                atts.putValue("Bundle-ManifestVersion", "2");
+                atts.putValue("Bundle-SymbolicName", "bootstrap-runtime");
+                atts.putValue("Bundle-Version", wasVersion);
+                atts.putValue("Fragment-Host", "com.ibm.ws.runtime");
+            }
+        });
+        outputFiles.add(outputDir);
         return outputFiles.toArray(new File[outputFiles.size()]);
+    }
+    
+    private static void transformJAR(File inputFile, File outputFile, ManifestTransformer manifestTransformer) throws Exception {
+        ZipInputStream zin = new ZipInputStream(new FileInputStream(inputFile));
+        ZipOutputStream zout = new ZipOutputStream(new FileOutputStream(outputFile));
+        byte[] buffer = new byte[4096];
+        ZipEntry entry;
+        while ((entry = zin.getNextEntry()) != null) {
+            String entryName = entry.getName();
+            if (ignore.contains(entryName)) {
+                continue;
+            }
+            zout.putNextEntry(new ZipEntry(entryName));
+            if (entryName.equals("META-INF/MANIFEST.MF")) {
+                Manifest manifest = new Manifest(zin);
+                manifestTransformer.transformManifest(manifest);
+                manifest.write(zout);
+            } else {
+                int c;
+                while ((c = zin.read(buffer)) != -1) {
+                    zout.write(buffer, 0, c);
+                }
+            }
+        }
+        zin.close();
+        zout.close();
     }
     
     private static File[] downloadEclipsePlugins(IArtifactRepositoryManager artifactRepositoryManager, File outputDir, IProgressMonitor monitor) throws Exception {
