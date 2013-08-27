@@ -6,7 +6,7 @@
     <version>0.4.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <properties>
-        <tycho-version>0.14.1</tycho-version>
+        <tycho-version>0.16.0</tycho-version>
     </properties>
     <scm>
         <developerConnection>scm:svn:https://xm4was.googlecode.com/svn/trunk</developerConnection>
