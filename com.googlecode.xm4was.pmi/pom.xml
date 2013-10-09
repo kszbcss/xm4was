@@ -34,7 +34,9 @@
                                 <artifactItem>
                                     <groupId>net.java.dev.jna</groupId>
                                     <artifactId>jna</artifactId>
-                                    <version>3.4.0</version>
+                                    <!-- Use 3.3.0 for compatibility with older glibc versions
+                                         (see https://github.com/twall/jna/issues/52). -->
+                                    <version>3.3.0</version>
                                 </artifactItem>
                             </artifactItems>
                             <outputDirectory>${project.build.directory}/jna</outputDirectory>
