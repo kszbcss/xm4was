@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: XM4WAS Logging Tests
+Bundle-SymbolicName: com.googlecode.xm4was.logging.tests
+Bundle-Version: 0.4.0.beta5
+Fragment-Host: com.googlecode.xm4was.logging
+Require-Bundle: com.ibm.ws.emf,
+ org.eclipse.emf.ecore,
+ javax.j2ee.ejb,
+ com.ibm.ws.prereq.javamail,
+ javax.j2ee.jsp,
+ javax.j2ee.connector,
+ javax.j2ee.jms,
+ javax.j2ee.jta,
+ org.eclipse.equinox.registry,
+ org.eclipse.core.runtime,
+ com.ibm.ffdc,
+ com.ibm.ws.wlm,
+ com.ibm.ws.prereq.olt,
+ javax.j2ee.servlet,
+ com.ibm.ws.prereq.ow.asm,
+ org.junit
