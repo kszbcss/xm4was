@@ -48,6 +48,10 @@ public class ProcStatsComponent {
         
         int pageSize;
         try {
+            // The static initializer of the Native class will try to automatically load the jnidispatch
+            // library from different places. However, we know that the library can only be loaded by the
+            // OSGi framework. Force this so that we get a meaningful error message if that fails.
+            Runtime.getRuntime().loadLibrary("jnidispatch");
             POSIX posix = (POSIX)Native.loadLibrary("c", POSIX.class);
             pageSize = posix.getpagesize();
             if (TC.isDebugEnabled()) {
