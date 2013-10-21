@@ -119,6 +119,8 @@
         <module>com.googlecode.xm4was.ejbmon.was7</module>
         <module>com.googlecode.xm4was.ejbmon.was85</module>
         <module>com.googlecode.xm4was.jmx</module>
+        <module>com.googlecode.xm4was.jna</module>
+        <module>com.googlecode.xm4was.jna_3_4_0</module>
         <module>com.googlecode.xm4was.logging</module>
         <module>com.googlecode.xm4was.logging.tests</module>
         <module>com.googlecode.xm4was.pmi</module>
