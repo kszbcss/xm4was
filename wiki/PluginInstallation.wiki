@@ -91,4 +91,4 @@ org.osgi.framework.BundleException: The bundle could not be resolved. Reason: Mi
         at org.eclipse.osgi.framework.internal.core.FrameworkConsole.run(FrameworkConsole.java:213)
         at java.lang.Thread.run(Thread.java:736)</code>
 
-In the example shown here, the `com.googlecode.xm4was.clmon` plugin can't be loaded because the `com.googlecode.xm4was.commons` is not installed.
+In the example shown here, the `com.googlecode.xm4was.clmon` plugin can't be loaded because the `com.googlecode.xm4was.commons` plugin is not installed.
