@@ -114,6 +114,7 @@
     <modules>
         <module>com.googlecode.xm4was.clmon</module>
         <module>com.googlecode.xm4was.commons</module>
+        <module>com.googlecode.xm4was.commons.posix</module>
         <module>com.googlecode.xm4was.ejbmon</module>
         <module>com.googlecode.xm4was.ejbmon.was61</module>
         <module>com.googlecode.xm4was.ejbmon.was7</module>
