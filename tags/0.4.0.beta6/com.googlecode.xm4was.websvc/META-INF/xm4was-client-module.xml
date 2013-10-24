@@ -1,0 +1,17 @@
+<module name="xm4was">
+    <OutFlow>
+        <handler name="XM4WASOutHandler" class="com.googlecode.xm4was.websvc.jaxws.ClientOutHandler">
+            <order phase="CustomHandlerOutPhase"/>
+        </handler>              
+    </OutFlow>
+    <InFlow>
+        <handler name="XM4WASInHandler" class="com.googlecode.xm4was.websvc.jaxws.ClientInHandler">
+            <order phase="CustomHandlerInPhase"/>
+        </handler>
+    </InFlow>
+    <InFaultFlow>
+        <handler name="XM4WASInFaultHandler" class="com.googlecode.xm4was.websvc.jaxws.ClientInHandler">
+            <order phase="CustomHandlerInFaultPhase"/>
+        </handler>
+    </InFaultFlow>
+</module>
