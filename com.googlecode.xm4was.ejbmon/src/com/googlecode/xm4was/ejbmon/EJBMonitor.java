@@ -2,21 +2,35 @@ package com.googlecode.xm4was.ejbmon;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.management.JMException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
+import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.jmx.ManagementService;
+import com.googlecode.xm4was.commons.osgi.Lifecycle;
 import com.googlecode.xm4was.commons.osgi.annotations.Init;
 import com.googlecode.xm4was.commons.osgi.annotations.Services;
 import com.googlecode.xm4was.ejbmon.helper.EJBMonitorHelper;
+import com.googlecode.xm4was.ejbmon.resources.Messages;
 import com.ibm.ejs.container.BeanId;
 import com.ibm.ejs.container.BeanO;
 import com.ibm.ejs.container.EJSContainer;
 import com.ibm.ejs.container.EJSDeployedSupport;
 import com.ibm.ejs.container.EJSHome;
 import com.ibm.ejs.container.activator.Activator;
+import com.ibm.ejs.ras.Tr;
+import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.csi.J2EEName;
 import com.ibm.ws.runtime.service.EJBContainer;
 import com.ibm.ws.threadContext.ComponentMetaDataAccessorImpl;
@@ -25,19 +39,91 @@ import com.ibm.ws.threadContext.ThreadContext;
 
 @Services(EJBMonitorMBean.class)
 public class EJBMonitor implements EJBMonitorMBean {
+    private static final TraceComponent TC = Tr.register(EJBMonitor.class, TrConstants.GROUP, Messages.class.getName());
+    
     private EJBContainer ejbContainer;
     private MBeanServer mbeanServer;
     private EJBMonitorHelper helper;
+    
+    /**
+     * Map keeping track of pending executions of {@link #validateStatelessSessionBean(J2EEName)}.
+     */
+    private Map<J2EEName,Future<String>> pending;
+    
+    /**
+     * Thread pool used to execute {@link #validateStatelessSessionBean(J2EEName)}. There are
+     * several reasons why we execute the validation asynchronously:
+     * <ul>
+     * <li>We want to be able to time out the request if the initialization of the bean takes too
+     * long. This is important for the RHQ WebSphere plug-in where the availability check times out
+     * after 3 seconds.
+     * <li>We don't want to initialize the same bean concurrently multiple times. If there is
+     * already a pending attempt to initialize the bean, we just wait for the completion of that
+     * attempt.
+     * </ul>
+     */
+    private ExecutorService executorService;
 
     @Init
-    public void init(EJBContainer ejbContainer, ManagementService managementService, EJBMonitorHelper helper) throws Exception {
+    public void init(EJBContainer ejbContainer, ManagementService managementService, EJBMonitorHelper helper, Lifecycle lifecycle) throws Exception {
         this.ejbContainer = ejbContainer;
         mbeanServer = managementService.getMBeanServer();
         this.helper = helper;
+        pending = new HashMap<J2EEName,Future<String>>();
+        executorService = new ThreadPoolExecutor(0, 10, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+        lifecycle.addStopAction(new Runnable() {
+            public void run() {
+                executorService.shutdown();
+            }
+        });
+        Tr.info(TC, Messages._0001I);
     }
     
-    public String validateStatelessSessionBean(String applicationName, String moduleName, String beanName) throws JMException {
-        J2EEName name = ejbContainer.getJ2EENameFactory().create(applicationName, moduleName, beanName);
+    public String validateStatelessSessionBean(String applicationName, String moduleName, String beanName) throws Exception {
+        return validateStatelessSessionBean(applicationName, moduleName, beanName, 60000);
+    }
+    
+    public String validateStatelessSessionBean(String applicationName, String moduleName, String beanName, int timeout) throws Exception {
+        final J2EEName name = ejbContainer.getJ2EENameFactory().create(applicationName, moduleName, beanName);
+        Future<String> future;
+        synchronized (pending) {
+            future = pending.get(name);
+            if (future != null) {
+                if (TC.isDebugEnabled()) {
+                    Tr.debug(TC, "There is already a pending validation of stateless session bean {0}", name);
+                }
+            } else {
+                if (TC.isDebugEnabled()) {
+                    Tr.debug(TC, "Starting a new validation of stateless session bean {0}", name);
+                }
+                future = executorService.submit(new Callable<String>() {
+                    public String call() throws Exception {
+                        try {
+                            return validateStatelessSessionBean(name);
+                        } finally {
+                            if (TC.isDebugEnabled()) {
+                                Tr.debug(TC, "Validation of stateless session bean {0} finished", name);
+                            }
+                            synchronized (pending) {
+                                pending.remove(name);
+                            }
+                        }
+                    }
+                });
+                pending.put(name, future);
+            }
+        }
+        if (TC.isDebugEnabled()) {
+            Tr.debug(TC, "Waiting for result of validation of stateless session bean {0}", name);
+        }
+        try {
+            return future.get(timeout, TimeUnit.MILLISECONDS);
+        } catch (ExecutionException ex) {
+            throw (JMException)ex.getCause();
+        }
+    }
+    
+    private String validateStatelessSessionBean(J2EEName name) throws JMException {
         EJSContainer ejsContainer = EJSContainer.getDefaultContainer();
         // Get the EJB home. This will also complete the initialization of the bean metadata.
         EJSHome home;
@@ -96,7 +182,7 @@ public class EJBMonitor implements EJBMonitorMBean {
         return sw.toString();
     }
 
-    public String validateAllStatelessSessionBeans() throws JMException {
+    public String validateAllStatelessSessionBeans() throws Exception {
         StringBuilder report = new StringBuilder();
         for (ObjectName name : mbeanServer.queryNames(new ObjectName("WebSphere:type=StatelessSessionBean,*"), null)) {
             String applicationName = name.getKeyProperty("Application");

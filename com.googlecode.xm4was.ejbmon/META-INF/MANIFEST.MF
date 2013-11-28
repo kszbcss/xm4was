@@ -3,11 +3,14 @@ Bundle-ManifestVersion: 2
 Bundle-Name: XM4WAS EJB Monitor
 Bundle-SymbolicName: com.googlecode.xm4was.ejbmon;singleton:=true
 Bundle-Version: 0.4.0.qualifier
-Import-Package: com.googlecode.xm4was.commons.jmx,
+Import-Package: com.googlecode.xm4was.commons,
+ com.googlecode.xm4was.commons.jmx,
  com.googlecode.xm4was.commons.jmx.annotations,
+ com.googlecode.xm4was.commons.osgi,
  com.googlecode.xm4was.commons.osgi.annotations,
  com.ibm.ejs.container,
  com.ibm.ejs.container.activator,
+ com.ibm.ejs.ras,
  com.ibm.websphere.csi,
  com.ibm.ws.runtime.metadata,
  com.ibm.ws.runtime.service,
@@ -15,4 +18,5 @@ Import-Package: com.googlecode.xm4was.commons.jmx,
  javax.ejb;resolution:=optional
 Eclipse-AutoStart: true
 XM4WAS-Components: com.googlecode.xm4was.ejbmon.EJBMonitor
-Export-Package: com.googlecode.xm4was.ejbmon.helper
+Export-Package: com.googlecode.xm4was.ejbmon.helper,
+ com.googlecode.xm4was.ejbmon.resources
