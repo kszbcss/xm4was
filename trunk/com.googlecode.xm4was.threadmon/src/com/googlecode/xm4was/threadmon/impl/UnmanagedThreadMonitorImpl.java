@@ -32,6 +32,7 @@ import com.googlecode.xm4was.threadmon.UnmanagedThreadMonitor;
 import com.googlecode.xm4was.threadmon.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
+import com.ibm.ws.util.ThreadPool;
 
 public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, UnmanagedThreadMonitor {
     private static final TraceComponent TC = Tr.register(UnmanagedThreadMonitorImpl.class, TrConstants.GROUP, Messages.class.getName());
@@ -207,48 +208,52 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
         synchronized (threadInfos) {
             if (!threadInfos.containsKey(thread)) {
                 if (TC.isDebugEnabled()) {
-                    Tr.debug(TC, "Discovered new thread: " + thread.getName());
+                    Tr.debug(TC, "Discovered new thread: {0} (type: {1})", new Object[] { thread.getName(), thread.getClass().getName() });
                 }
-                try {
-                    AccessControlContext acc = (AccessControlContext)accessControlContextField.get(thread);
-                    ProtectionDomain[] pdArray = (ProtectionDomain[])pdArrayField.get(acc);
-                    ThreadInfoImpl threadInfo = null;
-                    if (pdArray != null) {
-                        for (int i=pdArray.length-1; i>=0; i--) {
-                            ProtectionDomain pd = pdArray[i];
-                            if (TC.isDebugEnabled()) {
-                                Tr.debug(TC, "Protection domain: codeSource={0}", pd.getCodeSource());
-                            }
-                            ModuleInfoImpl moduleInfo;
-                            synchronized (moduleInfos) {
-                                moduleInfo = moduleInfos.get(pd.getClassLoader());
-                            }
-                            if (moduleInfo != null) {
+                ThreadInfoImpl threadInfo = null;
+                if (thread instanceof ThreadPool.WorkerThread) {
+                    Tr.debug(TC, "Ignoring; thread belongs to a WebSphere thread pool");
+                } else {
+                    try {
+                        AccessControlContext acc = (AccessControlContext)accessControlContextField.get(thread);
+                        ProtectionDomain[] pdArray = (ProtectionDomain[])pdArrayField.get(acc);
+                        if (pdArray != null) {
+                            for (int i=pdArray.length-1; i>=0; i--) {
+                                ProtectionDomain pd = pdArray[i];
                                 if (TC.isDebugEnabled()) {
-                                    Tr.debug(TC, "Protection domain is linked to known class loader: {0}", moduleInfo.getName());
+                                    Tr.debug(TC, "Protection domain: codeSource={0}", pd.getCodeSource());
                                 }
-                                threadInfo = new ThreadInfoImpl(thread, moduleInfo, threadInfoQueue);
-                                // TODO: implement logging as a listener as well
-                                // TODO: replace logQueue by an event queue and dispatch events asynchronously
-                                synchronized (listeners) {
-                                    for (UnmanagedThreadListener listener : listeners) {
-                                        listener.threadStarted(thread, moduleInfo);
+                                ModuleInfoImpl moduleInfo;
+                                synchronized (moduleInfos) {
+                                    moduleInfo = moduleInfos.get(pd.getClassLoader());
+                                }
+                                if (moduleInfo != null) {
+                                    if (TC.isDebugEnabled()) {
+                                        Tr.debug(TC, "Protection domain is linked to known class loader: {0}", moduleInfo.getName());
                                     }
+                                    threadInfo = new ThreadInfoImpl(thread, moduleInfo, threadInfoQueue);
+                                    // TODO: implement logging as a listener as well
+                                    // TODO: replace logQueue by an event queue and dispatch events asynchronously
+                                    synchronized (listeners) {
+                                        for (UnmanagedThreadListener listener : listeners) {
+                                            listener.threadStarted(thread, moduleInfo);
+                                        }
+                                    }
+                                    // getThreadInfo may be called by the monitor thread or via the UnmanagedThreadMonitor
+                                    // service, but we want all logging to happen inside the monitor thread
+                                    logQueue.add(threadInfo);
+                                    break;
                                 }
-                                // getThreadInfo may be called by the monitor thread or via the UnmanagedThreadMonitor
-                                // service, but we want all logging to happen inside the monitor thread
-                                logQueue.add(threadInfo);
-                                break;
                             }
                         }
+                    } catch (IllegalAccessException ex) {
+                        throw new IllegalAccessError(ex.getMessage());
                     }
-                    // Always add the entry to the threadInfos map so that we remember threads that are not linked
-                    // to applications
-                    threadInfos.put(thread, threadInfo);
-                    return threadInfo;
-                } catch (IllegalAccessException ex) {
-                    throw new IllegalAccessError(ex.getMessage());
                 }
+                // Always add the entry to the threadInfos map so that we remember threads that are not linked
+                // to applications
+                threadInfos.put(thread, threadInfo);
+                return threadInfo;
             } else {
                 return threadInfos.get(thread);
             }
