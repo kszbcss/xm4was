@@ -107,7 +107,7 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
                     
                     public void removedService(ServiceReference reference, Object object) {
                         synchronized (listeners) {
-                            listeners.remove((UnmanagedThreadListener)object);
+                            listeners.remove(object);
                         }
                         bundleContext.ungetService(reference);
                     }
