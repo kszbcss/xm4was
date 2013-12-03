@@ -1,4 +1,4 @@
-package com.googlecode.xm4was.clmon.impl;
+package com.googlecode.xm4was.commons.rbeans;
 
 import java.util.HashMap;
 import java.util.Map;
