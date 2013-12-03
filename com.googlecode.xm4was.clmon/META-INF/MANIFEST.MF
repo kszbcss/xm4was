@@ -3,7 +3,8 @@ Bundle-ManifestVersion: 2
 Bundle-Name: XM4WAS Class Loader Monitor
 Bundle-SymbolicName: com.googlecode.xm4was.clmon;singleton:=true
 Bundle-Version: 0.4.0.qualifier
-Import-Package: com.googlecode.xm4was.commons,
+Import-Package: com.github.veithen.rbeans,
+ com.googlecode.xm4was.commons,
  com.googlecode.xm4was.commons.deploy,
  com.googlecode.xm4was.commons.jmx.annotations,
  com.googlecode.xm4was.commons.osgi,
