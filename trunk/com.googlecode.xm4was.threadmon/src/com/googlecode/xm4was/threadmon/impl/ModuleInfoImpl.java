@@ -43,4 +43,9 @@ public class ModuleInfoImpl implements ModuleInfo {
         // Max frequency is 1 per 2 minutes
         return threadLoggingEnabled = threadDestructionFrequency.getFrequency() <= 0.5/60.0;
     }
+
+    @Override
+    public String toString() {
+        return getName();
+    }
 }
