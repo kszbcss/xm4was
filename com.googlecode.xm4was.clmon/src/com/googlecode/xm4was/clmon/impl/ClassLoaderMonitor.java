@@ -171,10 +171,16 @@ public class ClassLoaderMonitor implements ClassLoaderListener, UnmanagedThreadL
     }
 
     public void threadStarted(Thread thread, ModuleInfo moduleInfo) {
+        if (TC.isDebugEnabled()) {
+            Tr.debug(TC, "Got notification about a new unmanaged thread {0} in {1}", new Object[] { thread.getName(), moduleInfo });
+        }
         getGroup(moduleInfo.getApplicationName(), moduleInfo.getModuleName()).threadCreated();
     }
     
     public void threadStopped(String name, ModuleInfo moduleInfo) {
+        if (TC.isDebugEnabled()) {
+            Tr.debug(TC, "Got notification that the unmanaged thread {0} in {1} has stopped", new Object[] { name, moduleInfo });
+        }
         getGroup(moduleInfo.getApplicationName(), moduleInfo.getModuleName()).threadDestroyed();
     }
 
