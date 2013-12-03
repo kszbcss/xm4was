@@ -6,6 +6,7 @@ import com.github.veithen.rbeans.Optional;
 import com.github.veithen.rbeans.RBean;
 import com.github.veithen.rbeans.SeeAlso;
 import com.github.veithen.rbeans.TargetClass;
+import com.googlecode.xm4was.commons.rbeans.HashMapRBean;
 import com.ibm.ws.classloader.CompoundClassLoader;
 
 @TargetClass(CompoundClassLoader.class)

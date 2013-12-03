@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import com.github.veithen.rbeans.RBeanFactory;
+import com.googlecode.xm4was.commons.rbeans.HashMapRBean;
 import com.ibm.ws.classloader.CompoundClassLoader;
 
 public class CompoundClassLoaderRBeanTest {

@@ -4,6 +4,7 @@ import com.github.veithen.rbeans.RBeanFactory;
 import com.github.veithen.rbeans.RBeanFactoryException;
 import com.googlecode.xm4was.clmon.resources.Messages;
 import com.googlecode.xm4was.commons.TrConstants;
+import com.googlecode.xm4was.commons.rbeans.HashMapRBean;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 
