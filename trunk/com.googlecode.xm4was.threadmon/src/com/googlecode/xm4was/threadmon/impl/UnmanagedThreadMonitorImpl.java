@@ -93,6 +93,7 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
                         bundleContext.ungetService(reference);
                     }
                 });
+                listenerTracker.open();
                 
                 serviceRegistration = bundleContext.registerService(UnmanagedThreadMonitor.class.getName(), this, null);
                 
