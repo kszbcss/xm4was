@@ -1,8 +1,6 @@
 package com.googlecode.xm4was.threadmon.impl;
 
 import java.lang.ref.ReferenceQueue;
-import java.lang.reflect.Field;
-import java.security.AccessControlContext;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,6 +21,7 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
+import com.github.veithen.rbeans.RBeanFactory;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.deploy.ClassLoaderListener;
 import com.googlecode.xm4was.threadmon.ModuleInfo;
@@ -58,34 +57,15 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
     
     private final Queue<ThreadInfoImpl> logQueue = new ConcurrentLinkedQueue<ThreadInfoImpl>();
     
-    /**
-     * The field in the {@link Thread} class that stores the {@link AccessControlContext}.
-     */
-    private final Field accessControlContextField;
-    
-    /**
-     * The field in the {@link AccessControlContext} class that stores the array of
-     * {@link ProtectionDomain} objects.
-     */
-    private final Field pdArrayField;
+    private final RBeanFactory rbf;
     
     private final List<UnmanagedThreadListener> listeners = new LinkedList<UnmanagedThreadListener>();
     private ServiceTracker listenerTracker;
     
     public UnmanagedThreadMonitorImpl(BundleContext bundleContext) throws Exception {
         this.bundleContext = bundleContext;
-        
-        accessControlContextField = Thread.class.getDeclaredField("accessControlContext");
-        accessControlContextField.setAccessible(true);
-        
-        Field pdArrayField;
-        try {
-            pdArrayField = AccessControlContext.class.getDeclaredField("context");
-        } catch (NoSuchFieldException ex) {
-            pdArrayField = AccessControlContext.class.getDeclaredField("domainsArray");
-        }
-        pdArrayField.setAccessible(true);
-        this.pdArrayField = pdArrayField;
+
+        rbf = new RBeanFactory(ThreadRBean.class);
     }
     
     public void classLoaderCreated(ClassLoader classLoader, String applicationName, String moduleName) {
@@ -214,40 +194,35 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
                 if (thread instanceof ThreadPool.WorkerThread) {
                     Tr.debug(TC, "Ignoring; thread belongs to a WebSphere thread pool");
                 } else {
-                    try {
-                        AccessControlContext acc = (AccessControlContext)accessControlContextField.get(thread);
-                        ProtectionDomain[] pdArray = (ProtectionDomain[])pdArrayField.get(acc);
-                        if (pdArray != null) {
-                            for (int i=pdArray.length-1; i>=0; i--) {
-                                ProtectionDomain pd = pdArray[i];
+                    ProtectionDomain[] pdArray = rbf.createRBean(ThreadRBean.class, thread).getAccessControlContext().getProtectionDomains();
+                    if (pdArray != null) {
+                        for (int i=pdArray.length-1; i>=0; i--) {
+                            ProtectionDomain pd = pdArray[i];
+                            if (TC.isDebugEnabled()) {
+                                Tr.debug(TC, "Protection domain: codeSource={0}", pd.getCodeSource());
+                            }
+                            ModuleInfoImpl moduleInfo;
+                            synchronized (moduleInfos) {
+                                moduleInfo = moduleInfos.get(pd.getClassLoader());
+                            }
+                            if (moduleInfo != null) {
                                 if (TC.isDebugEnabled()) {
-                                    Tr.debug(TC, "Protection domain: codeSource={0}", pd.getCodeSource());
+                                    Tr.debug(TC, "Protection domain is linked to known class loader: {0}", moduleInfo.getName());
                                 }
-                                ModuleInfoImpl moduleInfo;
-                                synchronized (moduleInfos) {
-                                    moduleInfo = moduleInfos.get(pd.getClassLoader());
-                                }
-                                if (moduleInfo != null) {
-                                    if (TC.isDebugEnabled()) {
-                                        Tr.debug(TC, "Protection domain is linked to known class loader: {0}", moduleInfo.getName());
+                                threadInfo = new ThreadInfoImpl(thread, moduleInfo, threadInfoQueue);
+                                // TODO: implement logging as a listener as well
+                                // TODO: replace logQueue by an event queue and dispatch events asynchronously
+                                synchronized (listeners) {
+                                    for (UnmanagedThreadListener listener : listeners) {
+                                        listener.threadStarted(thread, moduleInfo);
                                     }
-                                    threadInfo = new ThreadInfoImpl(thread, moduleInfo, threadInfoQueue);
-                                    // TODO: implement logging as a listener as well
-                                    // TODO: replace logQueue by an event queue and dispatch events asynchronously
-                                    synchronized (listeners) {
-                                        for (UnmanagedThreadListener listener : listeners) {
-                                            listener.threadStarted(thread, moduleInfo);
-                                        }
-                                    }
-                                    // getThreadInfo may be called by the monitor thread or via the UnmanagedThreadMonitor
-                                    // service, but we want all logging to happen inside the monitor thread
-                                    logQueue.add(threadInfo);
-                                    break;
                                 }
+                                // getThreadInfo may be called by the monitor thread or via the UnmanagedThreadMonitor
+                                // service, but we want all logging to happen inside the monitor thread
+                                logQueue.add(threadInfo);
+                                break;
                             }
                         }
-                    } catch (IllegalAccessException ex) {
-                        throw new IllegalAccessError(ex.getMessage());
                     }
                 }
                 // Always add the entry to the threadInfos map so that we remember threads that are not linked
