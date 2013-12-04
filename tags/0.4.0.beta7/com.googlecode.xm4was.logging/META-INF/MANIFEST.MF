@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: XM4WAS Logging
+Bundle-SymbolicName: com.googlecode.xm4was.logging;singleton:=true
+Bundle-Version: 0.4.0.beta7
+Import-Package: com.googlecode.xm4was.commons,
+ com.googlecode.xm4was.commons.jmx.annotations,
+ com.googlecode.xm4was.commons.osgi,
+ com.googlecode.xm4was.commons.osgi.annotations,
+ com.googlecode.xm4was.commons.utils.jvm,
+ com.googlecode.xm4was.threadmon,
+ com.ibm.ejs.csi,
+ com.ibm.ejs.ras,
+ com.ibm.websphere.logging,
+ com.ibm.ws.runtime.metadata,
+ com.ibm.ws.runtime.service,
+ com.ibm.ws.threadContext,
+ com.ibm.wsspi.webcontainer.metadata,
+ com.ibm.wsspi.webcontainer.servlet
+Export-Package: com.googlecode.xm4was.logging.resources
+Eclipse-AutoStart: true
+XM4WAS-Components: com.googlecode.xm4was.logging.LoggingServiceHandler
