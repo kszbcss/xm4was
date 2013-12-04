@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JNA 4.0.0 for Intel/ARM
 Bundle-SymbolicName: com.googlecode.xm4was.jna
-Bundle-Version: 0.4.0.qualifier
+Bundle-Version: 0.4.0.beta7
 Export-Package: com.sun.jna; version="4.0.0"
 Bundle-ClassPath: .,
  lib/jna-no-native.jar
