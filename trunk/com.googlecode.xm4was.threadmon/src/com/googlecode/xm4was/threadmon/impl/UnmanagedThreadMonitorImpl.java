@@ -101,7 +101,11 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        updateThreads();
+                        try {
+                            updateThreads();
+                        } catch (Throwable ex) {
+                            Tr.error(TC, Messages._0006E, ex);
+                        }
                     }
                 }, 1000, 1000);
                 
@@ -126,7 +130,11 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
                 stoppedThreads.remove(thread);
             }
             for (Thread thread : stoppedThreads) {
-                threadInfos.remove(thread).enqueue();
+                ThreadInfoImpl threadInfo = threadInfos.remove(thread);
+                // We store null values in threadInfos for threads that are not linked to applications
+                if (threadInfo != null) {
+                    threadInfos.remove(thread).enqueue();
+                }
             }
         }
 

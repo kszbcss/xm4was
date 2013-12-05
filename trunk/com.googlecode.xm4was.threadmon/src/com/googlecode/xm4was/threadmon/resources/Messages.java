@@ -8,6 +8,7 @@ public class Messages extends ListResourceBundle {
     public static final String _0003W = "0003W";
     public static final String _0004W = "0004W";
     public static final String _0005I = "0005I";
+    public static final String _0006E = "0006E";
     
     private static final Object[][] contents = {
         { _0001I, "XMTMN0001I: Thread monitor started" },
@@ -15,6 +16,7 @@ public class Messages extends ListResourceBundle {
         { _0003W, "XMTMN0003W: Detected unmanaged thread in application/module {0}: {1}" },
         { _0004W, "XMTMN0004W: Logging of unmanaged threads for application/module {0} has been disabled because the thread creation/destruction frequency is too high" },
         { _0005I, "XMTMN0005I: Thread dump requested by user {0} for thread pool {1}\n{2}" },
+        { _0006E, "XMTMN0006E: An internal error occurred:\n{0}" },
     };
 
     @Override
