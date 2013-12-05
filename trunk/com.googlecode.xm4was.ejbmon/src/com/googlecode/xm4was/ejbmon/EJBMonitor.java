@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -62,7 +61,7 @@ public class EJBMonitor implements EJBMonitorMBean {
      * attempt.
      * </ul>
      */
-    private ExecutorService executorService;
+    private ThreadPoolExecutor executor;
 
     @Init
     public void init(EJBContainer ejbContainer, ManagementService managementService, EJBMonitorHelper helper, Lifecycle lifecycle) throws Exception {
@@ -70,10 +69,23 @@ public class EJBMonitor implements EJBMonitorMBean {
         mbeanServer = managementService.getMBeanServer();
         this.helper = helper;
         pending = new HashMap<J2EEName,Future<String>>();
-        executorService = new ThreadPoolExecutor(0, 10, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+        int corePoolSize;
+        if (System.getProperty("java.version").equals("1.5.0")) {
+            // On IBM Java 1.5, if the core pool size is 0, then scheduled tasks will never be executed
+            Tr.debug(TC, "Java 1.5 compatibility enabled; setting core pool size to 1");
+            corePoolSize = 1;
+        } else {
+            // The EJBMonitor should not create threads if it is not used; we achieve this by setting the
+            // core pool size to 0
+            corePoolSize = 0;
+        }
+        executor = new ThreadPoolExecutor(corePoolSize, 10, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+        if (TC.isDebugEnabled()) {
+            Tr.debug(TC, "Created ThreadPoolExecutor with corePoolSize={0} and keepAliveTime={1}", new Object[] { executor.getCorePoolSize(), executor.getKeepAliveTime(TimeUnit.SECONDS) });
+        }
         lifecycle.addStopAction(new Runnable() {
             public void run() {
-                executorService.shutdown();
+                executor.shutdown();
             }
         });
         Tr.info(TC, Messages._0001I);
@@ -96,7 +108,7 @@ public class EJBMonitor implements EJBMonitorMBean {
                 if (TC.isDebugEnabled()) {
                     Tr.debug(TC, "Scheduling a new validation of stateless session bean {0}", name);
                 }
-                future = executorService.submit(new Callable<String>() {
+                future = executor.submit(new Callable<String>() {
                     public String call() throws Exception {
                         if (TC.isDebugEnabled()) {
                             Tr.debug(TC, "Starting validation of stateless session bean {0}", name);
@@ -104,11 +116,11 @@ public class EJBMonitor implements EJBMonitorMBean {
                         try {
                             return validateStatelessSessionBean(name);
                         } finally {
-                            if (TC.isDebugEnabled()) {
-                                Tr.debug(TC, "Validation of stateless session bean {0} finished; validations that are still pending: {1}", new Object[] { name, pending.keySet().toString() });
-                            }
                             synchronized (pending) {
                                 pending.remove(name);
+                            }
+                            if (TC.isDebugEnabled()) {
+                                Tr.debug(TC, "Validation of stateless session bean {0} finished; validations that are still pending: {1}", new Object[] { name, pending.keySet().toString() });
                             }
                         }
                     }
@@ -116,6 +128,7 @@ public class EJBMonitor implements EJBMonitorMBean {
                 pending.put(name, future);
                 if (TC.isDebugEnabled()) {
                     Tr.debug(TC, "The following stateless session bean validations are pending: {0}", pending.keySet().toString());
+                    Tr.debug(TC, "Pool stats: poolSize={0}, activeCount={1}", new Object[] { executor.getPoolSize(), executor.getActiveCount() });
                 }
             }
         }
