@@ -94,15 +94,18 @@ public class EJBMonitor implements EJBMonitorMBean {
                 }
             } else {
                 if (TC.isDebugEnabled()) {
-                    Tr.debug(TC, "Starting a new validation of stateless session bean {0}", name);
+                    Tr.debug(TC, "Scheduling a new validation of stateless session bean {0}", name);
                 }
                 future = executorService.submit(new Callable<String>() {
                     public String call() throws Exception {
+                        if (TC.isDebugEnabled()) {
+                            Tr.debug(TC, "Starting validation of stateless session bean {0}", name);
+                        }
                         try {
                             return validateStatelessSessionBean(name);
                         } finally {
                             if (TC.isDebugEnabled()) {
-                                Tr.debug(TC, "Validation of stateless session bean {0} finished", name);
+                                Tr.debug(TC, "Validation of stateless session bean {0} finished; validations that are still pending: {1}", new Object[] { name, pending.keySet().toString() });
                             }
                             synchronized (pending) {
                                 pending.remove(name);
@@ -111,6 +114,9 @@ public class EJBMonitor implements EJBMonitorMBean {
                     }
                 });
                 pending.put(name, future);
+                if (TC.isDebugEnabled()) {
+                    Tr.debug(TC, "The following stateless session bean validations are pending: {0}", pending.keySet().toString());
+                }
             }
         }
         if (TC.isDebugEnabled()) {
