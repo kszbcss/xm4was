@@ -53,7 +53,9 @@
                                 <artifactItem>
                                     <groupId>net.java.dev.jna</groupId>
                                     <artifactId>jna</artifactId>
-                                    <version>4.0.0</version>
+                                    <!-- 3.3.0 and 4.0.0 are both compatible with old glibc versions, but only
+                                         3.3.0 is compatible with Java 1.5 -->
+                                    <version>3.3.0</version>
                                 </artifactItem>
                             </artifactItems>
                             <outputDirectory>${project.build.directory}/jna</outputDirectory>
