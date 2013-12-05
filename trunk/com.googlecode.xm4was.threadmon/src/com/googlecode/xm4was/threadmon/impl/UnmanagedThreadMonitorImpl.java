@@ -133,7 +133,7 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
                 ThreadInfoImpl threadInfo = threadInfos.remove(thread);
                 // We store null values in threadInfos for threads that are not linked to applications
                 if (threadInfo != null) {
-                    threadInfos.remove(thread).enqueue();
+                    threadInfo.enqueue();
                 }
             }
         }
