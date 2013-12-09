@@ -79,7 +79,7 @@ public class EJBMonitor implements EJBMonitorMBean {
             // core pool size to 0
             corePoolSize = 0;
         }
-        executor = new ThreadPoolExecutor(corePoolSize, 10, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+        executor = new ThreadPoolExecutor(corePoolSize, 10, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("EJBMonitor"));
         if (TC.isDebugEnabled()) {
             Tr.debug(TC, "Created ThreadPoolExecutor with corePoolSize={0} and keepAliveTime={1}", new Object[] { executor.getCorePoolSize(), executor.getKeepAliveTime(TimeUnit.SECONDS) });
         }
