@@ -203,33 +203,40 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
                 if (thread instanceof ThreadPool.WorkerThread) {
                     Tr.debug(TC, "Ignoring; thread belongs to a WebSphere thread pool");
                 } else {
-                    ProtectionDomain[] pdArray = rbf.createRBean(ThreadRBean.class, thread).getAccessControlContext().getProtectionDomains();
-                    if (pdArray != null) {
-                        for (int i=pdArray.length-1; i>=0; i--) {
-                            ProtectionDomain pd = pdArray[i];
-                            if (TC.isDebugEnabled()) {
-                                Tr.debug(TC, "Protection domain: codeSource={0}", pd.getCodeSource());
-                            }
-                            ModuleInfoImpl moduleInfo;
-                            synchronized (moduleInfos) {
-                                moduleInfo = moduleInfos.get(pd.getClassLoader());
-                            }
-                            if (moduleInfo != null) {
+                    AccessControlContextRBean acc = rbf.createRBean(ThreadRBean.class, thread).getAccessControlContext();
+                    // The access control context is cleared when the thread is stopped. Therefore there is a
+                    // small probability that it is null.
+                    if (acc == null) {
+                        Tr.debug(TC, "No access control context found; probably the thread is already stopped");
+                    } else {
+                        ProtectionDomain[] pdArray = acc.getProtectionDomains();
+                        if (pdArray != null) {
+                            for (int i=pdArray.length-1; i>=0; i--) {
+                                ProtectionDomain pd = pdArray[i];
                                 if (TC.isDebugEnabled()) {
-                                    Tr.debug(TC, "Protection domain is linked to known class loader: {0}", moduleInfo.getName());
+                                    Tr.debug(TC, "Protection domain: codeSource={0}", pd.getCodeSource());
                                 }
-                                threadInfo = new ThreadInfoImpl(thread, moduleInfo, threadInfoQueue);
-                                // TODO: implement logging as a listener as well
-                                // TODO: replace logQueue by an event queue and dispatch events asynchronously
-                                synchronized (listeners) {
-                                    for (UnmanagedThreadListener listener : listeners) {
-                                        listener.threadStarted(thread, moduleInfo);
+                                ModuleInfoImpl moduleInfo;
+                                synchronized (moduleInfos) {
+                                    moduleInfo = moduleInfos.get(pd.getClassLoader());
+                                }
+                                if (moduleInfo != null) {
+                                    if (TC.isDebugEnabled()) {
+                                        Tr.debug(TC, "Protection domain is linked to known class loader: {0}", moduleInfo.getName());
                                     }
+                                    threadInfo = new ThreadInfoImpl(thread, moduleInfo, threadInfoQueue);
+                                    // TODO: implement logging as a listener as well
+                                    // TODO: replace logQueue by an event queue and dispatch events asynchronously
+                                    synchronized (listeners) {
+                                        for (UnmanagedThreadListener listener : listeners) {
+                                            listener.threadStarted(thread, moduleInfo);
+                                        }
+                                    }
+                                    // getThreadInfo may be called by the monitor thread or via the UnmanagedThreadMonitor
+                                    // service, but we want all logging to happen inside the monitor thread
+                                    logQueue.add(threadInfo);
+                                    break;
                                 }
-                                // getThreadInfo may be called by the monitor thread or via the UnmanagedThreadMonitor
-                                // service, but we want all logging to happen inside the monitor thread
-                                logQueue.add(threadInfo);
-                                break;
                             }
                         }
                     }
