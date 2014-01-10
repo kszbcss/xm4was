@@ -1,5 +1,6 @@
 package com.googlecode.xm4was.commons.osgi.impl;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -8,10 +9,12 @@ import org.osgi.framework.BundleEvent;
 import org.osgi.util.tracker.BundleTrackerCustomizer;
 
 import com.googlecode.xm4was.commons.TrConstants;
+import com.googlecode.xm4was.commons.osgi.annotations.ProcessTypes;
 import com.googlecode.xm4was.commons.osgi.annotations.Services;
 import com.googlecode.xm4was.commons.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
+import com.ibm.websphere.management.AdminServiceFactory;
 
 /**
  * Manages bundles containing XM4WAS components. It looks for bundles having a manifest with an
@@ -26,7 +29,15 @@ import com.ibm.ejs.ras.TraceComponent;
 final class BundleManagerImpl implements BundleManager, BundleTrackerCustomizer {
     private static final TraceComponent TC = Tr.register(BundleManagerImpl.class, TrConstants.GROUP, Messages.class.getName());
 
+    private final String processType;
     private final List<ManagedBundle> managedBundles = new LinkedList<ManagedBundle>();
+    
+    BundleManagerImpl() {
+        processType = AdminServiceFactory.getAdminService().getProcessType();
+        if (TC.isDebugEnabled()) {
+            Tr.debug(TC, "Process type is {0}", processType);
+        }
+    }
     
     public boolean isManaged(Bundle bundle) {
         for (ManagedBundle managedBundle : managedBundles) {
@@ -55,6 +66,23 @@ final class BundleManagerImpl implements BundleManager, BundleTrackerCustomizer 
                 } catch (ClassNotFoundException ex) {
                     Tr.error(TC, Messages._0007E, new Object[] { className, bundle.getSymbolicName(), ex });
                     continue;
+                }
+                ProcessTypes processTypes = clazz.getAnnotation(ProcessTypes.class);
+                if (processTypes != null) {
+                    boolean matches = false;
+                    for (String candidate : processTypes.value()) {
+                        if (candidate.equals(processType)) {
+                            matches = true;
+                            break;
+                        }
+                    }
+                    if (!matches) {
+                        if (TC.isDebugEnabled()) {
+                            Tr.debug(TC, "Skipping component {0} which is only valid for process types {1}",
+                                    new Object[] { clazz.getName(), Arrays.asList(processTypes.value()) });
+                        }
+                        continue;
+                    }
                 }
                 Object componentObject;
                 try {
