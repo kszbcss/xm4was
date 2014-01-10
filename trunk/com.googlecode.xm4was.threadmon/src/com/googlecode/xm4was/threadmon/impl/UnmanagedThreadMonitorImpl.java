@@ -5,7 +5,6 @@ import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -15,15 +14,15 @@ import java.util.TimerTask;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.util.tracker.ServiceTracker;
-import org.osgi.util.tracker.ServiceTrackerCustomizer;
-
 import com.github.veithen.rbeans.RBeanFactory;
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.deploy.ClassLoaderListener;
+import com.googlecode.xm4was.commons.osgi.Lifecycle;
+import com.googlecode.xm4was.commons.osgi.ServiceSet;
+import com.googlecode.xm4was.commons.osgi.ServiceVisitor;
+import com.googlecode.xm4was.commons.osgi.annotations.Init;
+import com.googlecode.xm4was.commons.osgi.annotations.ProcessTypes;
+import com.googlecode.xm4was.commons.osgi.annotations.Services;
 import com.googlecode.xm4was.threadmon.ModuleInfo;
 import com.googlecode.xm4was.threadmon.ThreadInfo;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadListener;
@@ -31,17 +30,14 @@ import com.googlecode.xm4was.threadmon.UnmanagedThreadMonitor;
 import com.googlecode.xm4was.threadmon.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
+import com.ibm.websphere.management.AdminConstants;
 import com.ibm.ws.util.ThreadPool;
 
+@ProcessTypes({AdminConstants.MANAGED_PROCESS, AdminConstants.STANDALONE_PROCESS})
+@Services({ClassLoaderListener.class, UnmanagedThreadMonitor.class})
 public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, UnmanagedThreadMonitor {
     private static final TraceComponent TC = Tr.register(UnmanagedThreadMonitorImpl.class, TrConstants.GROUP, Messages.class.getName());
     
-    private final BundleContext bundleContext;
-    
-    private final Object stateLock = new Object();
-    
-    private boolean started;
-    private ServiceRegistration serviceRegistration;
     private Timer timer;
     
     private final Map<ClassLoader,ModuleInfoImpl> moduleInfos = new HashMap<ClassLoader,ModuleInfoImpl>();
@@ -57,62 +53,46 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
     
     private final Queue<ThreadInfoImpl> logQueue = new ConcurrentLinkedQueue<ThreadInfoImpl>();
     
-    private final RBeanFactory rbf;
+    private RBeanFactory rbf;
     
-    private final List<UnmanagedThreadListener> listeners = new LinkedList<UnmanagedThreadListener>();
-    private ServiceTracker listenerTracker;
+    private ServiceSet<UnmanagedThreadListener> listeners;
     
-    public UnmanagedThreadMonitorImpl(BundleContext bundleContext) throws Exception {
-        this.bundleContext = bundleContext;
-
+    @Init
+    public void init(Lifecycle lifecycle, ServiceSet<UnmanagedThreadListener> listeners) throws Exception {
         rbf = new RBeanFactory(ThreadRBean.class);
+        
+        lifecycle.addStopAction(new Runnable() {
+            public void run() {
+                Tr.info(TC, Messages._0002I);
+            }
+        });
+        
+        this.listeners = listeners;
+        
+        timer = new Timer("Thread Monitor");
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    updateThreads();
+                } catch (Throwable ex) {
+                    Tr.error(TC, Messages._0006E, ex);
+                }
+            }
+        }, 1000, 1000);
+        lifecycle.addStopAction(new Runnable() {
+            public void run() {
+                timer.cancel();
+                timer = null;
+            }
+        });
+        
+        Tr.info(TC, Messages._0001I);
     }
     
     public void classLoaderCreated(ClassLoader classLoader, String applicationName, String moduleName) {
         synchronized (moduleInfos) {
             moduleInfos.put(classLoader, new ModuleInfoImpl(applicationName, moduleName));
-        }
-        synchronized (stateLock) {
-            if (!started) {
-                listenerTracker = new ServiceTracker(bundleContext, UnmanagedThreadListener.class.getName(), new ServiceTrackerCustomizer() {
-                    public Object addingService(ServiceReference reference) {
-                        UnmanagedThreadListener listener = (UnmanagedThreadListener)bundleContext.getService(reference);
-                        synchronized (listeners) {
-                            listeners.add(listener);
-                        }
-                        return listener;
-                    }
-                    
-                    public void modifiedService(ServiceReference reference, Object object) {
-                    }
-                    
-                    public void removedService(ServiceReference reference, Object object) {
-                        synchronized (listeners) {
-                            listeners.remove(object);
-                        }
-                        bundleContext.ungetService(reference);
-                    }
-                });
-                listenerTracker.open();
-                
-                serviceRegistration = bundleContext.registerService(UnmanagedThreadMonitor.class.getName(), this, null);
-                
-                timer = new Timer("Thread Monitor");
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        try {
-                            updateThreads();
-                        } catch (Throwable ex) {
-                            Tr.error(TC, Messages._0006E, ex);
-                        }
-                    }
-                }, 1000, 1000);
-                
-                started = true;
-                
-                Tr.info(TC, Messages._0001I);
-            }
         }
     }
 
@@ -143,13 +123,14 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
             if (TC.isDebugEnabled()) {
                 Tr.debug(TC, "Detected thread that has been stopped: {0}", threadInfo.getName());
             }
-            ModuleInfoImpl moduleInfo = threadInfo.getModuleInfo();
+            final ModuleInfoImpl moduleInfo = threadInfo.getModuleInfo();
             moduleInfo.threadDestroyed();
-            synchronized (listeners) {
-                for (UnmanagedThreadListener listener : listeners) {
-                    listener.threadStopped(threadInfo.getName(), moduleInfo);
+            final ThreadInfoImpl _threadInfo = threadInfo;
+            listeners.visit(new ServiceVisitor<UnmanagedThreadListener>() {
+                public void visit(UnmanagedThreadListener listener) {
+                    listener.threadStopped(_threadInfo.getName(), moduleInfo);
                 }
-            }
+            });
         }
         
         while ((threadInfo = logQueue.poll()) != null) {
@@ -162,38 +143,9 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
                 }
             }
         }
-        
-        // Stop the thread monitor if there are no more modules and no more unmanaged threads.
-        synchronized (stateLock) {
-            synchronized (moduleInfos) {
-                if (!moduleInfos.isEmpty()) {
-                    return;
-                }
-            }
-            synchronized (threadInfos) {
-                for (ThreadInfoImpl info : threadInfos.values()) {
-                    if (info != null) {
-                        return;
-                    }
-                }
-                threadInfos.clear();
-            }
-            
-            timer.cancel();
-            timer = null;
-            
-            serviceRegistration.unregister();
-            serviceRegistration = null;
-
-            listenerTracker.close();
-            
-            started = false;
-            
-            Tr.info(TC, Messages._0002I);
-        }
     }
 
-    private ThreadInfoImpl getThreadInfo(Thread thread) {
+    private ThreadInfoImpl getThreadInfo(final Thread thread) {
         synchronized (threadInfos) {
             if (!threadInfos.containsKey(thread)) {
                 if (TC.isDebugEnabled()) {
@@ -216,7 +168,7 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
                                 if (TC.isDebugEnabled()) {
                                     Tr.debug(TC, "Protection domain: codeSource={0}", pd.getCodeSource());
                                 }
-                                ModuleInfoImpl moduleInfo;
+                                final ModuleInfoImpl moduleInfo;
                                 synchronized (moduleInfos) {
                                     moduleInfo = moduleInfos.get(pd.getClassLoader());
                                 }
@@ -227,11 +179,11 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
                                     threadInfo = new ThreadInfoImpl(thread, moduleInfo, threadInfoQueue);
                                     // TODO: implement logging as a listener as well
                                     // TODO: replace logQueue by an event queue and dispatch events asynchronously
-                                    synchronized (listeners) {
-                                        for (UnmanagedThreadListener listener : listeners) {
+                                    listeners.visit(new ServiceVisitor<UnmanagedThreadListener>() {
+                                        public void visit(UnmanagedThreadListener listener) {
                                             listener.threadStarted(thread, moduleInfo);
                                         }
-                                    }
+                                    });
                                     // getThreadInfo may be called by the monitor thread or via the UnmanagedThreadMonitor
                                     // service, but we want all logging to happen inside the monitor thread
                                     logQueue.add(threadInfo);
