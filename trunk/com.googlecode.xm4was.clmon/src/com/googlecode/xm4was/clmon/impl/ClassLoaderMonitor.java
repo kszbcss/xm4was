@@ -19,12 +19,15 @@ import com.googlecode.xm4was.commons.osgi.Lifecycle;
 import com.googlecode.xm4was.commons.osgi.ServiceSet;
 import com.googlecode.xm4was.commons.osgi.ServiceVisitor;
 import com.googlecode.xm4was.commons.osgi.annotations.Init;
+import com.googlecode.xm4was.commons.osgi.annotations.ProcessTypes;
 import com.googlecode.xm4was.commons.osgi.annotations.Services;
 import com.googlecode.xm4was.threadmon.ModuleInfo;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadListener;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
+import com.ibm.websphere.management.AdminConstants;
 
+@ProcessTypes({AdminConstants.MANAGED_PROCESS, AdminConstants.STANDALONE_PROCESS})
 @Services({ ClassLoaderListener.class, UnmanagedThreadListener.class, ClassLoaderMonitorMBean.class })
 public class ClassLoaderMonitor implements ClassLoaderListener, UnmanagedThreadListener, ClassLoaderMonitorMBean {
     private static final TraceComponent TC = Tr.register(ClassLoaderMonitor.class, TrConstants.GROUP, Messages.class.getName());
