@@ -1,0 +1,1 @@
+Binary packages can be downloaded from [https://bintray.com/veithen/generic/xm4was Bintray].
