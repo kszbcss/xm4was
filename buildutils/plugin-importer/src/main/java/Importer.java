@@ -52,7 +52,7 @@ public class Importer {
     
     public static void main(String[] args) throws Exception {
         URI repoURI = new URI(args[args.length-1]);
-        Runtime runtime = Runtime.getInstance(Configuration.newDefault().logger(SimpleLogger.INSTANCE).initializer(new P2Initializer(new File("p2-data"))).build());
+        Runtime runtime = Runtime.getInstance(Configuration.newDefault().logger(SimpleLogger.INSTANCE).initializer(new P2Initializer(new File("p2-data"), false)).build());
         IProgressMonitor monitor = new SystemOutProgressMonitor();
         IProvisioningAgent agent = runtime.getService(IProvisioningAgent.class);
         IArtifactRepositoryManager artifactRepositoryManager = (IArtifactRepositoryManager)agent.getService(IArtifactRepositoryManager.SERVICE_NAME);
