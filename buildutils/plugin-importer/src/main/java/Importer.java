@@ -19,6 +19,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.metadata.IArtifactKey;
 import org.eclipse.equinox.p2.publisher.IPublisherAction;
@@ -32,6 +33,7 @@ import org.eclipse.equinox.p2.repository.artifact.IArtifactRepository;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRepositoryManager;
 import org.eclipse.equinox.p2.repository.metadata.IMetadataRepository;
 import org.eclipse.equinox.p2.repository.metadata.IMetadataRepositoryManager;
+import org.osgi.framework.BundleException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.EntityResolver;
@@ -39,10 +41,11 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.github.veithen.cosmos.osgi.runtime.Configuration;
+import com.github.veithen.cosmos.osgi.runtime.CosmosException;
 import com.github.veithen.cosmos.osgi.runtime.Runtime;
+import com.github.veithen.cosmos.osgi.runtime.RuntimeInitializer;
+import com.github.veithen.cosmos.osgi.runtime.equinox.EquinoxInitializer;
 import com.github.veithen.cosmos.osgi.runtime.logging.simple.SimpleLogger;
-import com.github.veithen.cosmos.p2.P2Initializer;
-import com.github.veithen.cosmos.p2.SystemOutProgressMonitor;
 import com.google.common.io.Files;
 
 public class Importer {
@@ -52,7 +55,15 @@ public class Importer {
     
     public static void main(String[] args) throws Exception {
         URI repoURI = new URI(args[args.length-1]);
-        Runtime runtime = Runtime.getInstance(Configuration.newDefault().logger(SimpleLogger.INSTANCE).initializer(new P2Initializer(new File("p2-data"), false)).build());
+        Runtime runtime = Runtime.getInstance(Configuration.newDefault().logger(SimpleLogger.INSTANCE).initializer(new RuntimeInitializer() {
+            @Override
+            public void initializeRuntime(Runtime runtime) throws CosmosException, BundleException {
+                EquinoxInitializer.INSTANCE.initializeRuntime(runtime);
+                runtime.setProperty("eclipse.p2.data.area", "p2-data");
+                runtime.getBundle("org.apache.felix.scr").start();
+                runtime.getBundle("org.eclipse.equinox.p2.core").start();
+            }
+        }).build());
         IProgressMonitor monitor = new SystemOutProgressMonitor();
         IProvisioningAgent agent = runtime.getService(IProvisioningAgent.class);
         IArtifactRepositoryManager artifactRepositoryManager = (IArtifactRepositoryManager)agent.getService(IArtifactRepositoryManager.SERVICE_NAME);
@@ -75,9 +86,14 @@ public class Importer {
         publisherInfo.setMetadataRepository(metadataRepository);
         publisherInfo.setArtifactOptions(IPublisherInfo.A_PUBLISH | IPublisherInfo.A_INDEX);
         Publisher publisher = new Publisher(publisherInfo);
-        publisher.publish(publisherActions.toArray(new IPublisherAction[publisherActions.size()]), monitor);
+        IStatus status = publisher.publish(publisherActions.toArray(new IPublisherAction[publisherActions.size()]), monitor);
         // TODO: need a shutdown method for the OSGi runtime (to stop non daemon threads)
-        System.exit(0);
+        if (status.isOK()) {
+            System.exit(0);
+        } else {
+            System.err.println("STATUS: " + status);
+            System.exit(1);
+        }
     }
     
     private static File[] processWASPlugins(final File wasDir, File outputDir) throws Exception {
