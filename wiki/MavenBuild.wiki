@@ -4,7 +4,7 @@
 
   * Local installations of !WebSphere 6.1, 7.0 and 8.5 (8.5.0.x or 8.5.5.x). You can use [http://www.myeclipseide.com/module-htmlpages-display-pid-448.html WebSphere for Developers] versions. Note that you need to update them to recent fixpack levels: using the original releases (especially 6.1.0.0 and 7.0.0.0) will result in build failures.
   * Subversion.
-  * Maven 3.
+  * Maven 3. Note that 3.1.x and 3.2.x are not supported yet. Please use Maven 3.0.x.
 
 = Create a P2 repository from the !WebSphere runtime bundles =
 
