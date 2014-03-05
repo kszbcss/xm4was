@@ -24,6 +24,24 @@ This produces an executable JAR file. The tool expects as arguments the installa
 
 The tool will also download a couple of JARs from an Eclipse P2 repository. If you are behind an HTTP proxy, you may therefore need to set the `http.proxyHost` and `http.proxyPort` system properties accordingly.
 
+= Configure the P2 repository location in `settings.xml` =
+
+The XM4WAS build uses the `was.p2.repo.url` property to locate the P2 repository created in the previous step. You can configure it in `settings.xml` as follows:
+
+{{{
+    <profiles>
+        <profile>
+            <id>was-p2</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <was.p2.repo.url>file:///path/to/was_repo</was.p2.repo.url>
+            </properties>
+        </profile>
+    </profiles>
+}}}
+
 = Set `JAVA_HOME` =
 
-The project must be built using the JDK that comes with WAS 7.0. Set the `JAVA_HOME` accordingly (e.g. `/opt/IBM/WebSphere/AppServer/java`).
+The project must be built using the JDK that comes with WAS 7.0 or 8.5. Set the `JAVA_HOME` accordingly (e.g. `/opt/IBM/WebSphere/AppServer/java`).
