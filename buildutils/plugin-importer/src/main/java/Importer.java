@@ -18,6 +18,7 @@ import java.util.zip.ZipOutputStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
@@ -54,12 +55,26 @@ public class Importer {
     private static String[] eclipsePlugins = { "org.eclipse.equinox.launcher", "org.junit", "org.hamcrest.core" };
     
     public static void main(String[] args) throws Exception {
+        final File outputDir = Files.createTempDir();
+        final File p2DataArea = Files.createTempDir();
+        java.lang.Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                try {
+                    FileUtils.deleteDirectory(outputDir);
+                    FileUtils.deleteDirectory(p2DataArea);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+        
         URI repoURI = new URI(args[args.length-1]);
         Runtime runtime = Runtime.getInstance(Configuration.newDefault().logger(SimpleLogger.INSTANCE).initializer(new RuntimeInitializer() {
             @Override
             public void initializeRuntime(Runtime runtime) throws CosmosException, BundleException {
                 EquinoxInitializer.INSTANCE.initializeRuntime(runtime);
-                runtime.setProperty("eclipse.p2.data.area", "p2-data");
+                runtime.setProperty("eclipse.p2.data.area", p2DataArea.getAbsolutePath());
                 // Don't use mirrors because they make the execution more unpredictable
                 runtime.setProperty("eclipse.p2.mirrors", "false");
                 runtime.getBundle("org.apache.felix.scr").start();
@@ -75,7 +90,6 @@ public class Importer {
         IArtifactRepository artifactRepository = artifactRepositoryManager.createRepository(repoURI, "WebSphere Artifact Repository", IArtifactRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
         IMetadataRepository metadataRepository = metadataRepositoryManager.createRepository(repoURI, "WebSphere Metadata Repository", IMetadataRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
         
-        File outputDir = Files.createTempDir();
         List<IPublisherAction> publisherActions = new ArrayList<IPublisherAction>();
         for (int i=0; i<args.length-1; i++) {
             publisherActions.add(new BundlesAction(processWASPlugins(new File(args[i]), outputDir)));
