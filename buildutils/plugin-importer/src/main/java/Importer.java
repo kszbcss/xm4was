@@ -137,23 +137,33 @@ public class Importer {
             if (plugin.isFile() && name.endsWith(".jar")) {
                 System.out.println(plugin);
                 File outputFile = new File(outputDir, name.substring(0, name.length()-4) + "_" + wasVersion + ".jar");
-                transformJAR(plugin, outputFile, new ManifestTransformer() {
+                boolean result = transformJAR(plugin, outputFile, new ManifestTransformer() {
                     @Override
-                    public void transformManifest(Manifest manifest) {
+                    public boolean transformManifest(Manifest manifest) {
                         Attributes atts = manifest.getMainAttributes();
                         String bundleVersion = atts.getValue("Bundle-Version");
-                        int dots = 0;
-                        for (int i=0; i<bundleVersion.length(); i++) {
-                            if (bundleVersion.charAt(i) == '.') {
-                                dots++;
+                        if (bundleVersion == null) {
+                            // The plugins folder of WPS 6.1 contains JARs that are not bundles.
+                            return false;
+                        } else {
+                            int dots = 0;
+                            for (int i=0; i<bundleVersion.length(); i++) {
+                                if (bundleVersion.charAt(i) == '.') {
+                                    dots++;
+                                }
                             }
+                            atts.putValue("Bundle-Version", bundleVersion + (dots == 3 ? "_" : (dots == 2 ? "." : ".0.")) + bundleVersionSuffix);
+                            // Remove signatures
+                            manifest.getEntries().clear();
+                            return true;
                         }
-                        atts.putValue("Bundle-Version", bundleVersion + (dots == 3 ? "_" : (dots == 2 ? "." : ".0.")) + bundleVersionSuffix);
-                        // Remove signatures
-                        manifest.getEntries().clear();
                     }
                 });
-                outputFiles.add(outputFile);
+                if (result) {
+                    outputFiles.add(outputFile);
+                } else {
+                    System.out.println("  Skipped. Not a bundle.");
+                }
             }
         }
         // Hack: bootstrap.jar is configured as visible to all bundles (using org.osgi.framework.bootdelegation);
@@ -161,33 +171,36 @@ public class Importer {
         File outputFile = new File(outputDir, "bootstrap-" + wasVersion + ".jar");
         transformJAR(new File(wasDir, "lib/bootstrap.jar"), outputFile, new ManifestTransformer() {
             @Override
-            public void transformManifest(Manifest manifest) {
+            public boolean transformManifest(Manifest manifest) {
                 Attributes atts = manifest.getMainAttributes();
                 atts.putValue("Bundle-ManifestVersion", "2");
                 atts.putValue("Bundle-SymbolicName", "bootstrap");
                 atts.putValue("Bundle-Version", wasVersion);
                 atts.putValue("Fragment-Host", "com.ibm.ws.bootstrap");
+                return true;
             }
         });
         outputFiles.add(outputDir);
         outputFile = new File(outputDir, "bootstrap-runtime-" + wasVersion + ".jar");
         transformJAR(new File(wasDir, "lib/bootstrap.jar"), outputFile, new ManifestTransformer() {
             @Override
-            public void transformManifest(Manifest manifest) {
+            public boolean transformManifest(Manifest manifest) {
                 Attributes atts = manifest.getMainAttributes();
                 atts.putValue("Bundle-ManifestVersion", "2");
                 atts.putValue("Bundle-SymbolicName", "bootstrap-runtime");
                 atts.putValue("Bundle-Version", wasVersion);
                 atts.putValue("Fragment-Host", "com.ibm.ws.runtime");
+                return true;
             }
         });
         outputFiles.add(outputDir);
         return outputFiles.toArray(new File[outputFiles.size()]);
     }
     
-    private static void transformJAR(File inputFile, File outputFile, ManifestTransformer manifestTransformer) throws Exception {
+    private static boolean transformJAR(File inputFile, File outputFile, ManifestTransformer manifestTransformer) throws Exception {
         ZipInputStream zin = new ZipInputStream(new FileInputStream(inputFile));
         ZipOutputStream zout = new ZipOutputStream(new FileOutputStream(outputFile));
+        boolean result = false;
         byte[] buffer = new byte[4096];
         ZipEntry entry;
         while ((entry = zin.getNextEntry()) != null) {
@@ -198,7 +211,7 @@ public class Importer {
             zout.putNextEntry(new ZipEntry(entryName));
             if (entryName.equals("META-INF/MANIFEST.MF")) {
                 Manifest manifest = new Manifest(zin);
-                manifestTransformer.transformManifest(manifest);
+                result = manifestTransformer.transformManifest(manifest);
                 manifest.write(zout);
             } else {
                 int c;
@@ -209,6 +222,10 @@ public class Importer {
         }
         zin.close();
         zout.close();
+        if (!result) {
+            outputFile.delete();
+        }
+        return result;
     }
     
     private static File[] downloadEclipsePlugins(IArtifactRepositoryManager artifactRepositoryManager, File outputDir, IProgressMonitor monitor) throws Exception {
