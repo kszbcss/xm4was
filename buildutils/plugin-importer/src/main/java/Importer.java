@@ -60,6 +60,8 @@ public class Importer {
             public void initializeRuntime(Runtime runtime) throws CosmosException, BundleException {
                 EquinoxInitializer.INSTANCE.initializeRuntime(runtime);
                 runtime.setProperty("eclipse.p2.data.area", "p2-data");
+                // Don't use mirrors because they make the execution more unpredictable
+                runtime.setProperty("eclipse.p2.mirrors", "false");
                 runtime.getBundle("org.apache.felix.scr").start();
                 runtime.getBundle("org.eclipse.equinox.p2.core").start();
             }
