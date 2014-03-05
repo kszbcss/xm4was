@@ -2,18 +2,27 @@
 
 = Prerequisites =
 
-  * A local installation of !WebSphere 7.0.
+  * Local installations of !WebSphere 6.1, 7.0 and 8.5 (8.5.0.x or 8.5.5.x). You can use [http://www.myeclipseide.com/module-htmlpages-display-pid-448.html WebSphere for Developers] versions.
+  * Subversion.
   * Maven 3.
 
-= Load !WebSphere bundles into the local Maven repository =
+= Create a P2 repository from the !WebSphere runtime bundles =
 
-!WebSphere uses the same OSGi runtime (Equinox) as Eclipse. Therefore maven-eclipse-plugin can be used to install the OSGi bundles of the !WebSphere runtime into the local Maven repository so that they will be available during the build:
+The XM4WAS Maven (Tycho) build is set up to pull !WebSphere dependencies from a P2 repository. Since no public repository exists, it is necessary to create one locally and populate it with the bundles from the !WebSphere versions that are supported by XM4WAS, i.e. 6.1, 7.0 and 8.5. An additional problem is that different WAS versions can contain OSGi bundles with the same symbolic name and version, but that are not identical. To fix this problem, it is necessary to modify the bundle versions to include the WAS version.
 
-{{{
-mvn eclipse:to-maven -DeclipseDir=<was_install_dir>
-}}}
+XM4WAS provides a tool to perform these actions in a single run. The source code can be found at the following location:
 
-`<was_install_dir>` is the WAS 7.0 installation directory (e.g. `/opt/IBM/WebSphere/AppServer`). Note that this command must *not* be executed from the XM4WAS source directory. Instead it should be executed from any directory that doesn't contain a `pom.xml` file.
+https://xm4was.googlecode.com/svn/buildutils/plugin-importer
+
+After checking out the source code from the Subversion repository, build the tool using the following command:
+
+`mvn clean package`
+
+This produces an executable JAR file. The tool expects as arguments the installation directories of the 3 !WebSphere versions followed by the URL of the P2 repository to create. The command should look as follows:
+
+`java -jar target/plugin-importer-1-SNAPSHOT.jar /opt/IBM/WebSphere/AppServer-6.1/ /opt/IBM/WebSphere/AppServer-7.0/ /opt/IBM/WebSphere/AppServer-8.5/ file:///path/to/was_repo`
+
+The tool will also download a couple of JARs from an Eclipse P2 repository. If you are behind an HTTP proxy, you may therefore need to set the `http.proxyHost` and `http.proxyPort` system properties accordingly.
 
 = Set `JAVA_HOME` =
 
