@@ -3,11 +3,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -90,19 +88,18 @@ public class Importer {
         IArtifactRepository artifactRepository = artifactRepositoryManager.createRepository(repoURI, "WebSphere Artifact Repository", IArtifactRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
         IMetadataRepository metadataRepository = metadataRepositoryManager.createRepository(repoURI, "WebSphere Metadata Repository", IMetadataRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
         
-        List<IPublisherAction> publisherActions = new ArrayList<IPublisherAction>();
         for (int i=0; i<args.length-1; i++) {
-            publisherActions.add(new BundlesAction(processWASPlugins(new File(args[i]), outputDir)));
+            processWASPlugins(new File(args[i]), outputDir);
         }
         
-        publisherActions.add(new BundlesAction(downloadEclipsePlugins(artifactRepositoryManager, outputDir, monitor)));
+        downloadEclipsePlugins(artifactRepositoryManager, outputDir, monitor);
         
         PublisherInfo publisherInfo = new PublisherInfo();
         publisherInfo.setArtifactRepository(artifactRepository);
         publisherInfo.setMetadataRepository(metadataRepository);
         publisherInfo.setArtifactOptions(IPublisherInfo.A_PUBLISH | IPublisherInfo.A_INDEX);
         Publisher publisher = new Publisher(publisherInfo);
-        IStatus status = publisher.publish(publisherActions.toArray(new IPublisherAction[publisherActions.size()]), monitor);
+        IStatus status = publisher.publish(new IPublisherAction[] { new BundlesAction(new File[] { outputDir }) }, monitor);
         // TODO: need a shutdown method for the OSGi runtime (to stop non daemon threads)
         if (status.isOK()) {
             System.exit(0);
@@ -112,8 +109,7 @@ public class Importer {
         }
     }
     
-    private static File[] processWASPlugins(final File wasDir, File outputDir) throws Exception {
-        List<File> outputFiles = new ArrayList<File>();
+    private static void processWASPlugins(final File wasDir, File outputDir) throws Exception {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(false);
         dbf.setValidating(false);
@@ -136,8 +132,7 @@ public class Importer {
             String name = plugin.getName();
             if (plugin.isFile() && name.endsWith(".jar")) {
                 System.out.println(plugin);
-                File outputFile = new File(outputDir, name.substring(0, name.length()-4) + "_" + wasVersion + ".jar");
-                boolean result = transformJAR(plugin, outputFile, new ManifestTransformer() {
+                boolean result = transformJAR(plugin, new File(outputDir, name.substring(0, name.length()-4) + "_" + wasVersion + ".jar"), new ManifestTransformer() {
                     @Override
                     public boolean transformManifest(Manifest manifest) {
                         Attributes atts = manifest.getMainAttributes();
@@ -159,17 +154,14 @@ public class Importer {
                         }
                     }
                 });
-                if (result) {
-                    outputFiles.add(outputFile);
-                } else {
+                if (!result) {
                     System.out.println("  Skipped. Not a bundle.");
                 }
             }
         }
         // Hack: bootstrap.jar is configured as visible to all bundles (using org.osgi.framework.bootdelegation);
         // Instead we load it as a fragment into com.ibm.ws.bootstrap and com.ibm.ws.runtime.
-        File outputFile = new File(outputDir, "bootstrap-" + wasVersion + ".jar");
-        transformJAR(new File(wasDir, "lib/bootstrap.jar"), outputFile, new ManifestTransformer() {
+        transformJAR(new File(wasDir, "lib/bootstrap.jar"), new File(outputDir, "bootstrap-" + wasVersion + ".jar"), new ManifestTransformer() {
             @Override
             public boolean transformManifest(Manifest manifest) {
                 Attributes atts = manifest.getMainAttributes();
@@ -180,9 +172,7 @@ public class Importer {
                 return true;
             }
         });
-        outputFiles.add(outputDir);
-        outputFile = new File(outputDir, "bootstrap-runtime-" + wasVersion + ".jar");
-        transformJAR(new File(wasDir, "lib/bootstrap.jar"), outputFile, new ManifestTransformer() {
+        transformJAR(new File(wasDir, "lib/bootstrap.jar"), new File(outputDir, "bootstrap-runtime-" + wasVersion + ".jar"), new ManifestTransformer() {
             @Override
             public boolean transformManifest(Manifest manifest) {
                 Attributes atts = manifest.getMainAttributes();
@@ -193,8 +183,6 @@ public class Importer {
                 return true;
             }
         });
-        outputFiles.add(outputDir);
-        return outputFiles.toArray(new File[outputFiles.size()]);
     }
     
     private static boolean transformJAR(File inputFile, File outputFile, ManifestTransformer manifestTransformer) throws Exception {
@@ -228,22 +216,18 @@ public class Importer {
         return result;
     }
     
-    private static File[] downloadEclipsePlugins(IArtifactRepositoryManager artifactRepositoryManager, File outputDir, IProgressMonitor monitor) throws Exception {
+    private static void downloadEclipsePlugins(IArtifactRepositoryManager artifactRepositoryManager, File outputDir, IProgressMonitor monitor) throws Exception {
         IArtifactRepository artifactRepository = artifactRepositoryManager.loadRepository(new URI("http://download.eclipse.org/releases/kepler/201306260900"), monitor);
-        List<File> result = new ArrayList<File>();
         for (String id : eclipsePlugins) {
             for (IArtifactKey key : artifactRepository.query(new ArtifactKeyQuery("osgi.bundle", id, null), monitor)) {
                 IArtifactDescriptor[] descriptors = artifactRepository.getArtifactDescriptors(key);
-                File outputFile = new File(outputDir, id + "_" + key.getVersion() + ".jar");
-                FileOutputStream out = new FileOutputStream(outputFile);
+                FileOutputStream out = new FileOutputStream(new File(outputDir, id + "_" + key.getVersion() + ".jar"));
                 try {
                     artifactRepository.getArtifact(descriptors[0], out, monitor);
                 } finally {
                     out.close();
                 }
-                result.add(outputFile);
             }
         }
-        return result.toArray(new File[result.size()]);
     }
 }
