@@ -3,9 +3,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -19,8 +21,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.equinox.internal.p2.artifact.repository.simple.SimpleArtifactRepository;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.metadata.IArtifactKey;
+import org.eclipse.equinox.p2.metadata.Version;
 import org.eclipse.equinox.p2.publisher.IPublisherAction;
 import org.eclipse.equinox.p2.publisher.IPublisherInfo;
 import org.eclipse.equinox.p2.publisher.Publisher;
@@ -51,6 +55,11 @@ public class Importer {
     private static final Set<String> ignore = new HashSet<String>(Arrays.asList("META-INF/ECLIPSEF.RSA", "META-INF/ECLIPSEF.SF"));
     // These bundles are required to run the unit tests
     private static String[] eclipsePlugins = { "org.eclipse.equinox.launcher", "org.junit", "org.hamcrest.core" };
+    
+    private static final String[][] mappingRules = {
+        { "(&(classifier=osgi.bundle))", "${repoUrl}/plugins/${id}_${version}.jar" },
+        { "(&(classifier=websphere-library))", "${repoUrl}/lib/${id}_${version}.jar" },
+    };
     
     public static void main(String[] args) throws Exception {
         final File outputDir = Files.createTempDir();
@@ -86,10 +95,17 @@ public class Importer {
 
         // Create repository early so that we can fail early
         IArtifactRepository artifactRepository = artifactRepositoryManager.createRepository(repoURI, "WebSphere Artifact Repository", IArtifactRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
+        ((SimpleArtifactRepository)artifactRepository).setRules(mappingRules);
         IMetadataRepository metadataRepository = metadataRepositoryManager.createRepository(repoURI, "WebSphere Metadata Repository", IMetadataRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
         
+        List<IPublisherAction> actions = new ArrayList<IPublisherAction>();
+        actions.add(new BundlesAction(new File[] { outputDir }));
+        
         for (int i=0; i<args.length-1; i++) {
-            processWASPlugins(new File(args[i]), outputDir);
+            File wasDir = new File(args[i]);
+            String wasVersion = processWASPlugins(wasDir, outputDir);
+            // TODO: using the custom websphere-library classifier doesn't work: the artifact is not deployed to the repository
+            actions.add(new JarAction(/* "websphere-library" */ "osgi.bundle", "bootstrap", Version.create(wasVersion), new File(wasDir, "lib/bootstrap.jar")));
         }
         
         downloadEclipsePlugins(artifactRepositoryManager, outputDir, monitor);
@@ -99,7 +115,7 @@ public class Importer {
         publisherInfo.setMetadataRepository(metadataRepository);
         publisherInfo.setArtifactOptions(IPublisherInfo.A_PUBLISH | IPublisherInfo.A_INDEX);
         Publisher publisher = new Publisher(publisherInfo);
-        IStatus status = publisher.publish(new IPublisherAction[] { new BundlesAction(new File[] { outputDir }) }, monitor);
+        IStatus status = publisher.publish(actions.toArray(new IPublisherAction[actions.size()]), monitor);
         // TODO: need a shutdown method for the OSGi runtime (to stop non daemon threads)
         if (status.isOK()) {
             System.exit(0);
@@ -109,7 +125,7 @@ public class Importer {
         }
     }
     
-    private static void processWASPlugins(final File wasDir, File outputDir) throws Exception {
+    private static String processWASPlugins(final File wasDir, File outputDir) throws Exception {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(false);
         dbf.setValidating(false);
@@ -159,30 +175,7 @@ public class Importer {
                 }
             }
         }
-        // Hack: bootstrap.jar is configured as visible to all bundles (using org.osgi.framework.bootdelegation);
-        // Instead we load it as a fragment into com.ibm.ws.bootstrap and com.ibm.ws.runtime.
-        transformJAR(new File(wasDir, "lib/bootstrap.jar"), new File(outputDir, "bootstrap-" + wasVersion + ".jar"), new ManifestTransformer() {
-            @Override
-            public boolean transformManifest(Manifest manifest) {
-                Attributes atts = manifest.getMainAttributes();
-                atts.putValue("Bundle-ManifestVersion", "2");
-                atts.putValue("Bundle-SymbolicName", "bootstrap");
-                atts.putValue("Bundle-Version", wasVersion);
-                atts.putValue("Fragment-Host", "com.ibm.ws.bootstrap");
-                return true;
-            }
-        });
-        transformJAR(new File(wasDir, "lib/bootstrap.jar"), new File(outputDir, "bootstrap-runtime-" + wasVersion + ".jar"), new ManifestTransformer() {
-            @Override
-            public boolean transformManifest(Manifest manifest) {
-                Attributes atts = manifest.getMainAttributes();
-                atts.putValue("Bundle-ManifestVersion", "2");
-                atts.putValue("Bundle-SymbolicName", "bootstrap-runtime");
-                atts.putValue("Bundle-Version", wasVersion);
-                atts.putValue("Fragment-Host", "com.ibm.ws.runtime");
-                return true;
-            }
-        });
+        return wasVersion;
     }
     
     private static boolean transformJAR(File inputFile, File outputFile, ManifestTransformer manifestTransformer) throws Exception {
