@@ -45,8 +45,57 @@
             <url>${was.p2.repo.url}</url>
         </repository>
     </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>cloudbees-snapshot</id>
+            <url>http://repository-veithen.forge.cloudbees.com/snapshot/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
     <build>
+        <extensions>
+            <extension>
+                <groupId>com.github.veithen.cosmos</groupId>
+                <artifactId>wagon-p2</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </extension>
+        </extensions>
         <plugins>
+            <plugin>
+                <groupId>com.github.veithen.alta</groupId>
+                <artifactId>alta-maven-plugin</artifactId>
+                <version>0.1-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-properties</goal>
+                        </goals>
+                        <configuration>
+                            <propertyName>bootclasspath</propertyName>
+                            <value>%file%</value>
+                            <artifacts>
+                                <artifact>
+                                    <groupId>osgi.bundle</groupId>
+                                    <artifactId>bootstrap</artifactId>
+                                    <version>[8.5,8.6)</version>
+                                </artifact>
+                            </artifacts>
+                            <repositories>
+                                <repository>
+                                    <id>p2-was</id>
+                                    <name>WebSphere P2 Repository</name>
+                                    <url>p2:${was.p2.repo.url}</url>
+                                </repository>
+                            </repositories>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
                 <artifactId>tycho-maven-plugin</artifactId>
@@ -58,16 +107,7 @@
                 <artifactId>tycho-surefire-plugin</artifactId>
                 <version>${tycho-version}</version>
                 <configuration>
-                    <dependencies>
-                        <dependency>
-                            <type>eclipse-plugin</type>
-                            <artifactId>bootstrap</artifactId>
-                        </dependency>
-                        <dependency>
-                            <type>eclipse-plugin</type>
-                            <artifactId>bootstrap-runtime</artifactId>
-                        </dependency>
-                    </dependencies>
+                    <argLine>-Xbootclasspath/a:${bootclasspath}</argLine>
                 </configuration>
             </plugin>
             <plugin>
