@@ -105,7 +105,6 @@ public class Importer {
         for (int i=0; i<args.length-1; i++) {
             File wasDir = new File(args[i]);
             String wasVersion = processWASPlugins(wasDir, outputDir);
-            // TODO: using the custom websphere-library classifier doesn't work: the artifact is not deployed to the repository
             actions.add(new JarAction("websphere-library", "bootstrap", Version.create(wasVersion), new File(wasDir, "lib/bootstrap.jar")));
         }
         
