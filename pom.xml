@@ -80,7 +80,7 @@
                             <value>%file%</value>
                             <artifacts>
                                 <artifact>
-                                    <groupId>osgi.bundle</groupId>
+                                    <groupId>websphere-library</groupId>
                                     <artifactId>bootstrap</artifactId>
                                     <version>[8.5,8.6)</version>
                                 </artifact>
