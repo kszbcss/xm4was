@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -95,7 +96,7 @@ public class Importer {
 
         // Create repository early so that we can fail early
         IArtifactRepository artifactRepository = artifactRepositoryManager.createRepository(repoURI, "WebSphere Artifact Repository", IArtifactRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
-        ((SimpleArtifactRepository)artifactRepository).setRules(mappingRules);
+        setRules(artifactRepository, mappingRules);
         IMetadataRepository metadataRepository = metadataRepositoryManager.createRepository(repoURI, "WebSphere Metadata Repository", IMetadataRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
         
         List<IPublisherAction> actions = new ArrayList<IPublisherAction>();
@@ -105,7 +106,7 @@ public class Importer {
             File wasDir = new File(args[i]);
             String wasVersion = processWASPlugins(wasDir, outputDir);
             // TODO: using the custom websphere-library classifier doesn't work: the artifact is not deployed to the repository
-            actions.add(new JarAction(/* "websphere-library" */ "osgi.bundle", "bootstrap", Version.create(wasVersion), new File(wasDir, "lib/bootstrap.jar")));
+            actions.add(new JarAction("websphere-library", "bootstrap", Version.create(wasVersion), new File(wasDir, "lib/bootstrap.jar")));
         }
         
         downloadEclipsePlugins(artifactRepositoryManager, outputDir, monitor);
@@ -123,6 +124,14 @@ public class Importer {
             System.err.println("STATUS: " + status);
             System.exit(1);
         }
+    }
+    
+    private static void setRules(IArtifactRepository artifactRepository, String[][] mappingRules) throws Exception {
+        SimpleArtifactRepository simpleArtifactRepository = (SimpleArtifactRepository)artifactRepository;
+        simpleArtifactRepository.setRules(mappingRules);
+        Method initializeMapper = SimpleArtifactRepository.class.getDeclaredMethod("initializeMapper");
+        initializeMapper.setAccessible(true);
+        initializeMapper.invoke(simpleArtifactRepository);
     }
     
     private static String processWASPlugins(final File wasDir, File outputDir) throws Exception {
