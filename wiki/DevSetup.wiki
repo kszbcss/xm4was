@@ -59,7 +59,7 @@ Configuring Eclipse to work with the XM4WAS sources requires some changes to the
   # In the Eclipse preferences, select _Java_ > _Installed JREs_.
   # Click _Add_.
   # Select _Standard VM_ and click _Next_.
-  # Set the _JRE home_ to the location of the WAS JDK. This is the `java` folder under the !WebSphere installation directory (e.g. `/opt/IBM/WebSphere/AppServer/java`).
+  # Set the _JRE home_ to the location of the WAS JDK (7.0 or 8.5). This is the `java` folder under the !WebSphere installation directory (e.g. `/opt/IBM/WebSphere/AppServer/java`).
   # Set the _JRE name_ to _WAS x.y_ (replace _x.y_ with the !WebSphere version) and click _Finish_.
   # Check _WAS x.y_ in the list of installed JREs to make it the workspace default.
 
@@ -68,13 +68,13 @@ Configuring Eclipse to work with the XM4WAS sources requires some changes to the
   # In the Eclipse preferences, select _Plug-in Development_ > _Target Platform_.
   # Click _Add_.
   # Select _Nothing: Start with an empty target definition_ and click _Next_.
-  # Enter the name for the target platform: _WAS x.y_.
+  # Enter the name for the target platform: _WAS_.
   # In the _Locations_ tab, click _Add_.
   # Select _Directory_ and click _Next_.
-  # Set the _Location_ to the `plugins` directory of the WAS installation and click _Finish_.
+  # Set the _Location_ to the P2 repository created earlier and click _Finish_.
   # In the _Content_ tab, deselect any previously installed version of the XM4WAS plugins (if applicable).
   # Click _Finish_.
-  # Select the _WAS x.y_ definition to make it the active target platform for the workspace.
+  # Select the _WAS_ definition to make it the active target platform for the workspace.
 
 == Deploying the plugins directly to !WebSphere ==
 
