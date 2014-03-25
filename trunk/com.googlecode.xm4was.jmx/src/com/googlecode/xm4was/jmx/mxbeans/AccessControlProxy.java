@@ -74,8 +74,8 @@ public class AccessControlProxy implements DynamicMBean {
     }
 
     public AttributeList setAttributes(AttributeList attributes) {
-        for (Attribute attribute : attributes.asList()) {
-            checkAttributeWriteAccess(attribute.getName());
+		for (Object attribute : attributes) {
+			checkAttributeWriteAccess(((Attribute) attribute).getName());
         }
         return target.setAttributes(attributes);
     }
