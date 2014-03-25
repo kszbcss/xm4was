@@ -203,7 +203,8 @@ public class EJBMonitor implements EJBMonitorMBean {
 
     public String validateAllStatelessSessionBeans() throws Exception {
         StringBuilder report = new StringBuilder();
-        for (ObjectName name : mbeanServer.queryNames(new ObjectName("WebSphere:type=StatelessSessionBean,*"), null)) {
+		for (Object oName : mbeanServer.queryNames(new ObjectName("WebSphere:type=StatelessSessionBean,*"), null)) {
+			ObjectName name = (ObjectName) oName;
             String applicationName = name.getKeyProperty("Application");
             String moduleName = name.getKeyProperty("EJBModule");
             String beanName = name.getKeyProperty("name");
