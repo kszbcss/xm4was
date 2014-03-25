@@ -6,6 +6,7 @@ Bundle-Version: 0.4.0.qualifier
 Export-Package: com.sun.jna; version="3.4.0"
 Bundle-ClassPath: lib/jna-no-native.jar,
  .
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-NativeCode: lib/linux-ppc/libjnidispatch.so; processor=ppc;osname=linux,
  lib/linux-ppc64/libjnidispatch.so; processor=ppc64;osname=linux
 Bundle-Activator: com.googlecode.xm4was.jna.Activator

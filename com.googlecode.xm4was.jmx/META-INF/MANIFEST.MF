@@ -14,9 +14,11 @@ Import-Package: com.googlecode.xm4was.commons,
  com.ibm.websphere.security.auth,
  com.ibm.websphere.security.auth.callback,
  com.ibm.ws.runtime.service,
- com.ibm.ws.security.service
+ com.ibm.ws.security.service,
+ com.ibm.jvm
 Export-Package: com.googlecode.xm4was.jmx.resources
 Eclipse-AutoStart: true
 XM4WAS-Components: com.googlecode.xm4was.jmx.jrmp.JmxConnector,
  com.googlecode.xm4was.jmx.mxbeans.PlatformMXBeansRegistrant,
  com.googlecode.xm4was.jmx.jvm.JVM
+Bundle-RequiredExecutionEnvironment: J2SE-1.5

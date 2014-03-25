@@ -1,0 +1,11 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.googlecode.xm4was</groupId>
+    <artifactId>xm4was</artifactId>
+    <version>0.4.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>com.googlecode.xm4was.ibm-jre-extensions</artifactId>
+  <packaging>eclipse-plugin</packaging>
+  <description>Plugin making IBM-specific classes in the JRE available for other plugins</description>
+</project>
