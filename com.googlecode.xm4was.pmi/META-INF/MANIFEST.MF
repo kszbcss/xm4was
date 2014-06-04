@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: XM4WAS PMI Metrics
 Bundle-SymbolicName: com.googlecode.xm4was.pmi;singleton:=true
-Bundle-Version: 0.4.0.qualifier
+Bundle-Version: 0.4.0.beta12
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Import-Package: com.github.veithen.rbeans,
  com.googlecode.xm4was.commons,
@@ -17,8 +17,8 @@ Import-Package: com.github.veithen.rbeans,
  com.ibm.ws.webservices.engine.transport.channel,
  com.ibm.ws.websvcs.transport.http;resolution:=optional,
  com.ibm.wsspi.pmi.factory
-Export-Package: com.googlecode.xm4was.pmi,
- com.googlecode.xm4was.pmi.resources
+Export-Package: com.googlecode.xm4was.pmi,com.googlecode.xm4was.pmi.re
+ sources
 Eclipse-AutoStart: true
 XM4WAS-Components: com.googlecode.xm4was.pmi.occ.OutboundConnectionCacheComponent,
  com.googlecode.xm4was.pmi.proc.ProcStatsComponent,

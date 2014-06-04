@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: XM4WAS Web Service Utilities
 Bundle-SymbolicName: com.googlecode.xm4was.websvc;singleton:=true
-Bundle-Version: 0.4.0.qualifier
+Bundle-Version: 0.4.0.beta12
 Bundle-Activator: com.googlecode.xm4was.websvc.Activator
 Eclipse-AutoStart: true
 Import-Package: com.github.veithen.rbeans,
@@ -25,7 +25,7 @@ Import-Package: com.github.veithen.rbeans,
  org.osgi.framework
 Require-Bundle: com.ibm.wsfp.main,
  com.ibm.wsspi.extension
-Export-Package: com.googlecode.xm4was.websvc.jaxws,
- com.googlecode.xm4was.websvc.resources
+Export-Package: com.googlecode.xm4was.websvc.jaxws,com.googlecode.xm4w
+ as.websvc.resources
 XM4WAS-Components: com.googlecode.xm4was.websvc.jaxws.cleaner.JAXWSCacheCleaner
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

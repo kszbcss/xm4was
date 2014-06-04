@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: XM4WAS EJB Monitor
 Bundle-SymbolicName: com.googlecode.xm4was.ejbmon;singleton:=true
-Bundle-Version: 0.4.0.qualifier
+Bundle-Version: 0.4.0.beta12
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Import-Package: com.googlecode.xm4was.commons,
  com.googlecode.xm4was.commons.jmx,
@@ -19,5 +19,5 @@ Import-Package: com.googlecode.xm4was.commons,
  javax.ejb;resolution:=optional
 Eclipse-AutoStart: true
 XM4WAS-Components: com.googlecode.xm4was.ejbmon.EJBMonitor
-Export-Package: com.googlecode.xm4was.ejbmon.helper,
- com.googlecode.xm4was.ejbmon.resources
+Export-Package: com.googlecode.xm4was.ejbmon.helper,com.googlecode.xm4
+ was.ejbmon.resources

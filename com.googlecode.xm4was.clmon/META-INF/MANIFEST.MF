@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: XM4WAS Class Loader Monitor
 Bundle-SymbolicName: com.googlecode.xm4was.clmon;singleton:=true
-Bundle-Version: 0.4.0.qualifier
+Bundle-Version: 0.4.0.beta12
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Import-Package: com.github.veithen.rbeans,
  com.googlecode.xm4was.commons,
@@ -17,9 +17,8 @@ Import-Package: com.github.veithen.rbeans,
  com.ibm.ws.classloader,
  org.osgi.framework,
  com.ibm.rmi.util
-Export-Package: com.googlecode.xm4was.clmon,
- com.googlecode.xm4was.clmon.pmi,
- com.googlecode.xm4was.clmon.resources
+Export-Package: com.googlecode.xm4was.clmon,com.googlecode.xm4was.clmo
+ n.pmi,com.googlecode.xm4was.clmon.resources
 Eclipse-AutoStart: true
 XM4WAS-Components: com.googlecode.xm4was.clmon.impl.ClassLoaderMonitor,
  com.googlecode.xm4was.clmon.impl.ORBCacheCleaner
