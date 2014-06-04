@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: XM4WAS JMX Client Connector
 Bundle-SymbolicName: jmx-client-connector
-Bundle-Version: 0.4.0.beta12
+Bundle-Version: 0.4.0.qualifier
 Import-Package: com.ibm.websphere.management,
  com.ibm.websphere.management.exception,
  com.ibm.websphere.security,
