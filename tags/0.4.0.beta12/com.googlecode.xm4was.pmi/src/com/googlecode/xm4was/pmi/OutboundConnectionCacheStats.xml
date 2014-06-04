@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Stats SYSTEM "com.ibm.websphere.pmi.xml/stats.dtd">
+<Stats type="com.googlecode.xm4was.pmi.OutboundConnectionCacheStats">
+    <description>Outbound HTTP Connection Pool</description>
+    <BoundedRangeStatistic ID="1" name="ConnectionsInUse">
+        <level>high</level>
+        <unit>None</unit>
+        <description>The number of connections currently in use.</description>
+        <updateOnRequest>true</updateOnRequest>
+    </BoundedRangeStatistic>
+    <BoundedRangeStatistic ID="2" name="PoolSize">
+        <level>high</level>
+        <unit>None</unit>
+        <description>The current size of the pool.</description>
+        <updateOnRequest>true</updateOnRequest>
+    </BoundedRangeStatistic>
+</Stats>
