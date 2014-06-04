@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: XM4WAS Commons
 Bundle-SymbolicName: com.googlecode.xm4was.commons;singleton:=true
-Bundle-Version: 0.4.0.qualifier
+Bundle-Version: 0.4.0.beta12
 Bundle-Activator: com.googlecode.xm4was.commons.activator.Activator
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Eclipse-AutoStart: true
@@ -19,17 +19,13 @@ Import-Package: com.ibm.ejs.ras,
  com.ibm.wsspi.pmi.stat,
  com.ibm.wsspi.runtime.component,
  org.osgi.framework
-Export-Package: com.github.veithen.rbeans,
- com.googlecode.xm4was.commons,
- com.googlecode.xm4was.commons.deploy,
- com.googlecode.xm4was.commons.jmx,
- com.googlecode.xm4was.commons.jmx.annotations,
- com.googlecode.xm4was.commons.osgi,
- com.googlecode.xm4was.commons.osgi.annotations,
- com.googlecode.xm4was.commons.posix,
- com.googlecode.xm4was.commons.rbeans,
- com.googlecode.xm4was.commons.resources,
- com.googlecode.xm4was.commons.utils.jvm
+Export-Package: com.github.veithen.rbeans,com.googlecode.xm4was.common
+ s,com.googlecode.xm4was.commons.deploy,com.googlecode.xm4was.commons.
+ jmx,com.googlecode.xm4was.commons.jmx.annotations,com.googlecode.xm4w
+ as.commons.osgi,com.googlecode.xm4was.commons.osgi.annotations,com.go
+ oglecode.xm4was.commons.posix,com.googlecode.xm4was.commons.rbeans,co
+ m.googlecode.xm4was.commons.resources,com.googlecode.xm4was.commons.u
+ tils.jvm
 Require-Bundle: com.ibm.wsspi.extension
 Bundle-ClassPath: lib/tracker.jar,
  .,

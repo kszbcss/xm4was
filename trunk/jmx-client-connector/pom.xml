@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.googlecode.xm4was</groupId>
         <artifactId>xm4was</artifactId>
-        <version>0.4.0-SNAPSHOT</version>
+        <version>0.4.0.beta12</version>
     </parent>
     <artifactId>jmx-client-connector</artifactId>
     <!-- Although jmx-client-connector is used as a simple JAR, we build it as an Eclipse plugin

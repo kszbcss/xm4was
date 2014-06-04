@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: XM4WAS Class Loader Monitor Tests
 Bundle-SymbolicName: com.googlecode.xm4was.clmon.tests
-Bundle-Version: 0.4.0.qualifier
+Bundle-Version: 0.4.0.beta12
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Fragment-Host: com.googlecode.xm4was.clmon
 Require-Bundle: org.eclipse.core.runtime;bundle-version="3.3.0",
