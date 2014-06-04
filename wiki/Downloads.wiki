@@ -1,1 +1,3 @@
-Binary packages can be downloaded from [https://bintray.com/veithen/generic/xm4was Bintray].
+Binary packages can be downloaded from [https://bintray.com/pvdbosch/generic/xm4was Bintray].
+
+Versions <= 0.4.0.beta11 can be found on [https://bintray.com/veithen/generic/xm4was the old Bintray location]
