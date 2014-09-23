@@ -169,7 +169,7 @@
         <module>com.googlecode.xm4was.threadmon</module>
         <module>com.googlecode.xm4was.websvc</module>
         <module>jmx-client-connector</module>
-        <module>distribution</module>
+        <module>xm4was-distribution</module>
     </modules>
 	
 </project>
