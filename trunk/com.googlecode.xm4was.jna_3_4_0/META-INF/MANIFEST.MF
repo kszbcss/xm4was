@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JNA 3.4.0 for PPC
 Bundle-SymbolicName: com.googlecode.xm4was.jna_3_4_0
-Bundle-Version: 0.4.0.beta13
+Bundle-Version: 0.4.0.qualifier
 Export-Package: com.sun.jna; version="3.4.0"
 Bundle-ClassPath: lib/jna-no-native.jar,
  .
