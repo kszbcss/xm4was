@@ -3,7 +3,7 @@ Fragment-Host: system.bundle; extension:=framework
 Bundle-ManifestVersion: 2
 Bundle-Name: IBM JRE extensions
 Bundle-SymbolicName: com.googlecode.xm4was.ibm-jre-extensions;singleton:=true
-Bundle-Version: 0.4.0.beta13
+Bundle-Version: 0.4.0.qualifier
 Export-Package: com.ibm.rmi.util, com.ibm.jvm
 Eclipse-AutoStart: true
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
