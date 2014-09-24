@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.googlecode.xm4was</groupId>
         <artifactId>xm4was</artifactId>
-        <version>0.4.0-SNAPSHOT</version>
+        <version>0.4.0.beta13</version>
     </parent>
     <artifactId>com.googlecode.xm4was.ejbmon.was7</artifactId>
     <packaging>eclipse-plugin</packaging>
