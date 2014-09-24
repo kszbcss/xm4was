@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: XM4WAS EJB Monitor - WAS 7.0 support
 Bundle-SymbolicName: com.googlecode.xm4was.ejbmon.was7;singleton:=true
-Bundle-Version: 0.4.0.qualifier
+Bundle-Version: 0.4.0.beta13
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Eclipse-AutoStart: true
 Require-Bundle: com.ibm.ws.runtime;bundle-version="[7.0.0,8.0.0)"

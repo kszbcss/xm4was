@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: XM4WAS JMX Connector
 Bundle-SymbolicName: com.googlecode.xm4was.jmx;singleton:=true
-Bundle-Version: 0.4.0.qualifier
+Bundle-Version: 0.4.0.beta13
 Import-Package: com.googlecode.xm4was.commons,
  com.googlecode.xm4was.commons.jmx,
  com.googlecode.xm4was.commons.jmx.annotations,
