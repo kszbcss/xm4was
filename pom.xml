@@ -6,7 +6,7 @@
     <version>0.4.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <properties>
-        <tycho-version>0.20.0</tycho-version>
+        <tycho-version>0.22.0</tycho-version>
     </properties>
     <scm>
         <developerConnection>scm:git:https://github.com/kszbcss/xm4was.git</developerConnection>
