@@ -8,12 +8,12 @@
         <dependency>
             <groupId>com.github.veithen.cosmos</groupId>
             <artifactId>cosmos-osgi-runtime-equinox</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>20150901</version>
         </dependency>
         <dependency>
             <groupId>com.github.veithen.cosmos</groupId>
             <artifactId>compat-eclipse-core-net</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>20150901</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.eclipse.equinox</groupId>
@@ -144,25 +144,25 @@
             <url>p2:http://download.eclipse.org/releases/kepler/201306260900</url>
         </repository>
         <repository>
-            <id>cloudbees-snapshot</id>
-            <url>http://repository-veithen.forge.cloudbees.com/snapshot/</url>
+            <id>github-veithen-releases</id>
+            <url>https://raw.githubusercontent.com/veithen/mvn-repo/master/releases/</url>
             <releases>
-                <enabled>false</enabled>
+                <enabled>true</enabled>
             </releases>
             <snapshots>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
             </snapshots>
         </repository>
     </repositories>
     <pluginRepositories>
         <pluginRepository>
-            <id>cloudbees-snapshot</id>
-            <url>http://repository-veithen.forge.cloudbees.com/snapshot/</url>
+            <id>github-veithen-releases</id>
+            <url>https://raw.githubusercontent.com/veithen/mvn-repo/master/releases/</url>
             <releases>
-                <enabled>false</enabled>
+                <enabled>true</enabled>
             </releases>
             <snapshots>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
             </snapshots>
         </pluginRepository>
     </pluginRepositories>
@@ -171,7 +171,7 @@
             <extension>
                 <groupId>com.github.veithen.cosmos</groupId>
                 <artifactId>wagon-p2</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>20150901</version>
             </extension>
         </extensions>
         <plugins>

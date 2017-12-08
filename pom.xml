@@ -44,16 +44,26 @@
             <layout>p2</layout>
             <url>${was.p2.repo.url}</url>
         </repository>
+        <repository>
+            <id>github-veithen-releases</id>
+            <url>https://raw.githubusercontent.com/veithen/mvn-repo/master/releases/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
     </repositories>
     <pluginRepositories>
         <pluginRepository>
-            <id>cloudbees-snapshot</id>
-            <url>http://repository-veithen.forge.cloudbees.com/snapshot/</url>
+            <id>github-veithen-releases</id>
+            <url>https://raw.githubusercontent.com/veithen/mvn-repo/master/releases/</url>
             <releases>
-                <enabled>false</enabled>
+                <enabled>true</enabled>
             </releases>
             <snapshots>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
             </snapshots>
         </pluginRepository>
     </pluginRepositories>
@@ -69,14 +79,14 @@
             <extension>
                 <groupId>com.github.veithen.cosmos</groupId>
                 <artifactId>wagon-p2</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>20150901</version>
             </extension>
         </extensions>
         <plugins>
             <plugin>
                 <groupId>com.github.veithen.alta</groupId>
                 <artifactId>alta-maven-plugin</artifactId>
-                <version>0.1-SNAPSHOT</version>
+                <version>0.6.1</version>
                 <executions>
                     <execution>
                         <goals>
@@ -89,7 +99,8 @@
                                 <artifact>
                                     <groupId>websphere-library</groupId>
                                     <artifactId>bootstrap</artifactId>
-                                    <version>[8.5,8.6)</version>
+                                    <!-- <version>[8.5,8.6)</version> doesn't work? Downloading: p2:file:///D:/was_repo/websphere-library/bootstrap/%5B8.5,8.6)/bootstrap-%5B8.5,8.6).pom -->
+                                    <version>8.5.5.7</version>
                                 </artifact>
                             </artifacts>
                             <repositories>
