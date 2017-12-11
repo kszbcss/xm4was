@@ -1,5 +1,7 @@
 package com.googlecode.xm4was.logging;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Locale;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
@@ -58,18 +60,32 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
 
         String collectorAddress = System.getProperty("com.googlecode.xm4was.logging.collectorAddress");
         if (collectorAddress != null) {
-            int idx = collectorAddress.indexOf(':');
-            if (idx != -1) {
+            try {
+                URI uri = new URI(collectorAddress);
                 AdminService adminService = AdminServiceFactory.getAdminService();
-                final LogTransmitter xmitter = new LogTransmitter(collectorAddress.substring(0, idx),
-                        Integer.parseInt(collectorAddress.substring(idx+1)), buffer,
-                        adminService.getCellName(), adminService.getNodeName(), adminService.getProcessName());
+                String protocol = uri.getScheme();
+                String host = uri.getHost();
+                int port = uri.getPort();
+                final Thread xmitter;
+                if ("tcp".equals(protocol)) {
+                    xmitter = new TcpLogTransmitter(host, port, buffer, adminService.getCellName(),
+                            adminService.getNodeName(), adminService.getProcessName());
+                } else if ("http".equals(protocol)) {
+                    xmitter = new HttpLogTransmitter(host, port, buffer, adminService.getCellName(),
+                            adminService.getNodeName(), adminService.getProcessName());
+                } else {
+                    throw new URISyntaxException(collectorAddress, "Unsupported protocol");
+                }
                 xmitter.start();
                 lifecycle.addStopAction(new Runnable() {
                     public void run() {
                         xmitter.interrupt();
                     }
                 });
+            } catch (URISyntaxException e) {
+                if (TC.isDebugEnabled()) {
+                    Tr.debug(TC, "unsupported collector address URI: " + collectorAddress);
+                }
             }
         }
         Tr.info(TC, Messages._0001I);
