@@ -5,9 +5,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.Socket;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.logging.resources.Messages;
@@ -21,23 +18,18 @@ final class LogTransmitter extends Thread {
     private final String host;
     private final int port;
     private final LogBuffer buffer;
-    private final String cell;
-    private final String node;
-    private final String server;
+    private final LogMessageJsonFormatter formatter;
 
     LogTransmitter(String host, int port, LogBuffer buffer, String cell, String node, String server) {
         super("XM4WAS-LogTransmitter");
         this.host = host;
         this.port = port;
         this.buffer = buffer;
-        this.cell = cell;
-        this.node = node;
-        this.server = server;
+        this.formatter = new LogMessageJsonFormatter(cell, node, server);
     }
 
     @Override
     public void run() {
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
         try {
             long nextSequence = 0;
             while (true) {
@@ -59,29 +51,8 @@ final class LogTransmitter extends Thread {
                     while (true) {
                         LogMessage[] messages = buffer.getMessages(nextSequence, Long.MAX_VALUE);
                         for (LogMessage message : messages) {
-                            out.write("{ ");
-                            writeField(out, "@timestamp", df.format(new Date(message.getTimestamp())));
-                            out.write(", ");
-                            writeField(out, "cell", cell);
-                            out.write(", ");
-                            writeField(out, "node", node);
-                            out.write(", ");
-                            writeField(out, "server", server);
-                            out.write(", ");
-                            writeField(out, "thread", String.valueOf(message.getThreadId()));
-                            out.write(", ");
-                            writeField(out, "class", message.getLoggerName());
-                            out.write(", ");
-                            writeField(out, "level", message.getLevelName());
-                            out.write(", ");
-                            writeField(out, "application", message.getApplicationName());
-                            out.write(", ");
-                            writeField(out, "module", message.getModuleName());
-                            out.write(", ");
-                            writeField(out, "component", message.getComponentName());
-                            out.write(", \"message\": \"");
-                            writeEscaped(out, message.getFormattedMessageWithStackTrace());
-                            out.write("\" }\n");
+                            out.write(formatter.toJson(message));
+                            out.write("\n");
                         }
                         out.flush();
                         nextSequence = messages[messages.length-1].getSequence()+1;
@@ -104,41 +75,4 @@ final class LogTransmitter extends Thread {
         }
     }
 
-    private void writeField(Writer out, String name, String value) throws IOException {
-        out.write("\"");
-        out.write(name);
-        out.write("\": \"");
-        if (value != null) {
-            writeEscaped(out, value);
-        }
-        out.write("\"");
-    }
-
-    private void writeEscaped(Writer out, String value) throws IOException {
-        for (int i=0; i<value.length(); i++) {
-            char c = value.charAt(i);
-            switch (c) {
-                case '"':
-                case '\\':
-                    out.write('\\');
-                    out.write(c);
-                    break;
-                case '\r':
-                    // Skip this; we normalize all line endings to Unix style
-                    break;
-                case '\n':
-                    out.write("\\n");
-                    break;
-                case '\t':
-                    out.write("    ");
-                    break;
-                default:
-                    if (c < 32) {
-                        out.write('?');
-                    } else {
-                        out.write(c);
-                    }
-            }
-        }
-    }
 }
