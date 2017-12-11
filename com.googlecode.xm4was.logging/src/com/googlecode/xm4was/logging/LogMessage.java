@@ -5,7 +5,9 @@ import com.ibm.ejs.ras.TraceNLS;
 public final class LogMessage {
     private long sequence;
     private final int level;
+    private final String levelName;
     private final long timestamp;
+    private final int threadId;
     private final String loggerName;
     private final String applicationName;
     private final String moduleName;
@@ -15,11 +17,13 @@ public final class LogMessage {
     // Note: we don't store the Throwable itself because this would cause a class loader leak
     private final ThrowableInfo[] throwableChain;
     
-    public LogMessage(int level, long timestamp, String loggerName,
+    public LogMessage(int level, String levelName, long timestamp, int threadId, String loggerName,
             String applicationName, String moduleName, String componentName,
             String message, Object[] parms, Throwable throwable) {
         this.level = level;
+        this.levelName = levelName;
         this.timestamp = timestamp;
+        this.threadId = threadId;
         this.loggerName = loggerName;
         this.applicationName = applicationName;
         this.moduleName = moduleName;
@@ -41,8 +45,16 @@ public final class LogMessage {
         return level;
     }
 
+    public String getLevelName() {
+        return levelName;
+    }
+
     public long getTimestamp() {
         return timestamp;
+    }
+
+    public int getThreadId() {
+        return threadId;
     }
 
     public String getLoggerName() {
@@ -72,6 +84,17 @@ public final class LogMessage {
             return message;
         } else {
             return TraceNLS.getFormattedMessageFromLocalizedMessage(message, parms, true);
+        }
+    }
+    
+    public String getFormattedMessageWithStackTrace() {
+        if (throwableChain == null) {
+            return getFormattedMessage();
+        } else {
+            StringBuilder buffer = new StringBuilder(getFormattedMessage());
+            ExceptionUtil.formatStackTrace(throwableChain, 
+                    new LengthLimitedStringBuilderLineAppender(buffer, Integer.MAX_VALUE));
+            return buffer.toString();
         }
     }
     

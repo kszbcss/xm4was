@@ -13,8 +13,8 @@ public class Messages extends ListResourceBundle {
         { _0001I, "XMLOG0001I: Extended Logging Service started." },
         { _0002I, "XMLOG0002I: Extended Logging Service stopped." },
         { _0004E, "XMLOG0004E: Unable to unregister MBean\n{0}" },
-        { _0101I, "XMLOG0101I: Established connection to logstash on host {0} and port {1}" },
-        { _0102I, "XMLOG0102I: Closed connection to logstash on host {0} and port {1}" },
+        { _0101I, "XMLOG0101I: Established connection to log collector on host {0} and port {1}" },
+        { _0102I, "XMLOG0102I: Closed connection to log collector on host {0} and port {1}" },
     };
 
     @Override

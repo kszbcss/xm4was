@@ -18,6 +18,8 @@ import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.ejs.ras.TraceNLS;
 import com.ibm.websphere.logging.WsLevel;
+import com.ibm.websphere.management.AdminService;
+import com.ibm.websphere.management.AdminServiceFactory;
 import com.ibm.ws.runtime.metadata.ApplicationMetaData;
 import com.ibm.ws.runtime.metadata.ComponentMetaData;
 import com.ibm.ws.runtime.metadata.ModuleMetaData;
@@ -53,7 +55,23 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                 Logger.getLogger("").removeHandler(LoggingServiceHandler.this);
             }
         });
-        
+
+        String collectorAddress = System.getProperty("com.googlecode.xm4was.logging.collectorAddress");
+        if (collectorAddress != null) {
+            int idx = collectorAddress.indexOf(':');
+            if (idx != -1) {
+                AdminService adminService = AdminServiceFactory.getAdminService();
+                final LogTransmitter xmitter = new LogTransmitter(collectorAddress.substring(0, idx),
+                        Integer.parseInt(collectorAddress.substring(idx+1)), buffer,
+                        adminService.getCellName(), adminService.getNodeName(), adminService.getProcessName());
+                xmitter.start();
+                lifecycle.addStopAction(new Runnable() {
+                    public void run() {
+                        xmitter.interrupt();
+                    }
+                });
+            }
+        }
         Tr.info(TC, Messages._0001I);
     }
     
@@ -158,8 +176,11 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                 if (localizedMessage == null) {
                     localizedMessage = record.getMessage();
                 }
-                
-                LogMessage message = new LogMessage(level, record.getMillis(),
+
+                LogMessage message = new LogMessage(level,
+                        record.getLevel().getName(),
+                        record.getMillis(),
+                        record.getThreadID(),
                         record.getLoggerName(),
                         applicationName,
                         moduleName,
