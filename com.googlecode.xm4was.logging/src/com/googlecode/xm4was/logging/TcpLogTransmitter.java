@@ -11,16 +11,15 @@ import com.googlecode.xm4was.logging.resources.Messages;
 import com.ibm.ejs.ras.Tr;
 import com.ibm.ejs.ras.TraceComponent;
 
-// TODO: need another thread to read from the connection to detect when the connection is closed
-final class LogTransmitter extends Thread {
-    private static final TraceComponent TC = Tr.register(LogTransmitter.class, TrConstants.GROUP, Messages.class.getName());
+final class TcpLogTransmitter extends Thread {
+    private static final TraceComponent TC = Tr.register(TcpLogTransmitter.class, TrConstants.GROUP, Messages.class.getName());
 
     private final String host;
     private final int port;
     private final LogBuffer buffer;
     private final LogMessageJsonFormatter formatter;
 
-    LogTransmitter(String host, int port, LogBuffer buffer, String cell, String node, String server) {
+    TcpLogTransmitter(String host, int port, LogBuffer buffer, String cell, String node, String server) {
         super("XM4WAS-LogTransmitter");
         this.host = host;
         this.port = port;
