@@ -33,7 +33,7 @@ final class LogMessageJsonFormatter {
         json.append(", ");
         writeField(json, "server", server);
         json.append(", ");
-        writeField(json, "thread", String.valueOf(message.getThreadId()));
+        writeField(json, "thread", message.getThreadName());
         json.append(", ");
         writeField(json, "class", message.getLoggerName());
         json.append(", ");

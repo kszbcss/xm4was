@@ -201,7 +201,7 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                 LogMessage message = new LogMessage(level,
                         record.getLevel().getName(),
                         record.getMillis(),
-                        record.getThreadID(),
+                        Thread.currentThread().getName(),
                         record.getLoggerName(),
                         applicationName,
                         moduleName,

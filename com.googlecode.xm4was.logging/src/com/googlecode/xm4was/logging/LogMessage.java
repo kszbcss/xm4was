@@ -9,7 +9,7 @@ public final class LogMessage {
     private final int level;
     private final String levelName;
     private final long timestamp;
-    private final int threadId;
+    private final String threadName;
     private final String loggerName;
     private final String applicationName;
     private final String moduleName;
@@ -20,13 +20,13 @@ public final class LogMessage {
     private final ThrowableInfo[] throwableChain;
     private final Map<String, String> mdc;
     
-    public LogMessage(int level, String levelName, long timestamp, int threadId, String loggerName,
+    public LogMessage(int level, String levelName, long timestamp, String threadName, String loggerName,
             String applicationName, String moduleName, String componentName,
             String message, Object[] parms, Throwable throwable, Map<String, String> mdc) {
         this.level = level;
         this.levelName = levelName;
         this.timestamp = timestamp;
-        this.threadId = threadId;
+        this.threadName = threadName;
         this.loggerName = loggerName;
         this.applicationName = applicationName;
         this.moduleName = moduleName;
@@ -57,8 +57,8 @@ public final class LogMessage {
         return timestamp;
     }
 
-    public int getThreadId() {
-        return threadId;
+    public String getThreadName() {
+        return threadName;
     }
 
     public String getLoggerName() {
