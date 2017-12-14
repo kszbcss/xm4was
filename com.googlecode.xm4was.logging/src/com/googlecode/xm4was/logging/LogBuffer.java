@@ -1,14 +1,15 @@
 package com.googlecode.xm4was.logging;
 
 final class LogBuffer {
-    private final LogMessage[] buffer = new LogMessage[1024];
+    private final LogMessage[] buffer;
     private int head;
     // We start at System.currentTimeMillis to make sure that the sequence is strictly increasing
     // even across server restarts
     private long initialSequence;
     private long nextSequence;
 
-    LogBuffer() {
+    LogBuffer(int size) {
+        buffer = new LogMessage[size];
         initialSequence = System.currentTimeMillis();
         nextSequence = initialSequence;
     }

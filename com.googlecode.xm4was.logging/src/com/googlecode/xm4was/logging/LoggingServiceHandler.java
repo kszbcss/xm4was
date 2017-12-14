@@ -39,7 +39,8 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
     private ORB orb;
     private ComponentMetaDataAccessorImpl cmdAccessor;
     private UnmanagedThreadMonitor unmanagedThreadMonitor;
-    private final LogBuffer buffer = new LogBuffer();
+    private final LogBuffer monitoringBuffer = new LogBuffer(1024);
+    private LogBuffer collectorBuffer;
     
     @Init
     public void init(Lifecycle lifecycle, ORB orb) {
@@ -63,6 +64,7 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
         String collectorAddress = System.getProperty("com.googlecode.xm4was.logging.collectorAddress");
         if (collectorAddress != null) {
             try {
+                this.collectorBuffer = new LogBuffer(16384);
                 URI uri = new URI(collectorAddress);
                 AdminService adminService = AdminServiceFactory.getAdminService();
                 String protocol = uri.getScheme();
@@ -70,10 +72,10 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                 int port = uri.getPort();
                 final Thread xmitter;
                 if ("tcp".equals(protocol)) {
-                    xmitter = new TcpLogTransmitter(host, port, buffer, adminService.getCellName(),
+                    xmitter = new TcpLogTransmitter(host, port, collectorBuffer, adminService.getCellName(),
                             adminService.getNodeName(), adminService.getProcessName());
                 } else if ("http".equals(protocol)) {
-                    xmitter = new HttpLogTransmitter(host, port, buffer, adminService.getCellName(),
+                    xmitter = new HttpLogTransmitter(host, port, collectorBuffer, adminService.getCellName(),
                             adminService.getNodeName(), adminService.getProcessName());
                 } else {
                     throw new URISyntaxException(collectorAddress, "Unsupported protocol");
@@ -107,7 +109,7 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
     @Override
     public void publish(LogRecord record) {
         int level = record.getLevel().intValue();
-        if (level >= WsLevel.AUDIT.intValue()) {
+        if ((level >= Level.INFO.intValue() && collectorBuffer != null) || level >= WsLevel.AUDIT.intValue()) {
             try {
                 String applicationName;
                 String moduleName;
@@ -208,7 +210,12 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                         convertParameters(record.getParameters()),
                         record.getThrown(),
                         MDC.getCopyOfContextMap());
-                buffer.put(message);
+                if (collectorBuffer != null) {
+                    collectorBuffer.put(message);
+                }
+                if (level >= WsLevel.AUDIT.intValue()) {
+                    monitoringBuffer.put(message);
+                }
             } catch (Throwable ex) {
                 System.out.println("OOPS! Exception caught in logging handler");
                 ex.printStackTrace(System.out);
@@ -254,7 +261,7 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
     }
     
     public long getNextSequence() {
-        long result = buffer.getNextSequence();
+        long result = monitoringBuffer.getNextSequence();
         if (TC.isDebugEnabled()) {
             Tr.debug(TC, "getNextSequence returning " + result);
         }
@@ -271,7 +278,7 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
         }
         LogMessage[] messages;
         try {
-            messages = buffer.getMessages(startSequence, -1);
+            messages = monitoringBuffer.getMessages(startSequence, -1);
         } catch (InterruptedException ex) {
             // Since we use timeout=-1 we should never get here
             messages = new LogMessage[0];
