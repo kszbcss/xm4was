@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
 import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
@@ -12,6 +13,7 @@ import com.googlecode.xm4was.commons.osgi.Lifecycle;
 import com.googlecode.xm4was.commons.osgi.annotations.Init;
 import com.googlecode.xm4was.commons.osgi.annotations.Inject;
 import com.googlecode.xm4was.commons.osgi.annotations.Services;
+import com.googlecode.xm4was.logging.mdc.MDC;
 import com.googlecode.xm4was.logging.resources.Messages;
 import com.googlecode.xm4was.threadmon.ModuleInfo;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadMonitor;
@@ -77,6 +79,7 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                     throw new URISyntaxException(collectorAddress, "Unsupported protocol");
                 }
                 xmitter.start();
+                Tr.info(TC, Messages._0003I, new Object[] {xmitter.getClass().getSimpleName(), collectorAddress});
                 lifecycle.addStopAction(new Runnable() {
                     public void run() {
                         xmitter.interrupt();
@@ -203,7 +206,8 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                         componentName,
                         localizedMessage,
                         convertParameters(record.getParameters()),
-                        record.getThrown());
+                        record.getThrown(),
+                        MDC.getCopyOfContextMap());
                 buffer.put(message);
             } catch (Throwable ex) {
                 System.out.println("OOPS! Exception caught in logging handler");

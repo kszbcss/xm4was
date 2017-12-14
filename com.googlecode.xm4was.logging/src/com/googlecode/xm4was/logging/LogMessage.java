@@ -1,5 +1,7 @@
 package com.googlecode.xm4was.logging;
 
+import java.util.Map;
+
 import com.ibm.ejs.ras.TraceNLS;
 
 public final class LogMessage {
@@ -16,10 +18,11 @@ public final class LogMessage {
     private final Object[] parms;
     // Note: we don't store the Throwable itself because this would cause a class loader leak
     private final ThrowableInfo[] throwableChain;
+    private final Map<String, String> mdc;
     
     public LogMessage(int level, String levelName, long timestamp, int threadId, String loggerName,
             String applicationName, String moduleName, String componentName,
-            String message, Object[] parms, Throwable throwable) {
+            String message, Object[] parms, Throwable throwable, Map<String, String> mdc) {
         this.level = level;
         this.levelName = levelName;
         this.timestamp = timestamp;
@@ -30,7 +33,8 @@ public final class LogMessage {
         this.componentName = componentName;
         this.message = message;
         this.parms = parms;
-        throwableChain = throwable == null ? null : ExceptionUtil.process(throwable);
+        this.throwableChain = throwable == null ? null : ExceptionUtil.process(throwable);
+        this.mdc = mdc;
     }
     
     void setSequence(long sequence) {
@@ -75,6 +79,10 @@ public final class LogMessage {
 
     public String getMessage() {
         return message;
+    }
+
+    public Map<String, String> getMdc() {
+        return mdc;
     }
     
     public String getFormattedMessage() {

@@ -3,6 +3,9 @@ package com.googlecode.xm4was.logging;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 final class LogMessageJsonFormatter {
 
@@ -43,8 +46,26 @@ final class LogMessageJsonFormatter {
         writeField(json, "component", message.getComponentName());
         json.append(", ");
         writeField(json, "message", message.getFormattedMessageWithStackTrace());
-		json.append("}");
+        json.append(", ");
+        writeMap(json, "mdc", message.getMdc());
+        json.append("}");
         return json.toString();
+    }
+
+    private void writeMap(StringBuilder json, String name, Map<String, String> map) {
+        json.append("\"");
+        json.append(name);
+        json.append("\": {");
+        if (map != null) {
+            for (Iterator<Entry<String, String>> iterator = map.entrySet().iterator(); iterator.hasNext();) {
+                Map.Entry<String, String> entry = iterator.next();
+                writeField(json, entry.getKey(), entry.getValue());
+                if (iterator.hasNext()) {
+                    json.append(", ");
+                }
+            }
+        }
+        json.append("}");
     }
 
     private void writeField(StringBuilder json, String name, String value) {
