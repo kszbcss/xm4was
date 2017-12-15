@@ -19,6 +19,7 @@ Import-Package: com.googlecode.xm4was.commons,
  com.ibm.ws.threadContext,
  com.ibm.wsspi.webcontainer.metadata,
  com.ibm.wsspi.webcontainer.servlet
-Export-Package: com.googlecode.xm4was.logging.resources
+Export-Package: com.googlecode.xm4was.logging.mdc,
+ com.googlecode.xm4was.logging.resources
 Eclipse-AutoStart: true
 XM4WAS-Components: com.googlecode.xm4was.logging.LoggingServiceHandler
