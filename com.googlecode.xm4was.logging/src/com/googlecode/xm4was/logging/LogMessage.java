@@ -37,6 +37,21 @@ public final class LogMessage {
         this.mdc = mdc;
     }
     
+    public LogMessage(LogMessage original) {
+        this.level = original.level;
+        this.levelName = original.levelName;
+        this.timestamp = original.timestamp;
+        this.threadName = original.threadName;
+        this.loggerName = original.loggerName;
+        this.applicationName = original.applicationName;
+        this.moduleName = original.moduleName;
+        this.componentName = original.componentName;
+        this.message = original.message;
+        this.parms = original.parms;
+        this.throwableChain = original.throwableChain;
+        this.mdc = original.mdc;
+    }
+    
     void setSequence(long sequence) {
         this.sequence = sequence;
     }

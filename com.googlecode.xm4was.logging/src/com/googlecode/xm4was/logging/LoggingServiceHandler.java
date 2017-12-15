@@ -211,7 +211,8 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                         record.getThrown(),
                         MDC.getCopyOfContextMap());
                 if (collectorBuffer != null) {
-                    collectorBuffer.put(message);
+                    // we need to clone the LogMessage because it contains the sequenceNumber state
+                    collectorBuffer.put(new LogMessage(message)); 
                 }
                 if (level >= WsLevel.AUDIT.intValue()) {
                     monitoringBuffer.put(message);
