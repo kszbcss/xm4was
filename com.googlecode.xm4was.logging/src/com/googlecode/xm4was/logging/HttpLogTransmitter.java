@@ -2,6 +2,7 @@ package com.googlecode.xm4was.logging;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.HttpURLConnection;
@@ -17,6 +18,8 @@ import com.ibm.ejs.ras.TraceComponent;
 final class HttpLogTransmitter extends Thread {
     private static final TraceComponent TC =
             Tr.register(HttpLogTransmitter.class, TrConstants.GROUP, Messages.class.getName());
+    private static final int CHUNK_SIZE = 512;
+    private static final int CHUNK_WAIT = 10000;
 
     private final String host;
     private final int port;
@@ -35,27 +38,18 @@ final class HttpLogTransmitter extends Thread {
     public void run() {
         try {
             long nextSequence = 0;
+            // the "websphere" path at the end of the url is required for fluentd (tag)
+            URL url = new URL("http://" + host + ":" + port + "/websphere");
             while (true) {
-                URL url = new URL("http://" + host + ":" + port + "/websphere");
                 HttpURLConnection conn = null;
-                do {
-                    try {
-                        conn = (HttpURLConnection) url.openConnection();
-                        conn.setDoOutput(true);
-                        conn.setRequestMethod("POST");
-                        conn.connect();
-                    } catch (IOException ex) {
-                        if (TC.isDebugEnabled()) {
-                            Tr.debug(TC, "Unable to connect to log collector:\n{0}", ex);
-                        }
-                        sleep(10000);
-                        conn = null;
-                    }
-                } while (conn == null);
                 Writer out = null;
                 try {
+                    conn = (HttpURLConnection) url.openConnection();
+                    conn.setDoOutput(true);
+                    conn.setRequestMethod("POST");
+                    conn.connect();
                     out = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), "UTF-8"));
-                    LogMessage[] messages = buffer.getMessages(nextSequence, Long.MAX_VALUE);
+                    LogMessage[] messages = getChunk(nextSequence);
                     out.write("json=");
                     StringBuilder payload = new StringBuilder("[");
                     for (int i = 0; i < messages.length; i++) {
@@ -69,12 +63,15 @@ final class HttpLogTransmitter extends Thread {
                     out.write(URLEncoder.encode(payload.toString(), "UTF-8"));
                     out.flush();
                     out.close();
-                    conn.getResponseCode();
-                    nextSequence = messages[messages.length - 1].getSequence() + 1;
-                } catch (IOException ex) {
-                    if (TC.isDebugEnabled()) {
-                        Tr.debug(TC, "Connection error:\n{0}", ex);
+                    int statusCode = conn.getResponseCode();
+                    if (statusCode != 200) {
+                        throw new IOException("Log collector returned unexpected HTTP status code " + statusCode); 
                     }
+                    nextSequence = messages[messages.length - 1].getSequence() + 1;
+                    readAndClose(conn.getInputStream()); // enable connection reuse
+                } catch (IOException ex) {
+                    Tr.error(TC, "Unable to connect to log collector:\n{0}", ex);
+                    sleep(10000);
                 } finally {
                     if (out != null) {
                         try {
@@ -89,6 +86,29 @@ final class HttpLogTransmitter extends Thread {
             // OK, just return from the method
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private LogMessage[] getChunk(long nextSequence) throws InterruptedException {
+        long start = System.currentTimeMillis();
+        LogMessage[] chunk = buffer.getMessages(nextSequence, Long.MAX_VALUE);
+        if (chunk.length < CHUNK_SIZE) {
+            long elapsed = System.currentTimeMillis() - start;
+            if (elapsed < CHUNK_WAIT) {
+                Thread.sleep(CHUNK_WAIT - elapsed);
+                chunk = buffer.getMessages(nextSequence, Long.MAX_VALUE);
+            }
+        }
+        return chunk;
+    }
+
+	private void readAndClose(InputStream stream) throws IOException {
+        if (stream != null) {
+            int read = 0;
+            do {
+                read = stream.read();
+            } while (read != -1);
+            stream.close();
         }
     }
 

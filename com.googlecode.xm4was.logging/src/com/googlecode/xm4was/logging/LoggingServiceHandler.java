@@ -4,7 +4,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
 import java.util.logging.Handler;
-import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
@@ -88,9 +87,7 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                     }
                 });
             } catch (URISyntaxException e) {
-                if (TC.isDebugEnabled()) {
-                    Tr.debug(TC, "unsupported collector address URI: " + collectorAddress);
-                }
+                Tr.error(TC, "unsupported collector address URI: " + collectorAddress);
             }
         }
         Tr.info(TC, Messages._0001I);
@@ -109,7 +106,7 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
     @Override
     public void publish(LogRecord record) {
         int level = record.getLevel().intValue();
-        if ((level >= Level.INFO.intValue() && collectorBuffer != null) || level >= WsLevel.AUDIT.intValue()) {
+        if (collectorBuffer != null || level >= WsLevel.AUDIT.intValue()) {
             try {
                 String applicationName;
                 String moduleName;
@@ -211,8 +208,11 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                         record.getThrown(),
                         MDC.getCopyOfContextMap());
                 if (collectorBuffer != null) {
-                    // we need to clone the LogMessage because it contains the sequenceNumber state
-                    collectorBuffer.put(new LogMessage(message)); 
+                    // don't send log messages originating from the XM4WAS logging package to the collector
+                    if (!message.getLoggerName().startsWith(getClass().getPackage().getName())) {
+                        // we need to clone the LogMessage because it contains the sequenceNumber state
+                        collectorBuffer.put(new LogMessage(message)); 
+                    }
                 }
                 if (level >= WsLevel.AUDIT.intValue()) {
                     monitoringBuffer.put(message);

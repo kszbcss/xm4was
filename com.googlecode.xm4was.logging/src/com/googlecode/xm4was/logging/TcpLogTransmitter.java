@@ -37,9 +37,7 @@ final class TcpLogTransmitter extends Thread {
                     try {
                         socket = new Socket(host, port);
                     } catch (IOException ex) {
-                        if (TC.isDebugEnabled()) {
-                            Tr.debug(TC, "Unable to connect to log collector:\n{0}", ex);
-                        }
+                        Tr.error(TC, "Unable to connect to log collector:\n{0}", ex);
                         sleep(10000);
                         socket = null;
                     }
@@ -57,9 +55,7 @@ final class TcpLogTransmitter extends Thread {
                         nextSequence = messages[messages.length-1].getSequence()+1;
                     }
                 } catch (IOException ex) {
-                    if (TC.isDebugEnabled()) {
-                        Tr.debug(TC, "Connection error:\n{0}", ex);
-                    }
+                    Tr.error(TC, "Connection error:\n{0}", ex);
                 } finally {
                     try {
                         socket.close();
