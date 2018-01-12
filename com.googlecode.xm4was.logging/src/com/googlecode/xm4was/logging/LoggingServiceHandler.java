@@ -57,6 +57,7 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
             public void run() {
                 Tr.debug(TC, "Removing handler from root logger");
                 Logger.getLogger("").removeHandler(LoggingServiceHandler.this);
+                // TODO: flush the log transmitter on server stop
             }
         });
 
