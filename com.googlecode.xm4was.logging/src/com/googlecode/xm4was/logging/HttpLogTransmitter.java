@@ -18,8 +18,10 @@ import com.ibm.ejs.ras.TraceComponent;
 final class HttpLogTransmitter extends Thread {
     private static final TraceComponent TC =
             Tr.register(HttpLogTransmitter.class, TrConstants.GROUP, Messages.class.getName());
-    private static final int CHUNK_SIZE = 512;
-    private static final int CHUNK_WAIT = 10000;
+    private static final int FLUSH_TRESHOLD = Integer.parseInt(
+            System.getProperty("com.googlecode.xm4was.logging.HttpLogTransmitter.FLUSH_TRESHOLD", "512"));
+    private static final int FLUSH_INTERVAL = Integer.parseInt(
+            System.getProperty("com.googlecode.xm4was.logging.HttpLogTransmitter.FLUSH_INTERVAL", "10000"));
 
     private final String host;
     private final int port;
@@ -92,10 +94,10 @@ final class HttpLogTransmitter extends Thread {
     private LogMessage[] getChunk(long nextSequence) throws InterruptedException {
         long start = System.currentTimeMillis();
         LogMessage[] chunk = buffer.getMessages(nextSequence, Long.MAX_VALUE);
-        if (chunk.length < CHUNK_SIZE) {
+        if (chunk.length < FLUSH_TRESHOLD) {
             long elapsed = System.currentTimeMillis() - start;
-            if (elapsed < CHUNK_WAIT) {
-                Thread.sleep(CHUNK_WAIT - elapsed);
+            if (elapsed < FLUSH_INTERVAL) {
+                Thread.sleep(FLUSH_INTERVAL - elapsed);
                 chunk = buffer.getMessages(nextSequence, Long.MAX_VALUE);
             }
         }

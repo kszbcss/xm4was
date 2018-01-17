@@ -34,11 +34,14 @@ import com.ibm.wsspi.webcontainer.servlet.IServletConfig;
 @Services(LoggingServiceMBean.class)
 public class LoggingServiceHandler extends Handler implements LoggingServiceMBean {
     private static final TraceComponent TC = Tr.register(LoggingServiceHandler.class, TrConstants.GROUP, Messages.class.getName());
-    
+    private static final int MONITORING_BUFFER_SIZE = Integer.parseInt(
+            System.getProperty("com.googlecode.xm4was.logging.LoggingServiceHandler.MONITORING_BUFFER_SIZE", "1024"));
+    private static final int COLLECTOR_BUFFER_SIZE = Integer.parseInt(
+            System.getProperty("com.googlecode.xm4was.logging.LoggingServiceHandler.COLLECTOR_BUFFER_SIZE", "16384"));
     private ORB orb;
     private ComponentMetaDataAccessorImpl cmdAccessor;
     private UnmanagedThreadMonitor unmanagedThreadMonitor;
-    private final LogBuffer monitoringBuffer = new LogBuffer(1024);
+    private final LogBuffer monitoringBuffer = new LogBuffer(MONITORING_BUFFER_SIZE);
     private LogBuffer collectorBuffer;
     
     @Init
@@ -64,7 +67,7 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
         String collectorAddress = System.getProperty("com.googlecode.xm4was.logging.collectorAddress");
         if (collectorAddress != null) {
             try {
-                this.collectorBuffer = new LogBuffer(16384);
+                this.collectorBuffer = new LogBuffer(COLLECTOR_BUFFER_SIZE);
                 URI uri = new URI(collectorAddress);
                 AdminService adminService = AdminServiceFactory.getAdminService();
                 String protocol = uri.getScheme();
