@@ -38,6 +38,7 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
             System.getProperty("com.googlecode.xm4was.logging.LoggingServiceHandler.MONITORING_BUFFER_SIZE", "1024"));
     private static final int COLLECTOR_BUFFER_SIZE = Integer.parseInt(
             System.getProperty("com.googlecode.xm4was.logging.LoggingServiceHandler.COLLECTOR_BUFFER_SIZE", "16384"));
+    private static final ThreadLocal<Boolean> CYCLIC_LOGGING_GUARD = new ThreadLocal<Boolean>(); 
     private ORB orb;
     private ComponentMetaDataAccessorImpl cmdAccessor;
     private UnmanagedThreadMonitor unmanagedThreadMonitor;
@@ -111,19 +112,21 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
     public void publish(LogRecord record) {
         int level = record.getLevel().intValue();
         if (collectorBuffer != null || level >= WsLevel.AUDIT.intValue()) {
+            if (CYCLIC_LOGGING_GUARD.get() != null) {
+                return; // ignore cyclic logging statements generated within LoggingServiceHandler.publish(LogRecord)
+            }
             try {
+                CYCLIC_LOGGING_GUARD.set(Boolean.TRUE);
                 String applicationName;
                 String moduleName;
                 String componentName;
                 ComponentMetaDataAccessorImpl cmdAccessor;
-                synchronized (this) {
-                    cmdAccessor = this.cmdAccessor;
-                    // We can only get the metadata accessor after the ORB has been started. Otherwise there
-                    // will be an "ORB already created" failure.
-                    // Note: the orb == null case only occurs in the unit tests
-                    if (cmdAccessor == null && orb != null && orb.getORB() != null) {
-                        cmdAccessor = this.cmdAccessor = ComponentMetaDataAccessorImpl.getComponentMetaDataAccessor();
-                    }
+                cmdAccessor = this.cmdAccessor;
+                // We can only get the metadata accessor after the ORB has been started. Otherwise there
+                // will be an "ORB already created" failure.
+                // Note: the orb == null case only occurs in the unit tests
+                if (cmdAccessor == null && orb != null && orb.getORB() != null) {
+                    cmdAccessor = this.cmdAccessor = ComponentMetaDataAccessorImpl.getComponentMetaDataAccessor();
                 }
                 ComponentMetaData cmd = cmdAccessor == null ? null : cmdAccessor.getComponentMetaData();
                 if (cmd instanceof DefaultComponentMetaData) {
@@ -131,13 +134,11 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                 }
                 if (cmd == null) {
                     ModuleInfo moduleInfo;
-                    synchronized (this) {
-                        // Attempt to determine the application or module for an unmanaged thread
-                        if (unmanagedThreadMonitor != null) {
-                            moduleInfo = unmanagedThreadMonitor.getModuleInfoForUnmanagedThread(Thread.currentThread());
-                        } else {
-                            moduleInfo = null;
-                        }
+                    // Attempt to determine the application or module for an unmanaged thread
+                    if (unmanagedThreadMonitor != null) {
+                        moduleInfo = unmanagedThreadMonitor.getModuleInfoForUnmanagedThread(Thread.currentThread());
+                    } else {
+                        moduleInfo = null;
                     }
                     if (moduleInfo == null) {
                         applicationName = null;
@@ -224,6 +225,8 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
             } catch (Throwable ex) {
                 System.out.println("OOPS! Exception caught in logging handler");
                 ex.printStackTrace(System.out);
+            } finally {
+                CYCLIC_LOGGING_GUARD.remove();
             }
         }
     }
