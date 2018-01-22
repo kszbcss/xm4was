@@ -120,14 +120,19 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                 String applicationName;
                 String moduleName;
                 String componentName;
-                ComponentMetaDataAccessorImpl cmdAccessor;
-                cmdAccessor = this.cmdAccessor;
-                // We can only get the metadata accessor after the ORB has been started. Otherwise there
-                // will be an "ORB already created" failure.
-                // Note: the orb == null case only occurs in the unit tests
-                if (cmdAccessor == null && orb != null && orb.getORB() != null) {
-                    cmdAccessor = this.cmdAccessor = ComponentMetaDataAccessorImpl.getComponentMetaDataAccessor();
+                if (this.cmdAccessor == null) {
+                    synchronized (this) {
+                        if (this.cmdAccessor == null) {
+                            // We can only get the metadata accessor after the ORB has been started. Otherwise there
+                            // will be an "ORB already created" failure.
+                            // Note: the orb == null case only occurs in the unit tests
+                            if (orb != null && orb.getORB() != null) {
+                                this.cmdAccessor = ComponentMetaDataAccessorImpl.getComponentMetaDataAccessor();
+                            }
+                        }
+                    }
                 }
+                ComponentMetaDataAccessorImpl cmdAccessor = this.cmdAccessor;
                 ComponentMetaData cmd = cmdAccessor == null ? null : cmdAccessor.getComponentMetaData();
                 if (cmd instanceof DefaultComponentMetaData) {
                     cmd = null;
@@ -135,6 +140,7 @@ public class LoggingServiceHandler extends Handler implements LoggingServiceMBea
                 if (cmd == null) {
                     ModuleInfo moduleInfo;
                     // Attempt to determine the application or module for an unmanaged thread
+                    UnmanagedThreadMonitor unmanagedThreadMonitor = this.unmanagedThreadMonitor;
                     if (unmanagedThreadMonitor != null) {
                         moduleInfo = unmanagedThreadMonitor.getModuleInfoForUnmanagedThread(Thread.currentThread());
                     } else {
