@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: XM4WAS Class Loader Monitor
 Bundle-SymbolicName: com.googlecode.xm4was.clmon;singleton:=true
-Bundle-Version: 0.4.0.beta15
+Bundle-Version: 0.4.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: com.github.veithen.rbeans,
  com.googlecode.xm4was.commons,
