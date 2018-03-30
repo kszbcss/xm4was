@@ -2,16 +2,15 @@ package com.googlecode.xm4was.commons.osgi.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.osgi.framework.Bundle;
 
-import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.resources.Messages;
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 
 final class ManagedBundle {
-    private static final TraceComponent TC = Tr.register(ManagedBundle.class, TrConstants.GROUP, Messages.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ManagedBundle.class.getName(), Messages.class.getName());
     
     private final List<LifecycleManager> components = new ArrayList<LifecycleManager>();
     
@@ -31,8 +30,8 @@ final class ManagedBundle {
     
     void startComponents() {
         for (LifecycleManager component : components) {
-            if (TC.isDebugEnabled()) {
-                Tr.debug(TC, "Starting component {0}", component);
+            if (LOGGER.isLoggable(Level.FINEST)) {
+                LOGGER.log(Level.FINEST, "Starting component {0}", component);
             }
             component.start();
         }
@@ -40,8 +39,8 @@ final class ManagedBundle {
     
     void stopComponents() {
         for (LifecycleManager component : components) {
-            if (TC.isDebugEnabled()) {
-                Tr.debug(TC, "Stopping component {0}", component);
+            if (LOGGER.isLoggable(Level.FINEST)) {
+                LOGGER.log(Level.FINEST, "Stopping component {0}", component);
             }
             component.stop();
         }

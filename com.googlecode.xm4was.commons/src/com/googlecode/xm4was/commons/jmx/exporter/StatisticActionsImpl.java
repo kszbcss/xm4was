@@ -3,18 +3,17 @@ package com.googlecode.xm4was.commons.jmx.exporter;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.resources.Messages;
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.wsspi.pmi.factory.StatisticActions;
 import com.ibm.wsspi.pmi.stat.SPICountStatistic;
 import com.ibm.wsspi.pmi.stat.SPIRangeStatistic;
 import com.ibm.wsspi.pmi.stat.SPIStatistic;
 
 final class StatisticActionsImpl extends StatisticActions {
-    private static final TraceComponent TC = Tr.register(StatisticActionsImpl.class, TrConstants.GROUP, Messages.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(StatisticActionsImpl.class.getName(), Messages.class.getName());
     
     private final Object target;
     private final Map<Integer,Method> methods = new HashMap<Integer,Method>();
@@ -30,8 +29,8 @@ final class StatisticActionsImpl extends StatisticActions {
     
     @Override
     public void statisticCreated(SPIStatistic statistic) {
-        if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Statistic created: {0}", statistic);
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.log(Level.FINEST, "Statistic created: {0}", statistic);
         }
         int id = statistic.getId();
         StatisticUpdater updater;
@@ -40,11 +39,11 @@ final class StatisticActionsImpl extends StatisticActions {
         } else if (statistic instanceof SPIRangeStatistic) {
             updater = new RangeStatisticUpdater(target, methods.get(id), (SPIRangeStatistic)statistic);
         } else {
-            Tr.error(TC, Messages._0016E, statistic.getClass().getName());
+            LOGGER.log(Level.SEVERE, Messages._0016E, statistic.getClass().getName());
             return;
         }
-        if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Created updater for statistic {0}: {1}", new Object[] { id, updater });
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.log(Level.FINEST, "Created updater for statistic {0}: {1}", new Object[] { id, updater });
         }
         statisticUpdaters.put(id, updater);
     }
@@ -54,7 +53,7 @@ final class StatisticActionsImpl extends StatisticActions {
         try {
             statisticUpdaters.get(id).updateStatistic();
         } catch (Exception ex) {
-            Tr.error(TC, Messages._0014E, id);
+            LOGGER.log(Level.SEVERE, Messages._0014E, id);
         }
     }
 }

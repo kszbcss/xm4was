@@ -13,9 +13,10 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.github.veithen.rbeans.RBeanFactory;
-import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.deploy.ClassLoaderListener;
 import com.googlecode.xm4was.commons.osgi.Lifecycle;
 import com.googlecode.xm4was.commons.osgi.ServiceSet;
@@ -28,15 +29,13 @@ import com.googlecode.xm4was.threadmon.ThreadInfo;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadListener;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadMonitor;
 import com.googlecode.xm4was.threadmon.resources.Messages;
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.management.AdminConstants;
 import com.ibm.ws.util.ThreadPool;
 
 @ProcessTypes({AdminConstants.MANAGED_PROCESS, AdminConstants.STANDALONE_PROCESS})
 @Services({ClassLoaderListener.class, UnmanagedThreadMonitor.class})
 public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, UnmanagedThreadMonitor {
-    private static final TraceComponent TC = Tr.register(UnmanagedThreadMonitorImpl.class, TrConstants.GROUP, Messages.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(UnmanagedThreadMonitorImpl.class.getName(), Messages.class.getName());
     
     private Timer timer;
     
@@ -63,7 +62,7 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
         
         lifecycle.addStopAction(new Runnable() {
             public void run() {
-                Tr.info(TC, Messages._0002I);
+                LOGGER.log(Level.INFO, Messages._0002I);
             }
         });
         
@@ -76,7 +75,7 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
                 try {
                     updateThreads();
                 } catch (Throwable ex) {
-                    Tr.error(TC, Messages._0006E, ex);
+                    LOGGER.log(Level.SEVERE, Messages._0006E, ex);
                 }
             }
         }, 1000, 1000);
@@ -87,7 +86,7 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
             }
         });
         
-        Tr.info(TC, Messages._0001I);
+        LOGGER.log(Level.INFO, Messages._0001I);
     }
     
     public void classLoaderCreated(ClassLoader classLoader, String applicationName, String moduleName) {
@@ -120,8 +119,8 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
 
         ThreadInfoImpl threadInfo;
         while ((threadInfo = (ThreadInfoImpl)threadInfoQueue.poll()) != null) {
-            if (TC.isDebugEnabled()) {
-                Tr.debug(TC, "Detected thread that has been stopped: {0}", threadInfo.getName());
+            if (LOGGER.isLoggable(Level.FINEST)) {
+                LOGGER.log(Level.FINEST, "Detected thread that has been stopped: {0}", threadInfo.getName());
             }
             final ModuleInfoImpl moduleInfo = threadInfo.getModuleInfo();
             moduleInfo.threadDestroyed();
@@ -137,9 +136,9 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
             ModuleInfoImpl moduleInfo = threadInfo.getModuleInfo();
             if (moduleInfo.isThreadLoggingEnabled()) {
                 if (moduleInfo.updateThreadLoggingStatus()) {
-                    Tr.warning(TC, Messages._0003W, new Object[] { moduleInfo.getName(), threadInfo.getName() });
+                    LOGGER.log(Level.WARNING, Messages._0003W, new Object[] { moduleInfo.getName(), threadInfo.getName() });
                 } else {
-                    Tr.warning(TC, Messages._0004W, moduleInfo.getName());
+                    LOGGER.log(Level.WARNING, Messages._0004W, moduleInfo.getName());
                 }
             }
         }
@@ -148,33 +147,33 @@ public class UnmanagedThreadMonitorImpl implements ClassLoaderListener, Unmanage
     private ThreadInfoImpl getThreadInfo(final Thread thread) {
         synchronized (threadInfos) {
             if (!threadInfos.containsKey(thread)) {
-                if (TC.isDebugEnabled()) {
-                    Tr.debug(TC, "Discovered new thread: {0} (type: {1})", new Object[] { thread.getName(), thread.getClass().getName() });
+                if (LOGGER.isLoggable(Level.FINEST)) {
+                    LOGGER.log(Level.FINEST, "Discovered new thread: {0} (type: {1})", new Object[] { thread.getName(), thread.getClass().getName() });
                 }
                 ThreadInfoImpl threadInfo = null;
                 if (thread instanceof ThreadPool.WorkerThread) {
-                    Tr.debug(TC, "Ignoring; thread belongs to a WebSphere thread pool");
+                    LOGGER.log(Level.FINEST, "Ignoring; thread belongs to a WebSphere thread pool");
                 } else {
                     AccessControlContextRBean acc = rbf.createRBean(ThreadRBean.class, thread).getAccessControlContext();
                     // The access control context is cleared when the thread is stopped. Therefore there is a
                     // small probability that it is null.
                     if (acc == null) {
-                        Tr.debug(TC, "No access control context found; probably the thread is already stopped");
+                        LOGGER.log(Level.FINEST, "No access control context found; probably the thread is already stopped");
                     } else {
                         ProtectionDomain[] pdArray = acc.getProtectionDomains();
                         if (pdArray != null) {
                             for (int i=pdArray.length-1; i>=0; i--) {
                                 ProtectionDomain pd = pdArray[i];
-                                if (TC.isDebugEnabled()) {
-                                    Tr.debug(TC, "Protection domain: codeSource={0}", pd.getCodeSource());
+                                if (LOGGER.isLoggable(Level.FINEST)) {
+                                    LOGGER.log(Level.FINEST, "Protection domain: codeSource={0}", pd.getCodeSource());
                                 }
                                 final ModuleInfoImpl moduleInfo;
                                 synchronized (moduleInfos) {
                                     moduleInfo = moduleInfos.get(pd.getClassLoader());
                                 }
                                 if (moduleInfo != null) {
-                                    if (TC.isDebugEnabled()) {
-                                        Tr.debug(TC, "Protection domain is linked to known class loader: {0}", moduleInfo.getName());
+                                    if (LOGGER.isLoggable(Level.FINEST)) {
+                                        LOGGER.log(Level.FINEST, "Protection domain is linked to known class loader: {0}", moduleInfo.getName());
                                     }
                                     threadInfo = new ThreadInfoImpl(thread, moduleInfo, threadInfoQueue);
                                     // TODO: implement logging as a listener as well

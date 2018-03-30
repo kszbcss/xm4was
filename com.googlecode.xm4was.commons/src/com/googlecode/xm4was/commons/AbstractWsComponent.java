@@ -1,10 +1,10 @@
 package com.googlecode.xm4was.commons;
 
 import java.util.Stack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.googlecode.xm4was.commons.resources.Messages;
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.ws.exception.ComponentDisabledException;
 import com.ibm.ws.exception.ConfigurationError;
 import com.ibm.ws.exception.ConfigurationWarning;
@@ -13,7 +13,7 @@ import com.ibm.ws.exception.RuntimeWarning;
 import com.ibm.wsspi.runtime.component.WsComponent;
 
 public abstract class AbstractWsComponent implements WsComponent {
-    private static final TraceComponent TC = Tr.register(AbstractWsComponent.class, TrConstants.GROUP, Messages.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(AbstractWsComponent.class.getName(), Messages.class.getName());
     
     private String state;
     private final Stack<Runnable> stopActions = new Stack<Runnable>();
@@ -66,7 +66,7 @@ public abstract class AbstractWsComponent implements WsComponent {
             try {
                 stopActions.pop().run();
             } catch (Throwable ex) {
-                Tr.error(TC, Messages._0001E, ex);
+                LOGGER.log(Level.SEVERE, Messages._0001E, ex);
             }
         }
         state = STOPPED;

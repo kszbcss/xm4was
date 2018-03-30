@@ -10,12 +10,13 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.management.JMException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.jmx.ManagementService;
 import com.googlecode.xm4was.commons.osgi.Lifecycle;
 import com.googlecode.xm4was.commons.osgi.annotations.Init;
@@ -28,8 +29,6 @@ import com.ibm.ejs.container.EJSContainer;
 import com.ibm.ejs.container.EJSDeployedSupport;
 import com.ibm.ejs.container.EJSHome;
 import com.ibm.ejs.container.activator.Activator;
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.csi.J2EEName;
 import com.ibm.ws.runtime.service.EJBContainer;
 import com.ibm.ws.threadContext.ComponentMetaDataAccessorImpl;
@@ -38,7 +37,7 @@ import com.ibm.ws.threadContext.ThreadContext;
 
 @Services(EJBMonitorMBean.class)
 public class EJBMonitor implements EJBMonitorMBean {
-    private static final TraceComponent TC = Tr.register(EJBMonitor.class, TrConstants.GROUP, Messages.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(EJBMonitor.class.getName(), Messages.class.getName());
     
     private EJBContainer ejbContainer;
     private MBeanServer mbeanServer;
@@ -72,7 +71,7 @@ public class EJBMonitor implements EJBMonitorMBean {
         int corePoolSize;
         if (System.getProperty("java.version").equals("1.5.0")) {
             // On IBM Java 1.5, if the core pool size is 0, then scheduled tasks will never be executed
-            Tr.debug(TC, "Java 1.5 compatibility enabled; setting core pool size to 1");
+            LOGGER.log(Level.FINEST, "Java 1.5 compatibility enabled; setting core pool size to 1");
             corePoolSize = 1;
         } else {
             // The EJBMonitor should not create threads if it is not used; we achieve this by setting the
@@ -80,15 +79,15 @@ public class EJBMonitor implements EJBMonitorMBean {
             corePoolSize = 0;
         }
         executor = new ThreadPoolExecutor(corePoolSize, 10, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory("EJBMonitor"));
-        if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Created ThreadPoolExecutor with corePoolSize={0} and keepAliveTime={1}", new Object[] { executor.getCorePoolSize(), executor.getKeepAliveTime(TimeUnit.SECONDS) });
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.log(Level.FINEST, "Created ThreadPoolExecutor with corePoolSize={0} and keepAliveTime={1}", new Object[] { executor.getCorePoolSize(), executor.getKeepAliveTime(TimeUnit.SECONDS) });
         }
         lifecycle.addStopAction(new Runnable() {
             public void run() {
                 executor.shutdown();
             }
         });
-        Tr.info(TC, Messages._0001I);
+        LOGGER.log(Level.INFO, Messages._0001I);
     }
     
     public String validateStatelessSessionBean(String applicationName, String moduleName, String beanName) throws Exception {
@@ -101,17 +100,17 @@ public class EJBMonitor implements EJBMonitorMBean {
         synchronized (pending) {
             future = pending.get(name);
             if (future != null) {
-                if (TC.isDebugEnabled()) {
-                    Tr.debug(TC, "There is already a pending validation of stateless session bean {0}", name);
+                if (LOGGER.isLoggable(Level.FINEST)) {
+                    LOGGER.log(Level.FINEST, "There is already a pending validation of stateless session bean {0}", name);
                 }
             } else {
-                if (TC.isDebugEnabled()) {
-                    Tr.debug(TC, "Scheduling a new validation of stateless session bean {0}", name);
+                if (LOGGER.isLoggable(Level.FINEST)) {
+                    LOGGER.log(Level.FINEST, "Scheduling a new validation of stateless session bean {0}", name);
                 }
                 future = executor.submit(new Callable<String>() {
                     public String call() throws Exception {
-                        if (TC.isDebugEnabled()) {
-                            Tr.debug(TC, "Starting validation of stateless session bean {0}", name);
+                        if (LOGGER.isLoggable(Level.FINEST)) {
+                            LOGGER.log(Level.FINEST, "Starting validation of stateless session bean {0}", name);
                         }
                         try {
                             return validateStatelessSessionBean(name);
@@ -119,21 +118,21 @@ public class EJBMonitor implements EJBMonitorMBean {
                             synchronized (pending) {
                                 pending.remove(name);
                             }
-                            if (TC.isDebugEnabled()) {
-                                Tr.debug(TC, "Validation of stateless session bean {0} finished; validations that are still pending: {1}", new Object[] { name, pending.keySet().toString() });
+                            if (LOGGER.isLoggable(Level.FINEST)) {
+                                LOGGER.log(Level.FINEST, "Validation of stateless session bean {0} finished; validations that are still pending: {1}", new Object[] { name, pending.keySet().toString() });
                             }
                         }
                     }
                 });
                 pending.put(name, future);
-                if (TC.isDebugEnabled()) {
-                    Tr.debug(TC, "The following stateless session bean validations are pending: {0}", pending.keySet().toString());
-                    Tr.debug(TC, "Pool stats: poolSize={0}, activeCount={1}", new Object[] { executor.getPoolSize(), executor.getActiveCount() });
+                if (LOGGER.isLoggable(Level.FINEST)) {
+                    LOGGER.log(Level.FINEST, "The following stateless session bean validations are pending: {0}", pending.keySet().toString());
+                    LOGGER.log(Level.FINEST, "Pool stats: poolSize={0}, activeCount={1}", new Object[] { executor.getPoolSize(), executor.getActiveCount() });
                 }
             }
         }
-        if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Waiting for result of validation of stateless session bean {0}", name);
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.log(Level.FINEST, "Waiting for result of validation of stateless session bean {0}", name);
         }
         try {
             return future.get(timeout, TimeUnit.MILLISECONDS);

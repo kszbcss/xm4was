@@ -4,15 +4,14 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.jmx.Authorizer;
 import com.googlecode.xm4was.commons.resources.Messages;
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 
 public class AccessCheckInvocationHandler implements InvocationHandler {
-    private static final TraceComponent TC = Tr.register(AccessCheckInvocationHandler.class, TrConstants.GROUP, Messages.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(AccessCheckInvocationHandler.class.getName(), Messages.class.getName());
     
     private final Object target;
     private final Authorizer authorizer;
@@ -30,9 +29,9 @@ public class AccessCheckInvocationHandler implements InvocationHandler {
             throw new SecurityException("No role defined for method " + method.getName());
         } else {
             if (authorizer.checkAccess(role)) {
-                Tr.debug(TC, "Access granted by authorizer");
+                LOGGER.log(Level.FINEST, "Access granted by authorizer");
             } else {
-                Tr.debug(TC, "Access denied");
+                LOGGER.log(Level.FINEST, "Access denied");
                 throw new SecurityException("Access to method " + method.getName() + " requires role " + role);
             }
             try {

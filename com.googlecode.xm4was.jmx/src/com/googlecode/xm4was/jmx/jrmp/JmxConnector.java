@@ -8,6 +8,8 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXConnectorServerFactory;
@@ -15,12 +17,9 @@ import javax.management.remote.JMXServiceURL;
 import javax.management.remote.MBeanServerForwarder;
 import javax.naming.Context;
 
-import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.osgi.Lifecycle;
 import com.googlecode.xm4was.commons.osgi.annotations.Init;
 import com.googlecode.xm4was.jmx.resources.Messages;
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.management.AdminServiceFactory;
 import com.ibm.websphere.models.config.ipc.EndPoint;
 import com.ibm.ws.runtime.service.EndPointMgr;
@@ -29,7 +28,7 @@ import com.ibm.ws.security.service.SecurityService;
 // * Security concerns in http://blogs.oracle.com/lmalventosa/entry/mimicking_the_out_of_the
 // * Thread pool?
 public class JmxConnector {
-    private static final TraceComponent TC = Tr.register(JmxConnector.class, TrConstants.GROUP, Messages.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(JmxConnector.class.getName(), Messages.class.getName());
     
     @Init
     public void init(Lifecycle lifecycle, EndPointMgr epMgr, SecurityService securityService) throws Exception {
@@ -40,9 +39,9 @@ public class JmxConnector {
             int port = ep.getPort();
             
             JMXServiceURL url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://localhost:" + port + "/jmxrmi");
-            Tr.info(TC, Messages._0001I, new Object[] { url.toString() });
+            LOGGER.log(Level.INFO, Messages._0001I, new Object[] { url.toString() });
             boolean securityEnabled = securityService.isSecurityEnabled();
-            Tr.info(TC, securityEnabled ? Messages._0003I : Messages._0004I);
+            LOGGER.log(Level.INFO, securityEnabled ? Messages._0003I : Messages._0004I);
             final Registry registry = LocateRegistry.createRegistry(port);
             lifecycle.addStopAction(new Runnable() {
                 public void run() {
@@ -68,8 +67,8 @@ public class JmxConnector {
             // SslRMIServerSocketFactory ssf = new SslRMIServerSocketFactory();
             // env.put(RMIConnectorServer.RMI_CLIENT_SOCKET_FACTORY_ATTRIBUTE, csf);
             // env.put(RMIConnectorServer.RMI_SERVER_SOCKET_FACTORY_ATTRIBUTE, ssf);
-            if (TC.isDebugEnabled()) {
-                Tr.debug(TC, "Creating JMX connector with env={0}", env);
+            if (LOGGER.isLoggable(Level.FINEST)) {
+                LOGGER.log(Level.FINEST, "Creating JMX connector with env={0}", env);
             }
             final JMXConnectorServer server = JMXConnectorServerFactory.newJMXConnectorServer(url, env,
                     AdminServiceFactory.getMBeanFactory().getMBeanServer());
@@ -89,7 +88,7 @@ public class JmxConnector {
                 }
             });
         } else {
-            Tr.info(TC, Messages._0002I);
+            LOGGER.log(Level.INFO, Messages._0002I);
         }
     }
 }

@@ -3,17 +3,16 @@ package com.googlecode.xm4was.commons.osgi.impl;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
 import org.osgi.util.tracker.BundleTrackerCustomizer;
 
-import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.osgi.annotations.ProcessTypes;
 import com.googlecode.xm4was.commons.osgi.annotations.Services;
 import com.googlecode.xm4was.commons.resources.Messages;
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.management.AdminServiceFactory;
 
 /**
@@ -27,15 +26,15 @@ import com.ibm.websphere.management.AdminServiceFactory;
  * WebSphere instance is restarted).
  */
 final class BundleManagerImpl implements BundleManager, BundleTrackerCustomizer {
-    private static final TraceComponent TC = Tr.register(BundleManagerImpl.class, TrConstants.GROUP, Messages.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(BundleManagerImpl.class.getName(), Messages.class.getName());
 
     private final String processType;
     private final List<ManagedBundle> managedBundles = new LinkedList<ManagedBundle>();
     
     BundleManagerImpl() {
         processType = AdminServiceFactory.getAdminService().getProcessType();
-        if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Process type is {0}", processType);
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.log(Level.FINEST, "Process type is {0}", processType);
         }
     }
     
@@ -54,8 +53,8 @@ final class BundleManagerImpl implements BundleManager, BundleTrackerCustomizer 
             return null;
         } else {
             int state = bundle.getState();
-            if (TC.isDebugEnabled()) {
-                Tr.debug(TC, "Discovered managed bundle {0}; state {1}", new Object[] { bundle.getSymbolicName(), state });
+            if (LOGGER.isLoggable(Level.FINEST)) {
+                LOGGER.log(Level.FINEST, "Discovered managed bundle {0}; state {1}", new Object[] { bundle.getSymbolicName(), state });
             }
             ManagedBundle managedBundle = new ManagedBundle(bundle);
             managedBundles.add(managedBundle);
@@ -64,7 +63,7 @@ final class BundleManagerImpl implements BundleManager, BundleTrackerCustomizer 
                 try {
                     clazz = bundle.loadClass(className);
                 } catch (ClassNotFoundException ex) {
-                    Tr.error(TC, Messages._0007E, new Object[] { className, bundle.getSymbolicName(), ex });
+                    LOGGER.log(Level.SEVERE, Messages._0007E, new Object[] { className, bundle.getSymbolicName(), ex });
                     continue;
                 }
                 ProcessTypes processTypes = clazz.getAnnotation(ProcessTypes.class);
@@ -77,8 +76,8 @@ final class BundleManagerImpl implements BundleManager, BundleTrackerCustomizer 
                         }
                     }
                     if (!matches) {
-                        if (TC.isDebugEnabled()) {
-                            Tr.debug(TC, "Skipping component {0} which is only valid for process types {1}",
+                        if (LOGGER.isLoggable(Level.FINEST)) {
+                            LOGGER.log(Level.FINEST, "Skipping component {0} which is only valid for process types {1}",
                                     new Object[] { clazz.getName(), Arrays.asList(processTypes.value()) });
                         }
                         continue;
@@ -88,7 +87,7 @@ final class BundleManagerImpl implements BundleManager, BundleTrackerCustomizer 
                 try {
                     componentObject = clazz.newInstance();
                 } catch (Throwable ex) {
-                    Tr.error(TC, Messages._0008E, new Object[] { clazz.getName(), ex });
+                    LOGGER.log(Level.SEVERE, Messages._0008E, new Object[] { clazz.getName(), ex });
                     continue;
                 }
                 Services annotation = clazz.getAnnotation(Services.class);
@@ -103,8 +102,8 @@ final class BundleManagerImpl implements BundleManager, BundleTrackerCustomizer 
                     }
                 }
                 LifecycleManager component = new LifecycleManager(Util.getBundleContext(bundle), serviceClassNames, componentObject, null);
-                if (TC.isDebugEnabled()) {
-                    Tr.debug(TC, "Adding component {0}", component);
+                if (LOGGER.isLoggable(Level.FINEST)) {
+                    LOGGER.log(Level.FINEST, "Adding component {0}", component);
                 }
                 managedBundle.addComponent(component);
             }
@@ -118,8 +117,8 @@ final class BundleManagerImpl implements BundleManager, BundleTrackerCustomizer 
 
     public void removedBundle(Bundle bundle, BundleEvent event, Object object) {
         if (object != null) {
-            if (TC.isDebugEnabled()) {
-                Tr.debug(TC, "Bundle {0} no longer managed; new state is {1}", new Object[] { bundle.getSymbolicName(), bundle.getState()});
+            if (LOGGER.isLoggable(Level.FINEST)) {
+                LOGGER.log(Level.FINEST, "Bundle {0} no longer managed; new state is {1}", new Object[] { bundle.getSymbolicName(), bundle.getState()});
             }
             ((ManagedBundle)object).stopComponents();
             managedBundles.remove(object);

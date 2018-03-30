@@ -1,10 +1,10 @@
 package com.googlecode.xm4was.commons.activator;
 
-import com.googlecode.xm4was.commons.TrConstants;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import com.googlecode.xm4was.commons.deploy.ClassLoaderListener;
 import com.googlecode.xm4was.commons.resources.Messages;
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.ws.exception.RuntimeError;
 import com.ibm.ws.exception.RuntimeWarning;
 import com.ibm.ws.runtime.deploy.DeployedApplication;
@@ -18,7 +18,7 @@ import com.ibm.ws.runtime.deploy.DeployedObjectListener;
  * them to a {@link ClassLoaderListener}.
  */
 class ClassLoaderListenerAdapter implements DeployedObjectListener {
-    private static final TraceComponent TC = Tr.register(ClassLoaderListenerAdapter.class, TrConstants.GROUP, Messages.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ClassLoaderListenerAdapter.class.getName(), Messages.class.getName());
     
     private final ClassLoaderListener listener;
 
@@ -29,8 +29,8 @@ class ClassLoaderListenerAdapter implements DeployedObjectListener {
     public void stateChanged(DeployedObjectEvent event) throws RuntimeError, RuntimeWarning {
         String state = (String)event.getNewValue();
         DeployedObject deployedObject = event.getDeployedObject();
-        if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Got a stateChanged event for " + deployedObject.getName() + "; state " + event.getOldValue() + "->" + event.getNewValue()
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.log(Level.FINEST, "Got a stateChanged event for " + deployedObject.getName() + "; state " + event.getOldValue() + "->" + event.getNewValue()
                     + "; deployed object type: " + deployedObject.getClass().getName());
         }
         ClassLoader classLoader = deployedObject.getClassLoader();

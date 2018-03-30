@@ -1,12 +1,12 @@
 package com.googlecode.xm4was.clmon.impl;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import com.github.veithen.rbeans.RBeanFactory;
 import com.github.veithen.rbeans.RBeanFactoryException;
 import com.googlecode.xm4was.clmon.resources.Messages;
-import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.rbeans.HashMapRBean;
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 
 /**
  * Represents a group of class loaders. These class loaders may still exist or may have been garbage
@@ -15,7 +15,7 @@ import com.ibm.ejs.ras.TraceComponent;
  * exposes them via PMI.
  */
 public class ClassLoaderGroup implements ClassLoaderGroupMBean {
-    private static final TraceComponent TC = Tr.register(ClassLoaderGroup.class, TrConstants.GROUP, Messages.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ClassLoaderGroup.class.getName(), Messages.class.getName());
     
     private static final RBeanFactory rbf;
     
@@ -24,7 +24,7 @@ public class ClassLoaderGroup implements ClassLoaderGroupMBean {
         try {
             _rbf = new RBeanFactory(CompoundClassLoaderRBean.class);
         } catch (RBeanFactoryException ex) {
-            Tr.error(TC, Messages._0006E, ex);
+            LOGGER.log(Level.SEVERE, Messages._0006E, ex);
             _rbf = null;
         }
         rbf = _rbf;
@@ -64,27 +64,27 @@ public class ClassLoaderGroup implements ClassLoaderGroupMBean {
 
     public synchronized void classLoaderCreated(ClassLoader classLoader) {
         createCount++;
-        if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Incremented createCount; new value: {0}", createCount);
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.log(Level.FINEST, "Incremented createCount; new value: {0}", createCount);
         }
         if (rbf != null) {
             SynchronizedMapRBean<?,?> synchronizedMap = (SynchronizedMapRBean<?,?>)rbf.createRBean(CompoundClassLoaderRBean.class, classLoader).getResourceRequestCache();
             if (synchronizedMap == null) {
-                Tr.debug(TC, "Resource request cache not available in this WAS version");
+                LOGGER.log(Level.FINEST, "Resource request cache not available in this WAS version");
             } else {
                 mutex = synchronizedMap.getMutex();
                 resourceRequestCache = (HashMapRBean<?,?>)synchronizedMap.getTargetMap();
-                Tr.debug(TC, "Extracted resource request cache reference from class loader");
+                LOGGER.log(Level.FINEST, "Extracted resource request cache reference from class loader");
             }
         } else {
-            Tr.debug(TC, "RBeanFactory not available");
+        	LOGGER.log(Level.FINEST, "RBeanFactory not available");
         }
     }
     
     public synchronized void classLoaderStopped() {
         stopCount++;
-        if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Incremented stopCount; new value: {0}", stopCount);
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.log(Level.FINEST, "Incremented stopCount; new value: {0}", stopCount);
         }
         // Release references to avoid class loader leak
         mutex = null;
@@ -93,8 +93,8 @@ public class ClassLoaderGroup implements ClassLoaderGroupMBean {
     
     public synchronized void classLoaderDestroyed() {
         destroyedCount++;
-        if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Incremented destroyedCount; new value: {0}", destroyedCount);
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.log(Level.FINEST, "Incremented destroyedCount; new value: {0}", destroyedCount);
         }
     }
     

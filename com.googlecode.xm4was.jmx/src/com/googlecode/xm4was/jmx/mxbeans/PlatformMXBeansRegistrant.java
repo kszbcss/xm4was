@@ -8,35 +8,34 @@ import java.lang.management.MemoryPoolMXBean;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.management.ObjectName;
 
-import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.jmx.ManagementService;
 import com.googlecode.xm4was.commons.osgi.Lifecycle;
 import com.googlecode.xm4was.commons.osgi.annotations.Init;
 import com.googlecode.xm4was.jmx.resources.Messages;
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 
 /**
  * Registers the platform MXBeans with WebSphere's MBean server.
  */
 public class PlatformMXBeansRegistrant {
-    private static final TraceComponent TC = Tr.register(PlatformMXBeansRegistrant.class, TrConstants.GROUP, Messages.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(PlatformMXBeansRegistrant.class.getName(), Messages.class.getName());
 
     @Init
     public void addingService(Lifecycle lifecycle, ManagementService managementService) {
         try {
-            Tr.debug(TC, "Configuring access rules for platform MXBeans");
+            LOGGER.log(Level.FINEST, "Configuring access rules for platform MXBeans");
             Properties accessProperties = new Properties();
             accessProperties.load(PlatformMXBeansRegistrant.class.getResourceAsStream("access.properties"));
             Map<String,String> accessRules = new HashMap<String,String>();
             for (Map.Entry<Object,Object> entry : accessProperties.entrySet()) {
                 accessRules.put((String)entry.getKey(), (String)entry.getValue());
             }
-            if (TC.isDebugEnabled()) {
-                Tr.debug(TC, "accessRules = {0}", accessRules);
+            if (LOGGER.isLoggable(Level.FINEST)) {
+                LOGGER.log(Level.FINEST, "accessRules = {0}", accessRules);
             }
             AccessChecker accessChecker = new AccessChecker(managementService.getAuthorizer(), accessRules);
             
@@ -76,9 +75,9 @@ public class PlatformMXBeansRegistrant {
                 registrations.registerMBean(mbean, new ObjectName(ManagementFactory.MEMORY_POOL_MXBEAN_DOMAIN_TYPE
                         + ",name=" + mbean.getName()));
             }
-            Tr.info(TC, Messages._0101I, new Object[] { registrations.getMBeanCount() });
+            LOGGER.log(Level.INFO, Messages._0101I, new Object[] { registrations.getMBeanCount() });
         } catch (Exception ex) {
-            Tr.error(TC, Messages._0103E, ex);
+            LOGGER.log(Level.SEVERE, Messages._0103E, ex);
         }
     }
 }

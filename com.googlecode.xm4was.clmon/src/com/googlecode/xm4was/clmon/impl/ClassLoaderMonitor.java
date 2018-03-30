@@ -8,12 +8,13 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.osgi.framework.BundleContext;
 
 import com.googlecode.xm4was.clmon.CacheCleaner;
 import com.googlecode.xm4was.clmon.resources.Messages;
-import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.deploy.ClassLoaderListener;
 import com.googlecode.xm4was.commons.osgi.Lifecycle;
 import com.googlecode.xm4was.commons.osgi.ServiceSet;
@@ -23,14 +24,12 @@ import com.googlecode.xm4was.commons.osgi.annotations.ProcessTypes;
 import com.googlecode.xm4was.commons.osgi.annotations.Services;
 import com.googlecode.xm4was.threadmon.ModuleInfo;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadListener;
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.management.AdminConstants;
 
 @ProcessTypes({AdminConstants.MANAGED_PROCESS, AdminConstants.STANDALONE_PROCESS})
 @Services({ ClassLoaderListener.class, UnmanagedThreadListener.class, ClassLoaderMonitorMBean.class })
 public class ClassLoaderMonitor implements ClassLoaderListener, UnmanagedThreadListener, ClassLoaderMonitorMBean {
-    private static final TraceComponent TC = Tr.register(ClassLoaderMonitor.class, TrConstants.GROUP, Messages.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ClassLoaderMonitor.class.getName(), Messages.class.getName());
     
     /**
      * Delay between the last update of the class loader statistics and the moment these statistics
@@ -62,7 +61,7 @@ public class ClassLoaderMonitor implements ClassLoaderListener, UnmanagedThreadL
         
         lifecycle.addStopAction(new Runnable() {
             public void run() {
-                Tr.info(TC, Messages._0002I);
+                LOGGER.log(Level.INFO, Messages._0002I);
             }
         });
         
@@ -83,7 +82,7 @@ public class ClassLoaderMonitor implements ClassLoaderListener, UnmanagedThreadL
 
         classLoaderGroups = new HashMap<String,ClassLoaderGroup>();
         
-        Tr.info(TC, Messages._0001I);
+        LOGGER.log(Level.INFO, Messages._0001I);
     }
 
     void updateClassLoaders() {
@@ -92,8 +91,8 @@ public class ClassLoaderMonitor implements ClassLoaderListener, UnmanagedThreadL
         // ReferenceQueues are thread safe. Therefore we don't need to synchronized here.
         while ((classLoaderInfo = (ClassLoaderInfo)classLoaderInfoQueue.poll()) != null) {
             isUpdated = true;
-            if (TC.isDebugEnabled()) {
-                Tr.debug(TC, "Detected class loader that has been garbage collected: " + classLoaderInfo);
+            if (LOGGER.isLoggable(Level.FINEST)) {
+                LOGGER.log(Level.FINEST, "Detected class loader that has been garbage collected: " + classLoaderInfo);
             }
             // classLoaderDestroyed is synchronized
             classLoaderInfo.getGroup().classLoaderDestroyed();
@@ -118,7 +117,7 @@ public class ClassLoaderMonitor implements ClassLoaderListener, UnmanagedThreadL
                     destroyedCount += group.getDestroyedCount();
                 }
             }
-            Tr.info(TC, Messages._0003I, new Object[] { String.valueOf(createCount), String.valueOf(stopCount), String.valueOf(destroyedCount) });
+            LOGGER.log(Level.INFO, Messages._0003I, new Object[] { String.valueOf(createCount), String.valueOf(stopCount), String.valueOf(destroyedCount) });
         }
     }
     
@@ -159,11 +158,11 @@ public class ClassLoaderMonitor implements ClassLoaderListener, UnmanagedThreadL
         }
         if (info == null) {
             // We may get here if something went badly wrong during startup of the application
-            Tr.warning(TC, Messages._0005W);
+            LOGGER.log(Level.WARNING, Messages._0005W);
             return;
         }
-        if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Identified class loader: " + info);
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.log(Level.FINEST, "Identified class loader: " + info);
         }
         info.setStopped(true);
         info.getGroup().classLoaderStopped();
@@ -174,15 +173,15 @@ public class ClassLoaderMonitor implements ClassLoaderListener, UnmanagedThreadL
     }
 
     public void threadStarted(Thread thread, ModuleInfo moduleInfo) {
-        if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Got notification about a new unmanaged thread {0} in {1}", new Object[] { thread.getName(), moduleInfo });
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.log(Level.FINEST, "Got notification about a new unmanaged thread {0} in {1}", new Object[] { thread.getName(), moduleInfo });
         }
         getGroup(moduleInfo.getApplicationName(), moduleInfo.getModuleName()).threadCreated();
     }
     
     public void threadStopped(String name, ModuleInfo moduleInfo) {
-        if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Got notification that the unmanaged thread {0} in {1} has stopped", new Object[] { name, moduleInfo });
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.log(Level.FINEST, "Got notification that the unmanaged thread {0} in {1} has stopped", new Object[] { name, moduleInfo });
         }
         getGroup(moduleInfo.getApplicationName(), moduleInfo.getModuleName()).threadDestroyed();
     }

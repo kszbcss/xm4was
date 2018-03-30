@@ -7,15 +7,14 @@ import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.management.MBeanServer;
 import javax.management.remote.MBeanServerForwarder;
 import javax.security.auth.Subject;
 
-import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.jmx.resources.Messages;
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.security.auth.WSSubject;
 
 /**
@@ -23,7 +22,7 @@ import com.ibm.websphere.security.auth.WSSubject;
  * thread so that security works as expected with WebSphere's MBeans.
  */
 public class WebSphereMBeanServerInvocationHandler implements InvocationHandler {
-    private static final TraceComponent TC = Tr.register(WebSphereMBeanServerInvocationHandler.class, TrConstants.GROUP, Messages.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(WebSphereMBeanServerInvocationHandler.class.getName(), Messages.class.getName());
     
     private MBeanServer target;
     
@@ -42,8 +41,8 @@ public class WebSphereMBeanServerInvocationHandler implements InvocationHandler 
         } else {
             AccessControlContext acc = AccessController.getContext();
             Subject subject = Subject.getSubject(acc);
-            if (TC.isDebugEnabled()) {
-                Tr.debug(TC, "Invoking {0} as {1}", new Object[] { method.getName(), subject });
+            if (LOGGER.isLoggable(Level.FINEST)) {
+                LOGGER.log(Level.FINEST, "Invoking {0} as {1}", new Object[] { method.getName(), subject });
             }
             try {
                 try {

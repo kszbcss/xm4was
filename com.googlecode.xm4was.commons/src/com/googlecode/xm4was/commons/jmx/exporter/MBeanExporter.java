@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.management.JMException;
 import javax.management.MBeanException;
@@ -34,7 +36,6 @@ import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 import com.googlecode.xm4was.commons.JmxConstants;
-import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.jmx.Authorizer;
 import com.googlecode.xm4was.commons.jmx.ManagementService;
 import com.googlecode.xm4was.commons.jmx.annotations.Attribute;
@@ -47,8 +48,6 @@ import com.googlecode.xm4was.commons.osgi.Lifecycle;
 import com.googlecode.xm4was.commons.osgi.annotations.Init;
 import com.googlecode.xm4was.commons.osgi.impl.BundleManager;
 import com.googlecode.xm4was.commons.resources.Messages;
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.wsspi.pmi.factory.StatisticActions;
 import com.ibm.wsspi.pmi.factory.StatsFactory;
 import com.ibm.wsspi.pmi.factory.StatsFactoryException;
@@ -80,7 +79,7 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
         }
     }
     
-    private static final TraceComponent TC = Tr.register(MBeanExporter.class, TrConstants.GROUP, Messages.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MBeanExporter.class.getName(), Messages.class.getName());
     
     private BundleContext bundleContext;
     private MBeanServer mbeanServer;
@@ -115,8 +114,8 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
             try {
                 clazz = bundle.loadClass(className);
             } catch (ClassNotFoundException ex) {
-                if (TC.isDebugEnabled()) {
-                    Tr.debug(TC, "Unable to load class {0} from bundle {1}:\n{2}", new Object[] { className, bundle.getBundleId(), ex });
+                if (LOGGER.isLoggable(Level.FINEST)) {
+                    LOGGER.log(Level.FINEST, "Unable to load class {0} from bundle {1}:\n{2}", new Object[] { className, bundle.getBundleId(), ex });
                 }
                 return null;
             }
@@ -139,9 +138,9 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
                         }
                         pmiObjectName = registerMBean(clazz, atMBean, keyProperties, target, registrations, false);
                     } catch (JMException ex) {
-                        Tr.error(TC, Messages._0012E, ex);
+                        LOGGER.log(Level.SEVERE, Messages._0012E, ex);
                     } catch (InvalidTargetObjectTypeException ex) {
-                        Tr.error(TC, Messages._0012E, ex);
+                        LOGGER.log(Level.SEVERE, Messages._0012E, ex);
                     }
                 }
                 if (atPMIEnabled != null) {
@@ -173,7 +172,7 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
                                                 try {
                                                     StatsFactory.removeStatsGroup(statsGroupHolder.getStatsGroup());
                                                 } catch (StatsFactoryException ex) {
-                                                    Tr.error(TC, Messages._0002E, ex);
+                                                    LOGGER.log(Level.SEVERE, Messages._0002E, ex);
                                                 }
                                                 statGroups.remove(groupName);
                                             }
@@ -196,7 +195,7 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
                             registrations.addStopAction(new RemoveStatsInstanceAction(statsInstance));
                         }
                     } catch (StatsFactoryException ex) {
-                        Tr.error(TC, Messages._0015E, ex);
+                        LOGGER.log(Level.SEVERE, Messages._0015E, ex);
                     }
                 }
             }
@@ -220,7 +219,7 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
                 try {
                     mbeanServer.unregisterMBean(objectName);
                 } catch (JMException ex) {
-                    Tr.error(TC, Messages._0003E, ex);
+                    LOGGER.log(Level.SEVERE, Messages._0003E, ex);
                 }
             }
         });
@@ -245,7 +244,7 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
                         }
                     }
                     if (parameterAnnotation == null) {
-                        Tr.error(TC, Messages._0011E, method.toString());
+                        LOGGER.log(Level.SEVERE, Messages._0011E, method.toString());
                         return null;
                     }
                     parameters[i] = new MBeanParameterInfo(parameterAnnotation.name(), parameterTypes[i].getName(), parameterAnnotation.description());
@@ -264,7 +263,7 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
                     try {
                         pdArray = Introspector.getBeanInfo(clazz).getPropertyDescriptors();
                     } catch (IntrospectionException ex) {
-                        Tr.error(TC, Messages._0012E, ex);
+                        LOGGER.log(Level.SEVERE, Messages._0012E, ex);
                         return null;
                     }
                 }
@@ -276,7 +275,7 @@ public class MBeanExporter implements ServiceTrackerCustomizer {
                     }
                 }
                 if (pd == null) {
-                    Tr.error(TC, Messages._0013E, method.toString());
+                    LOGGER.log(Level.SEVERE, Messages._0013E, method.toString());
                     return null;
                 }
                 Method readMethod = pd.getReadMethod();

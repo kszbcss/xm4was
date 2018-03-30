@@ -2,18 +2,17 @@ package com.googlecode.xm4was.commons.osgi.impl;
 
 import java.util.Dictionary;
 import java.util.Stack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
-import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.osgi.Lifecycle;
 import com.googlecode.xm4was.commons.resources.Messages;
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 
 final class LifecycleImpl implements Lifecycle {
-    private static final TraceComponent TC = Tr.register(LifecycleImpl.class, TrConstants.GROUP, Messages.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(LifecycleImpl.class.getName(), Messages.class.getName());
     
     private enum State { STARTING, STARTED, STOPPING, STOPPED };
     
@@ -57,7 +56,7 @@ final class LifecycleImpl implements Lifecycle {
             try {
                 stopActions.pop().run();
             } catch (Throwable ex) {
-                Tr.error(TC, Messages._0001E, ex);
+                LOGGER.log(Level.SEVERE, Messages._0001E, ex);
             }
         }
         state = State.STOPPED;

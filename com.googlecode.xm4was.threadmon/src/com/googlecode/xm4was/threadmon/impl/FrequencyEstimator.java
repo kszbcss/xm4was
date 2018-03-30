@@ -1,12 +1,12 @@
 package com.googlecode.xm4was.threadmon.impl;
 
-import com.googlecode.xm4was.commons.TrConstants;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import com.googlecode.xm4was.threadmon.resources.Messages;
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 
 public class FrequencyEstimator {
-    private static final TraceComponent TC = Tr.register(FrequencyEstimator.class, TrConstants.GROUP, Messages.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(FrequencyEstimator.class.getName(), Messages.class.getName());
     
     private final double scale;
     private long lastEvent;
@@ -19,14 +19,14 @@ public class FrequencyEstimator {
     public synchronized void addEvent() {
         long time = System.currentTimeMillis();
         double frequency = getFrequency(time);
-        if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Updating frequency estimate with new event; scale={0}, lastEvent={1}, lastEstimate={2}, frequency={3}",
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.log(Level.FINEST, "Updating frequency estimate with new event; scale={0}, lastEvent={1}, lastEstimate={2}, frequency={3}",
                     new Object[] { scale, lastEvent, lastEstimate, frequency });
         }
         lastEstimate = 1/scale + frequency;
         lastEvent = time;
-        if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Frequency estimate updated; lastEvent={0}, lastEstimate={1}",
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.log(Level.FINEST, "Frequency estimate updated; lastEvent={0}, lastEstimate={1}",
                     new Object[] { lastEvent, lastEstimate });
         }
     }

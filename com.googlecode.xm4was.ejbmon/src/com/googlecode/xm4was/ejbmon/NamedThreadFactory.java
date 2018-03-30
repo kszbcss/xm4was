@@ -2,14 +2,13 @@ package com.googlecode.xm4was.ejbmon;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.ejbmon.resources.Messages;
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 
 final class NamedThreadFactory implements ThreadFactory, Thread.UncaughtExceptionHandler {
-    private static final TraceComponent TC = Tr.register(NamedThreadFactory.class, TrConstants.GROUP, Messages.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(NamedThreadFactory.class.getName(), Messages.class.getName());
     
     private final ThreadGroup group;
     private final String namePrefix;
@@ -28,6 +27,6 @@ final class NamedThreadFactory implements ThreadFactory, Thread.UncaughtExceptio
     }
 
     public void uncaughtException(Thread thread, Throwable ex) {
-        Tr.error(TC, Messages._0003E, ex);
+        LOGGER.log(Level.SEVERE, Messages._0003E, ex);
     }
 }

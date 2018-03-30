@@ -6,8 +6,9 @@ import java.util.HashMap;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import com.googlecode.xm4was.commons.TrConstants;
 import com.googlecode.xm4was.commons.osgi.annotations.Inject;
 import com.googlecode.xm4was.commons.osgi.annotations.Services;
 import com.googlecode.xm4was.commons.utils.jvm.StackTraceUtil;
@@ -16,14 +17,12 @@ import com.googlecode.xm4was.threadmon.ThreadInfo;
 import com.googlecode.xm4was.threadmon.UnmanagedThreadMonitor;
 import com.googlecode.xm4was.threadmon.resources.Messages;
 import com.ibm.ejs.ras.ManagerAdmin;
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.websphere.security.auth.WSSubject;
 import com.ibm.ws.util.ThreadPool;
 
 @Services(ThreadMonitorMBean.class)
 public class ThreadMonitor implements ThreadMonitorMBean {
-    private static final TraceComponent TC = Tr.register(ThreadMonitor.class, TrConstants.GROUP, Messages.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ThreadMonitor.class.getName(), Messages.class.getName());
     
     private final Class<?> workerClass;
     private final Field outerField;
@@ -138,7 +137,7 @@ public class ThreadMonitor implements ThreadMonitorMBean {
         dump(root, "", buffer);
         String result = buffer.toString();
         if (log) {
-            Tr.audit(TC, Messages._0005I, new Object[] { WSSubject.getCallerPrincipal(), threadPoolName, result });
+            LOGGER.log(Level.WARNING, Messages._0005I, new Object[] { WSSubject.getCallerPrincipal(), threadPoolName, result });
         }
         return result;
     }
