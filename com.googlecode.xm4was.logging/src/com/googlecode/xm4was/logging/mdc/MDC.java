@@ -13,7 +13,15 @@ import java.util.Set;
 public class MDC {
 
     private static final InheritableThreadLocal<Map<String, String>> THREAD_LOCAL_TRACER_VARS =
-            new InheritableThreadLocal<Map<String, String>>();
+            new InheritableThreadLocal<Map<String, String>>() {
+        @Override
+        protected Map<String, String> childValue(Map<String, String> parentValue) {
+            if (parentValue == null) {
+                return null;
+            }
+            return new HashMap<String, String>(parentValue);
+        }
+    };
 
     public static void put(String key, String val) {
         if (key == null) {
