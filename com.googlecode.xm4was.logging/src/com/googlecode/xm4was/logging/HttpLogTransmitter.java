@@ -72,7 +72,7 @@ final class HttpLogTransmitter extends Thread {
                     nextSequence = messages[messages.length - 1].getSequence() + 1;
                     readAndClose(conn.getInputStream()); // enable connection reuse
                 } catch (RuntimeException ex) {
-                    Tr.error(TC, "Unable to connect to log collector:\n{0}", ex);
+                    Tr.error(TC, "Unexpected exception during logging:\n{0}", ex);
                     sleep(10000);
                 } catch (IOException ex) {
                     Tr.error(TC, "Unable to connect to log collector:\n{0}", ex);
@@ -90,8 +90,9 @@ final class HttpLogTransmitter extends Thread {
         } catch (InterruptedException ex) {
             Tr.error(TC, "HttpLogTransmitter thread was interrupted:\n{0}", ex);
             // OK, just return from the method
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
+        } catch (MalformedURLException ex) {
+            Tr.error(TC, "Malformed URL:\n{0}", ex);
+            throw new RuntimeException(ex);
         }
     }
 
