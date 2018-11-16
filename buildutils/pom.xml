@@ -140,8 +140,9 @@
     <repositories>
         <repository>
             <id>p2-kepler</id>
+            <layout>p2</layout>
             <name>Kepler release repository</name>
-            <url>p2:http://download.eclipse.org/releases/kepler/201306260900</url>
+            <url>http://download.eclipse.org/releases/kepler/201306260900</url>
         </repository>
         <repository>
             <id>github-veithen-releases</id>
@@ -170,8 +171,8 @@
         <extensions>
             <extension>
                 <groupId>com.github.veithen.cosmos</groupId>
-                <artifactId>wagon-p2</artifactId>
-                <version>20150901</version>
+                <artifactId>p2-maven-connector</artifactId>
+                <version>0.3</version>
             </extension>
         </extensions>
         <plugins>
