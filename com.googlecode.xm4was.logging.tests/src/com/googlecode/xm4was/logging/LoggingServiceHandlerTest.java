@@ -14,7 +14,7 @@ public class LoggingServiceHandlerTest {
         LoggingServiceHandler handler = new LoggingServiceHandler();
         logger.addHandler(handler);
         try {
-            logger.warning(null);
+            logger.warning((String) null);
             // In 0.3.1 this would trigger a NullPointerException
             String[] messages = handler.getMessages(0);
             assertEquals(1, messages.length);
