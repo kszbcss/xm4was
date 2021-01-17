@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.googlecode.xm4was</groupId>
+        <artifactId>xm4was</artifactId>
+        <version>0.4.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>bootstrap</artifactId>
+    <packaging>eclipse-plugin</packaging>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-bootstrap</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>websphere-library</groupId>
+                                    <artifactId>bootstrap</artifactId>
+                                    <version>8.5.5.17</version>
+                                    <destFileName>bootstrap.jar</destFileName>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>websphere-library</groupId>
+                                    <artifactId>j2ee</artifactId>
+                                    <version>8.5.5.17</version>
+                                    <destFileName>j2ee.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

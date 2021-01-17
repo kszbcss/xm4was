@@ -19,3 +19,12 @@ jobs:
       run: cd buildutils && JAVA_HOME=$HOME/was/java mvn -B package
     - name: Populate P2 repository
       run: mkdir -p $HOME/was/p2_repo && docker run --rm -u $(id -u $USER) -v $(pwd)/buildutils/target:/buildutils:z -v $HOME/was:/was:z ibmcom/websphere-traditional:8.5.5.17 /opt/IBM/WebSphere/AppServer/java/bin/java -jar /buildutils/plugin-importer-1-SNAPSHOT.jar /opt/IBM/WebSphere/AppServer file:///was/p2_repo
+    - name: Install WebSphere libraries
+      run: >
+        mkdir -p $HOME/was/libs &&
+        docker run --rm -u $(id -u $USER) -v $HOME/was:/was:z ibmcom/websphere-traditional:8.5.5.17 cp /opt/IBM/WebSphere/AppServer/lib/bootstrap.jar /opt/IBM/WebSphere/AppServer/lib/j2ee.jar /was/libs &&
+        cd buildutils &&
+        mvn -B install:install-file -DgroupId=websphere-library -DartifactId=bootstrap -Dversion=8.5.5.17 -Dpackaging=jar -Dfile=$HOME/was/libs/bootstrap.jar &&
+        mvn -B install:install-file -DgroupId=websphere-library -DartifactId=j2ee -Dversion=8.5.5.17 -Dpackaging=jar -Dfile=$HOME/was/libs/j2ee.jar
+    - name: Build
+      run: JAVA_HOME=$HOME/was/java mvn -B -s .ci-settings.xml verify

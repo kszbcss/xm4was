@@ -120,7 +120,7 @@
                                     <groupId>websphere-library</groupId>
                                     <artifactId>bootstrap</artifactId>
                                     <!-- <version>[8.5,8.6)</version> doesn't work? Downloading: p2:file:///D:/was_repo/websphere-library/bootstrap/%5B8.5,8.6)/bootstrap-%5B8.5,8.6).pom -->
-                                    <version>8.5.5.7</version>
+                                    <version>8.5.5.17</version>
                                 </artifact>
                             </artifacts>
                             <repositories>
@@ -181,6 +181,7 @@
         </pluginManagement>
     </build>
     <modules>
+        <module>bootstrap</module>
         <module>com.googlecode.xm4was.clmon</module>
         <module>com.googlecode.xm4was.clmon.tests</module>
         <module>com.googlecode.xm4was.commons</module>
