@@ -1,0 +1,21 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ '*' ]
+  pull_request:
+    branches: [ '*' ]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Extract IBM JDK
+      run: mkdir -p $HOME/was && docker run --rm -u $(id -u $USER) -v $HOME/was:/was:z ibmcom/websphere-traditional:8.5.5.17 cp -R /opt/IBM/WebSphere/AppServer/java /was
+    - name: Build buildutils
+      run: cd buildutils && JAVA_HOME=$HOME/was/java mvn -B package
+    - name: Populate P2 repository
+      run: mkdir -p $HOME/was/p2_repo && docker run --rm -u $(id -u $USER) -v $(pwd)/buildutils/target:/buildutils:z -v $HOME/was:/was:z ibmcom/websphere-traditional:8.5.5.17 /opt/IBM/WebSphere/AppServer/java/bin/java -jar /buildutils/plugin-importer-1-SNAPSHOT.jar /opt/IBM/WebSphere/AppServer file:///was/p2_repo
