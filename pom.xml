@@ -106,7 +106,7 @@
             <plugin>
                 <groupId>com.github.veithen.alta</groupId>
                 <artifactId>alta-maven-plugin</artifactId>
-                <version>0.6.1</version>
+                <version>0.7.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -163,7 +163,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-clean-plugin</artifactId>
-                    <version>2.5</version>
+                    <version>3.1.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-dependency-plugin</artifactId>
@@ -171,7 +171,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>2.6</version>
+                    <version>3.2.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-jar-plugin</artifactId>
