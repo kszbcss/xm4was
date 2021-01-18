@@ -91,7 +91,7 @@
             <extension>
                 <groupId>com.github.veithen.cosmos</groupId>
                 <artifactId>wagon-p2</artifactId>
-                <version>20150901</version>
+                <version>20180302</version>
             </extension>
         </extensions>
         <plugins>
