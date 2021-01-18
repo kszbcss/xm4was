@@ -13,7 +13,7 @@
         <dependency>
             <groupId>com.github.veithen.cosmos</groupId>
             <artifactId>compat-eclipse-core-net</artifactId>
-            <version>20150901</version>
+            <version>20180318.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.eclipse.equinox</groupId>
