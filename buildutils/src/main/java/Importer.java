@@ -24,6 +24,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.equinox.internal.p2.artifact.repository.simple.SimpleArtifactRepository;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
+import org.eclipse.equinox.p2.core.IProvisioningAgentProvider;
 import org.eclipse.equinox.p2.metadata.IArtifactKey;
 import org.eclipse.equinox.p2.metadata.Version;
 import org.eclipse.equinox.p2.publisher.IPublisherAction;
@@ -37,19 +38,13 @@ import org.eclipse.equinox.p2.repository.artifact.IArtifactRepository;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRepositoryManager;
 import org.eclipse.equinox.p2.repository.metadata.IMetadataRepository;
 import org.eclipse.equinox.p2.repository.metadata.IMetadataRepositoryManager;
-import org.osgi.framework.BundleException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import com.github.veithen.cosmos.osgi.runtime.Configuration;
-import com.github.veithen.cosmos.osgi.runtime.CosmosException;
-import com.github.veithen.cosmos.osgi.runtime.Runtime;
-import com.github.veithen.cosmos.osgi.runtime.RuntimeInitializer;
-import com.github.veithen.cosmos.osgi.runtime.equinox.EquinoxInitializer;
-import com.github.veithen.cosmos.osgi.runtime.logging.simple.SimpleLogger;
+import com.github.veithen.cosmos.osgi.runtime.CosmosRuntime;
 import com.google.common.io.Files;
 
 public class Importer {
@@ -78,19 +73,8 @@ public class Importer {
         });
         
         URI repoURI = new URI(args[args.length-1]);
-        Runtime runtime = Runtime.getInstance(Configuration.newDefault().logger(SimpleLogger.INSTANCE).initializer(new RuntimeInitializer() {
-            @Override
-            public void initializeRuntime(Runtime runtime) throws CosmosException, BundleException {
-                EquinoxInitializer.INSTANCE.initializeRuntime(runtime);
-                runtime.setProperty("eclipse.p2.data.area", p2DataArea.getAbsolutePath());
-                // Don't use mirrors because they make the execution more unpredictable
-                runtime.setProperty("eclipse.p2.mirrors", "false");
-                runtime.getBundle("org.apache.felix.scr").start();
-                runtime.getBundle("org.eclipse.equinox.p2.core").start();
-            }
-        }).build());
         IProgressMonitor monitor = new SystemOutProgressMonitor();
-        IProvisioningAgent agent = runtime.getService(IProvisioningAgent.class);
+        IProvisioningAgent agent = CosmosRuntime.getInstance().getService(IProvisioningAgentProvider.class).createAgent(p2DataArea.toURI());
         IArtifactRepositoryManager artifactRepositoryManager = (IArtifactRepositoryManager)agent.getService(IArtifactRepositoryManager.SERVICE_NAME);
         IMetadataRepositoryManager metadataRepositoryManager = (IMetadataRepositoryManager)agent.getService(IMetadataRepositoryManager.SERVICE_NAME);
 

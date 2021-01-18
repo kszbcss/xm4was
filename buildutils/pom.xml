@@ -7,19 +7,8 @@
     <dependencies>
         <dependency>
             <groupId>com.github.veithen.cosmos</groupId>
-            <artifactId>cosmos-osgi-runtime-equinox</artifactId>
-            <version>20150901</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.veithen.cosmos</groupId>
-            <artifactId>compat-eclipse-core-net</artifactId>
-            <version>20150901</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.eclipse.equinox</groupId>
-                    <artifactId>org.eclipse.equinox.common</artifactId>
-                </exclusion>
-            </exclusions>
+            <artifactId>cosmos-equinox</artifactId>
+            <version>0.4.1</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -136,6 +125,16 @@
             <artifactId>org.eclipse.equinox.p2.jarprocessor</artifactId>
             <version>1.0.300.v20130327-2119</version>
         </dependency>
+        <dependency>
+            <groupId>osgi.bundle</groupId>
+            <artifactId>org.eclipse.core.net</artifactId>
+            <version>1.2.200.v20130430-1352</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.30</version>
+        </dependency>
     </dependencies>
     <repositories>
         <repository>
@@ -144,29 +143,7 @@
             <name>Kepler release repository</name>
             <url>http://download.eclipse.org/releases/kepler/201306260900</url>
         </repository>
-        <repository>
-            <id>github-veithen-releases</id>
-            <url>https://raw.githubusercontent.com/veithen/mvn-repo/master/releases/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
     </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>github-veithen-releases</id>
-            <url>https://raw.githubusercontent.com/veithen/mvn-repo/master/releases/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </pluginRepository>
-    </pluginRepositories>
     <build>
         <extensions>
             <extension>
