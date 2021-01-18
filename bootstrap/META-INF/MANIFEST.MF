@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: WebSphere bootstrap classes
 Bundle-SymbolicName: bootstrap;singleton:=true
 Bundle-Version: 0.4.1.qualifier
-Export-Package: com.ibm.ws.classloader,
- javax.annotation.security,
+Export-Package: javax.annotation.security,
  javax.annotation.sql
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

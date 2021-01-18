@@ -23,12 +23,6 @@
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>websphere-library</groupId>
-                                    <artifactId>bootstrap</artifactId>
-                                    <version>8.5.5.17</version>
-                                    <destFileName>bootstrap.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>websphere-library</groupId>
                                     <artifactId>j2ee</artifactId>
                                     <version>8.5.5.17</version>
                                     <destFileName>j2ee.jar</destFileName>
