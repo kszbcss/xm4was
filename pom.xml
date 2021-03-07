@@ -11,20 +11,12 @@
     <scm>
         <developerConnection>scm:git:https://github.com/kszbcss/xm4was.git</developerConnection>
     </scm>
-    <dependencies>
-        <!-- This dependency is not imported from WAS because it is provided by the OSGi container -->
-        <dependency>
-            <groupId>org.eclipse.equinox</groupId>
-            <artifactId>app</artifactId>
-            <version>1.0.0-v20070606</version>
-        </dependency>
-    </dependencies>
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
-                <version>4.13.1</version>
+                <version>4.13.2</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
