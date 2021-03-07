@@ -8,6 +8,16 @@
     </parent>
     <artifactId>com.googlecode.xm4was.commons</artifactId>
     <packaging>eclipse-plugin</packaging>
+    <dependencyManagement>
+        <dependencies>
+            <!-- Use dependencyManagement entries here so that versions can be updated by Dependabot. -->
+            <dependency>
+                <groupId>com.github.veithen.rbeans</groupId>
+                <artifactId>rbeans</artifactId>
+                <version>0.1.1</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <build>
         <plugins>
             <!-- We repackage org.osgi.util.tracker because the OSGi version used by WAS 7.0
@@ -44,7 +54,6 @@
                                 <artifactItem>
                                     <groupId>com.github.veithen.rbeans</groupId>
                                     <artifactId>rbeans</artifactId>
-                                    <version>0.1.0</version>
                                     <destFileName>rbeans.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
