@@ -106,7 +106,7 @@
             <plugin>
                 <groupId>com.github.veithen.alta</groupId>
                 <artifactId>alta-maven-plugin</artifactId>
-                <version>0.6.1</version>
+                <version>0.7.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -115,14 +115,16 @@
                         <configuration>
                             <name>bootclasspath</name>
                             <value>%file%</value>
-                            <artifacts>
-                                <artifact>
-                                    <groupId>websphere-library</groupId>
-                                    <artifactId>bootstrap</artifactId>
-                                    <!-- <version>[8.5,8.6)</version> doesn't work? Downloading: p2:file:///D:/was_repo/websphere-library/bootstrap/%5B8.5,8.6)/bootstrap-%5B8.5,8.6).pom -->
-                                    <version>8.5.5.17</version>
-                                </artifact>
-                            </artifacts>
+                            <artifactSet>
+                                <artifacts>
+                                    <artifact>
+                                        <groupId>websphere-library</groupId>
+                                        <artifactId>bootstrap</artifactId>
+                                        <!-- <version>[8.5,8.6)</version> doesn't work? Downloading: p2:file:///D:/was_repo/websphere-library/bootstrap/%5B8.5,8.6)/bootstrap-%5B8.5,8.6).pom -->
+                                        <version>8.5.5.17</version>
+                                    </artifact>
+                                </artifacts>
+                            </artifactSet>
                             <repositories>
                                 <repository>
                                     <id>p2-was</id>
