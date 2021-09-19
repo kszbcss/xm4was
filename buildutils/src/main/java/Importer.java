@@ -74,38 +74,40 @@ public class Importer {
         
         URI repoURI = new URI(args[args.length-1]);
         IProgressMonitor monitor = new SystemOutProgressMonitor();
-        IProvisioningAgent agent = CosmosRuntime.getInstance().getService(IProvisioningAgentProvider.class).createAgent(p2DataArea.toURI());
-        IArtifactRepositoryManager artifactRepositoryManager = (IArtifactRepositoryManager)agent.getService(IArtifactRepositoryManager.SERVICE_NAME);
-        IMetadataRepositoryManager metadataRepositoryManager = (IMetadataRepositoryManager)agent.getService(IMetadataRepositoryManager.SERVICE_NAME);
-
-        // Create repository early so that we can fail early
-        IArtifactRepository artifactRepository = artifactRepositoryManager.createRepository(repoURI, "WebSphere Artifact Repository", IArtifactRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
-        setRules(artifactRepository, mappingRules);
-        IMetadataRepository metadataRepository = metadataRepositoryManager.createRepository(repoURI, "WebSphere Metadata Repository", IMetadataRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
-        
-        List<IPublisherAction> actions = new ArrayList<IPublisherAction>();
-        actions.add(new BundlesAction(new File[] { outputDir }));
-        
-        for (int i=0; i<args.length-1; i++) {
-            File wasDir = new File(args[i]);
-            String wasVersion = processWASPlugins(wasDir, outputDir);
-            actions.add(new JarAction("websphere-library", "bootstrap", Version.create(wasVersion), new File(wasDir, "lib/bootstrap.jar")));
-        }
-        
-        downloadEclipsePlugins(artifactRepositoryManager, outputDir, monitor);
-        
-        PublisherInfo publisherInfo = new PublisherInfo();
-        publisherInfo.setArtifactRepository(artifactRepository);
-        publisherInfo.setMetadataRepository(metadataRepository);
-        publisherInfo.setArtifactOptions(IPublisherInfo.A_PUBLISH | IPublisherInfo.A_INDEX);
-        Publisher publisher = new Publisher(publisherInfo);
-        IStatus status = publisher.publish(actions.toArray(new IPublisherAction[actions.size()]), monitor);
-        // TODO: need a shutdown method for the OSGi runtime (to stop non daemon threads)
-        if (status.isOK()) {
-            System.exit(0);
-        } else {
-            System.err.println("STATUS: " + status);
-            System.exit(1);
+        CosmosRuntime runtime = CosmosRuntime.getInstance();
+        try {
+            IProvisioningAgent agent = runtime.getService(IProvisioningAgentProvider.class).createAgent(p2DataArea.toURI());
+            IArtifactRepositoryManager artifactRepositoryManager = (IArtifactRepositoryManager)agent.getService(IArtifactRepositoryManager.SERVICE_NAME);
+            IMetadataRepositoryManager metadataRepositoryManager = (IMetadataRepositoryManager)agent.getService(IMetadataRepositoryManager.SERVICE_NAME);
+    
+            // Create repository early so that we can fail early
+            IArtifactRepository artifactRepository = artifactRepositoryManager.createRepository(repoURI, "WebSphere Artifact Repository", IArtifactRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
+            setRules(artifactRepository, mappingRules);
+            IMetadataRepository metadataRepository = metadataRepositoryManager.createRepository(repoURI, "WebSphere Metadata Repository", IMetadataRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
+            
+            List<IPublisherAction> actions = new ArrayList<IPublisherAction>();
+            actions.add(new BundlesAction(new File[] { outputDir }));
+            
+            for (int i=0; i<args.length-1; i++) {
+                File wasDir = new File(args[i]);
+                String wasVersion = processWASPlugins(wasDir, outputDir);
+                actions.add(new JarAction("websphere-library", "bootstrap", Version.create(wasVersion), new File(wasDir, "lib/bootstrap.jar")));
+            }
+            
+            downloadEclipsePlugins(artifactRepositoryManager, outputDir, monitor);
+            
+            PublisherInfo publisherInfo = new PublisherInfo();
+            publisherInfo.setArtifactRepository(artifactRepository);
+            publisherInfo.setMetadataRepository(metadataRepository);
+            publisherInfo.setArtifactOptions(IPublisherInfo.A_PUBLISH | IPublisherInfo.A_INDEX);
+            Publisher publisher = new Publisher(publisherInfo);
+            IStatus status = publisher.publish(actions.toArray(new IPublisherAction[actions.size()]), monitor);
+            if (!status.isOK()) {
+                System.err.println("STATUS: " + status);
+                System.exit(1);
+            }
+        } finally {
+            runtime.dispose();
         }
     }
     
