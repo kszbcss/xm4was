@@ -204,7 +204,7 @@ public class Importer {
     }
     
     private static void downloadEclipsePlugins(IArtifactRepositoryManager artifactRepositoryManager, File outputDir, IProgressMonitor monitor) throws Exception {
-        IArtifactRepository artifactRepository = artifactRepositoryManager.loadRepository(new URI("http://download.eclipse.org/releases/kepler/201306260900"), monitor);
+        IArtifactRepository artifactRepository = artifactRepositoryManager.loadRepository(new URI("https://download.eclipse.org/releases/kepler/201306260900"), monitor);
         for (String id : eclipsePlugins) {
             for (IArtifactKey key : artifactRepository.query(new ArtifactKeyQuery("osgi.bundle", id, null), monitor)) {
                 IArtifactDescriptor[] descriptors = artifactRepository.getArtifactDescriptors(key);
