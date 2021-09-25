@@ -103,7 +103,7 @@
         <dependency>
             <groupId>org.eclipse.ecf</groupId>
             <artifactId>org.eclipse.ecf</artifactId>
-            <version>3.8.0</version>
+            <version>3.9.102</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.ecf</groupId>
@@ -113,12 +113,12 @@
         <dependency>
             <groupId>org.eclipse.ecf</groupId>
             <artifactId>org.eclipse.ecf.identity</artifactId>
-            <version>3.8.0</version>
+            <version>3.9.402</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.ecf</groupId>
             <artifactId>org.eclipse.ecf.provider.filetransfer</artifactId>
-            <version>3.2.600</version>
+            <version>3.2.700</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.platform</groupId>
