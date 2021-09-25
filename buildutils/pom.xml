@@ -33,7 +33,7 @@
         <dependency>
             <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.osgi.util</artifactId>
-            <version>3.3.100</version>
+            <version>3.6.100</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.platform</groupId>
