@@ -150,18 +150,23 @@ public class Importer {
                         if (bundleVersion == null) {
                             // The plugins folder of WPS 6.1 contains JARs that are not bundles.
                             return false;
-                        } else {
-                            int dots = 0;
-                            for (int i=0; i<bundleVersion.length(); i++) {
-                                if (bundleVersion.charAt(i) == '.') {
-                                    dots++;
-                                }
-                            }
-                            atts.putValue("Bundle-Version", bundleVersion + (dots == 3 ? "_" : (dots == 2 ? "." : ".0.")) + bundleVersionSuffix);
-                            // Remove signatures
-                            manifest.getEntries().clear();
-                            return true;
                         }
+                        int dots = 0;
+                        for (int i=0; i<bundleVersion.length(); i++) {
+                            if (bundleVersion.charAt(i) == '.') {
+                                dots++;
+                            }
+                        }
+                        atts.putValue("Bundle-Version", bundleVersion + (dots == 3 ? "_" : (dots == 2 ? "." : ".0.")) + bundleVersionSuffix);
+                        
+                        if (atts.getValue("Bundle-RequiredExecutionEnvironment") == null) {
+                            // Set a default execution environment to make the BundlesAction happy.
+                            atts.putValue("Require-Capability", "osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.6))\"");
+                        }
+                        
+                        // Remove signatures
+                        manifest.getEntries().clear();
+                        return true;
                     }
                 });
                 if (!result) {
