@@ -13,12 +13,14 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-    - name: Extract IBM JDK
-      run: mkdir -p $HOME/was && docker run --rm -u $(id -u $USER) -v $HOME/was:/was:z ibmcom/websphere-traditional:8.5.5.17 cp -R /opt/IBM/WebSphere/AppServer/java /was
+    - name: Set up Java
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
     - name: Build buildutils
-      run: cd buildutils && JAVA_HOME=$HOME/was/java mvn -B package
+      run: cd buildutils && mvn -B package
     - name: Populate P2 repository
-      run: mkdir -p $HOME/was/p2_repo && docker run --rm -u $(id -u $USER) -v $(pwd)/buildutils/target:/buildutils:z -v $HOME/was:/was:z ibmcom/websphere-traditional:8.5.5.17 /opt/IBM/WebSphere/AppServer/java/bin/java -jar /buildutils/plugin-importer-1-SNAPSHOT.jar /opt/IBM/WebSphere/AppServer file:///was/p2_repo
+      run: mkdir -p $HOME/was/p2_repo && docker run --rm -u $(id -u $USER) -v $(pwd)/buildutils/target:/buildutils:z -v $HOME/was:/was:z -v $JAVA_HOME:/java:z ibmcom/websphere-traditional:8.5.5.17 /java/bin/java -jar /buildutils/plugin-importer-1-SNAPSHOT.jar /opt/IBM/WebSphere/AppServer file:///was/p2_repo
     - name: Install WebSphere libraries
       run: >
         mkdir -p $HOME/was/libs &&
@@ -26,5 +28,7 @@ jobs:
         cd buildutils &&
         mvn -B install:install-file -DgroupId=websphere-library -DartifactId=bootstrap -Dversion=8.5.5.17 -Dpackaging=jar -Dfile=$HOME/was/libs/bootstrap.jar &&
         mvn -B install:install-file -DgroupId=websphere-library -DartifactId=j2ee -Dversion=8.5.5.17 -Dpackaging=jar -Dfile=$HOME/was/libs/j2ee.jar
+    - name: Extract IBM JDK
+      run: mkdir -p $HOME/was && docker run --rm -u $(id -u $USER) -v $HOME/was:/was:z ibmcom/websphere-traditional:8.5.5.17 cp -R /opt/IBM/WebSphere/AppServer/java /was
     - name: Build
       run: JAVA_HOME=$HOME/was/java mvn -B -s .ci-settings.xml verify
