@@ -142,32 +142,29 @@ public class Importer {
             String name = plugin.getName();
             if (plugin.isFile() && name.endsWith(".jar")) {
                 System.out.println(plugin);
-                boolean result = transformJAR(plugin, new File(outputDir, name.substring(0, name.length()-4) + "_" + wasVersion + ".jar"), new ManifestTransformer() {
-                    @Override
-                    public boolean transformManifest(Manifest manifest) {
-                        Attributes atts = manifest.getMainAttributes();
-                        String bundleVersion = atts.getValue("Bundle-Version");
-                        if (bundleVersion == null) {
-                            // The plugins folder of WPS 6.1 contains JARs that are not bundles.
-                            return false;
-                        }
-                        int dots = 0;
-                        for (int i=0; i<bundleVersion.length(); i++) {
-                            if (bundleVersion.charAt(i) == '.') {
-                                dots++;
-                            }
-                        }
-                        atts.putValue("Bundle-Version", bundleVersion + (dots == 3 ? "_" : (dots == 2 ? "." : ".0.")) + bundleVersionSuffix);
-                        
-                        if (atts.getValue("Bundle-RequiredExecutionEnvironment") == null) {
-                            // Set a default execution environment to make the BundlesAction happy.
-                            atts.putValue("Require-Capability", "osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.6))\"");
-                        }
-                        
-                        // Remove signatures
-                        manifest.getEntries().clear();
-                        return true;
+                boolean result = transformJAR(plugin, new File(outputDir, name.substring(0, name.length()-4) + "_" + wasVersion + ".jar"), manifest -> {
+                    Attributes atts = manifest.getMainAttributes();
+                    String bundleVersion = atts.getValue("Bundle-Version");
+                    if (bundleVersion == null) {
+                        // The plugins folder of WPS 6.1 contains JARs that are not bundles.
+                        return false;
                     }
+                    int dots = 0;
+                    for (int i=0; i<bundleVersion.length(); i++) {
+                        if (bundleVersion.charAt(i) == '.') {
+                            dots++;
+                        }
+                    }
+                    atts.putValue("Bundle-Version", bundleVersion + (dots == 3 ? "_" : (dots == 2 ? "." : ".0.")) + bundleVersionSuffix);
+                    
+                    if (atts.getValue("Bundle-RequiredExecutionEnvironment") == null) {
+                        // Set a default execution environment to make the BundlesAction happy.
+                        atts.putValue("Require-Capability", "osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.6))\"");
+                    }
+                    
+                    // Remove signatures
+                    manifest.getEntries().clear();
+                    return true;
                 });
                 if (!result) {
                     System.out.println("  Skipped. Not a bundle.");
