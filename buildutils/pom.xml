@@ -8,7 +8,7 @@
         <dependency>
             <groupId>com.github.veithen.cosmos</groupId>
             <artifactId>cosmos-equinox</artifactId>
-            <version>0.4.3</version>
+            <version>0.5.0</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -93,7 +93,7 @@
         <dependency>
             <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.equinox.p2.transport.ecf</artifactId>
-            <version>1.3.200</version>
+            <version>1.3.300</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.ecf</groupId>
