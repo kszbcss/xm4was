@@ -22,6 +22,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.equinox.internal.p2.artifact.repository.simple.SimpleArtifactRepository;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.core.IProvisioningAgentProvider;
@@ -57,7 +58,19 @@ public class Importer {
         { "(&(classifier=websphere-library))", "${repoUrl}/lib/${id}_${version}.jar" },
     };
     
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Throwable {
+        IStatus status = run(args);
+        if (!status.isOK()) {
+            System.err.println("STATUS: " + status);
+            Throwable exception = getException(status);
+            if (exception != null) {
+                throw exception;
+            }
+            System.exit(1);
+        }
+    }
+
+    private static IStatus run(String[] args) throws Exception {
         final File outputDir = Files.createTempDir();
         final File p2DataArea = Files.createTempDir();
         java.lang.Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -94,18 +107,17 @@ public class Importer {
                 actions.add(new JarAction("websphere-library", "bootstrap", Version.create(wasVersion), new File(wasDir, "lib/bootstrap.jar")));
             }
             
-            downloadEclipsePlugins(artifactRepositoryManager, outputDir, monitor);
+            IStatus status = downloadEclipsePlugins(artifactRepositoryManager, outputDir, monitor);
+            if (!status.isOK()) {
+                return status;
+            }
             
             PublisherInfo publisherInfo = new PublisherInfo();
             publisherInfo.setArtifactRepository(artifactRepository);
             publisherInfo.setMetadataRepository(metadataRepository);
             publisherInfo.setArtifactOptions(IPublisherInfo.A_PUBLISH | IPublisherInfo.A_INDEX);
             Publisher publisher = new Publisher(publisherInfo);
-            IStatus status = publisher.publish(actions.toArray(new IPublisherAction[actions.size()]), monitor);
-            if (!status.isOK()) {
-                System.err.println("STATUS: " + status);
-                System.exit(1);
-            }
+            return publisher.publish(actions.toArray(new IPublisherAction[actions.size()]), monitor);
         } finally {
             runtime.dispose();
         }
@@ -205,18 +217,36 @@ public class Importer {
         return result;
     }
     
-    private static void downloadEclipsePlugins(IArtifactRepositoryManager artifactRepositoryManager, File outputDir, IProgressMonitor monitor) throws Exception {
+    private static IStatus downloadEclipsePlugins(IArtifactRepositoryManager artifactRepositoryManager, File outputDir, IProgressMonitor monitor) throws Exception {
         IArtifactRepository artifactRepository = artifactRepositoryManager.loadRepository(new URI("https://download.eclipse.org/releases/kepler/201306260900"), monitor);
         for (String id : eclipsePlugins) {
             for (IArtifactKey key : artifactRepository.query(new ArtifactKeyQuery("osgi.bundle", id, null), monitor)) {
                 IArtifactDescriptor[] descriptors = artifactRepository.getArtifactDescriptors(key);
                 FileOutputStream out = new FileOutputStream(new File(outputDir, id + "_" + key.getVersion() + ".jar"));
                 try {
-                    artifactRepository.getArtifact(descriptors[0], out, monitor);
+                    IStatus status = artifactRepository.getArtifact(descriptors[0], out, monitor);
+                    if (!status.isOK()) {
+                        return status;
+                    }
                 } finally {
                     out.close();
                 }
             }
         }
+        return Status.OK_STATUS;
+    }
+
+    private static Throwable getException(IStatus status) {
+        Throwable exception = status.getException();
+        if (exception != null) {
+            return exception;
+        }
+        for (IStatus child : status.getChildren()) {
+            exception = getException(child);
+            if (exception != null) {
+                return exception;
+            }
+        }
+        return null;
     }
 }
