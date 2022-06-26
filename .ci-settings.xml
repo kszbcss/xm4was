@@ -10,7 +10,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <was.p2.repo.url>file://${user.home}/was/p2_repo</was.p2.repo.url>
+                <was.p2.repo.url>file://${user.home}/work/xm4was/xm4was/buildutils/target/p2_repo</was.p2.repo.url>
             </properties>
         </profile>
     </profiles>

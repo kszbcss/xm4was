@@ -18,10 +18,8 @@ jobs:
       with:
         distribution: 'zulu'
         java-version: 11
-    - name: Build buildutils
-      run: cd buildutils && mvn -B package
     - name: Populate P2 repository
-      run: mkdir -p $HOME/was/p2_repo && docker run --rm -u $(id -u $USER) -v $(pwd)/buildutils/target:/buildutils:z -v $HOME/was:/was:z -v $JAVA_HOME:/java:z ibmcom/websphere-traditional:8.5.5.17 /java/bin/java -jar /buildutils/plugin-importer-1-SNAPSHOT.jar /opt/IBM/WebSphere/AppServer file:///was/p2_repo
+      run: cd buildutils && mvn -B package
     - name: Install WebSphere libraries
       run: >
         mkdir -p $HOME/was/libs &&

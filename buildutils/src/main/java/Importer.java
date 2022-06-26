@@ -86,6 +86,7 @@ public class Importer {
         });
         
         URI repoURI = new URI(args[args.length-1]);
+        new File(repoURI).mkdirs();
         IProgressMonitor monitor = new SystemOutProgressMonitor();
         CosmosRuntime runtime = CosmosRuntime.getInstance();
         try {
