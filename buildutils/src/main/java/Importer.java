@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -222,10 +223,16 @@ public class Importer {
         IArtifactRepository artifactRepository = artifactRepositoryManager.loadRepository(new URI("https://download.eclipse.org/releases/kepler/201306260900"), monitor);
         for (String id : eclipsePlugins) {
             for (IArtifactKey key : artifactRepository.query(new ArtifactKeyQuery("osgi.bundle", id, null), monitor)) {
-                IArtifactDescriptor[] descriptors = artifactRepository.getArtifactDescriptors(key);
+                Optional<IArtifactDescriptor> descriptor =
+                        Arrays.stream(artifactRepository.getArtifactDescriptors(key))
+                                // Only consider plain JARs, not .jar.pack.gz files. The latter are
+                                // not supported on Java 14 and not processed correctly with recent
+                                // P2 versions.
+                                .filter(d -> d.getProperty(IArtifactDescriptor.FORMAT) == null)
+                                .findFirst();
                 FileOutputStream out = new FileOutputStream(new File(outputDir, id + "_" + key.getVersion() + ".jar"));
                 try {
-                    IStatus status = artifactRepository.getArtifact(descriptors[0], out, monitor);
+                    IStatus status = artifactRepository.getArtifact(descriptor.get(), out, monitor);
                     if (!status.isOK()) {
                         return status;
                     }
