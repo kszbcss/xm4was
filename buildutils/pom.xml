@@ -51,7 +51,7 @@
         <dependency>
             <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.core.jobs</artifactId>
-            <version>3.13.0</version>
+            <version>3.13.100</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.platform</groupId>
