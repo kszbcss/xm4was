@@ -51,11 +51,6 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>com.googlecode.xm4was.jna_3_4_0</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
             <artifactId>com.googlecode.xm4was.logging</artifactId>
             <version>${project.version}</version>
         </dependency>

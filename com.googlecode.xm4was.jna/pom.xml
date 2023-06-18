@@ -26,6 +26,16 @@
                             <ws>gtk</ws>
                             <arch>amd64</arch>
                         </environment>
+                        <environment>
+                            <os>linux</os>
+                            <ws>gtk</ws>
+                            <arch>ppc</arch>
+                        </environment>
+                        <environment>
+                            <os>linux</os>
+                            <ws>gtk</ws>
+                            <arch>ppc64</arch>
+                        </environment>
                     </environments>
                 </configuration>
             </plugin>
@@ -53,9 +63,7 @@
                                 <artifactItem>
                                     <groupId>net.java.dev.jna</groupId>
                                     <artifactId>jna</artifactId>
-                                    <!-- 3.3.0 and 4.0.0 are both compatible with old glibc versions, but only
-                                         3.3.0 is compatible with Java 1.5 -->
-                                    <version>3.3.0</version>
+                                    <version>5.13.0</version>
                                 </artifactItem>
                             </artifactItems>
                             <outputDirectory>${project.build.directory}/jna</outputDirectory>
