@@ -4,9 +4,6 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-    ignore:
-      - dependency-name: "org.eclipse.tycho:*"
-        versions: ">= 2.0.0"
   - package-ecosystem: "maven"
     directory: "/buildutils"
     schedule:
