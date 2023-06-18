@@ -8,5 +8,5 @@
 		},
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {}
 	},
-	"postCreateCommand": "./setup.sh && cp .ci-settings.xml ~/.m2/settings.xml"
+	"postCreateCommand": "./setup.sh && cp .ci-settings.xml ~/.m2/settings.xml && cp .ci-toolchains.xml ~/.m2/toolchains.xml"
 }
