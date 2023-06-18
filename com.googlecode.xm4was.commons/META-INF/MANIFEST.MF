@@ -4,7 +4,7 @@ Bundle-Name: XM4WAS Commons
 Bundle-SymbolicName: com.googlecode.xm4was.commons;singleton:=true
 Bundle-Version: 0.4.1.qualifier
 Bundle-Activator: com.googlecode.xm4was.commons.activator.Activator
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Eclipse-AutoStart: true
 Import-Package: com.ibm.ejs.ras,
  com.ibm.websphere.management,

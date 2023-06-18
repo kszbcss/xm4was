@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<toolchains>
+    <toolchain>
+        <type>jdk</type>
+        <provides>
+            <id>JavaSE-1.8</id>
+        </provides>
+        <configuration>
+            <jdkHome>${env.HOME}/was/java</jdkHome>
+        </configuration>
+    </toolchain>
+</toolchains>

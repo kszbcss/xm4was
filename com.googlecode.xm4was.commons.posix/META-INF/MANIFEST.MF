@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: XM4WAS Commons POSIX support
 Bundle-SymbolicName: com.googlecode.xm4was.commons.posix
 Bundle-Version: 0.4.1.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Eclipse-AutoStart: true
 XM4WAS-Components: com.googlecode.xm4was.commons.posix.impl.PosixComponent
 Import-Package: com.googlecode.xm4was.commons.osgi,

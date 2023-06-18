@@ -6,7 +6,7 @@
     <version>0.4.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <properties>
-        <tycho-version>1.7.0</tycho-version>
+        <tycho-version>3.0.4</tycho-version>
     </properties>
     <scm>
         <developerConnection>scm:git:https://github.com/kszbcss/xm4was.git</developerConnection>
@@ -130,9 +130,28 @@
             </plugin>
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
+                <artifactId>target-platform-configuration</artifactId>
+                <version>${tycho-version}</version>
+                <configuration>
+                    <executionEnvironment>JavaSE-1.8</executionEnvironment>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
                 <artifactId>tycho-maven-plugin</artifactId>
                 <version>${tycho-version}</version>
                 <extensions>true</extensions>
+                <configuration>
+                    <useJDK>BREE</useJDK>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-compiler-plugin</artifactId>
+                <version>${tycho-version}</version>
+                <configuration>
+                    <useJDK>BREE</useJDK>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
@@ -140,6 +159,7 @@
                 <version>${tycho-version}</version>
                 <configuration>
                     <argLine>-Xbootclasspath/a:${bootclasspath}</argLine>
+                    <useJDK>BREE</useJDK>
                 </configuration>
             </plugin>
             <plugin>

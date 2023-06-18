@@ -28,4 +28,4 @@ Require-Bundle: com.ibm.wsfp.main,
 Export-Package: com.googlecode.xm4was.websvc.jaxws,com.googlecode.xm4w
  as.websvc.resources
 XM4WAS-Components: com.googlecode.xm4was.websvc.jaxws.cleaner.JAXWSCacheCleaner
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

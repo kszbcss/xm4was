@@ -21,4 +21,4 @@ jobs:
     - name: Set up build environment
       run: ./setup.sh
     - name: Build
-      run: JAVA_HOME=$HOME/was/java mvn -B -s .ci-settings.xml verify
+      run: mvn -B -s .ci-settings.xml --global-toolchains .ci-toolchains.xml verify

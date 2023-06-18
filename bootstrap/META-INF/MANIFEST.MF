@@ -5,4 +5,4 @@ Bundle-SymbolicName: bootstrap;singleton:=true
 Bundle-Version: 0.4.1.qualifier
 Export-Package: javax.annotation.security,
  javax.annotation.sql
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

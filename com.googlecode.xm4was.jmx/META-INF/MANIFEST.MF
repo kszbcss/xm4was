@@ -21,4 +21,4 @@ Eclipse-AutoStart: true
 XM4WAS-Components: com.googlecode.xm4was.jmx.jrmp.JmxConnector,
  com.googlecode.xm4was.jmx.mxbeans.PlatformMXBeansRegistrant,
  com.googlecode.xm4was.jmx.jvm.JVM
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

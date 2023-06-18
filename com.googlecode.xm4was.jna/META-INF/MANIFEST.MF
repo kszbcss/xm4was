@@ -4,7 +4,7 @@ Bundle-Name: JNA
 Bundle-SymbolicName: com.googlecode.xm4was.jna
 Bundle-Version: 0.4.1.qualifier
 Export-Package: com.sun.jna
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ClassPath: .,
  lib/jna-no-native.jar
 Bundle-NativeCode: lib/linux-x86/libjnidispatch.so; processor=x86;osname=linux,

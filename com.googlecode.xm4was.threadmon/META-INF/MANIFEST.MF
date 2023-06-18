@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: XM4WAS Thread Monitor
 Bundle-SymbolicName: com.googlecode.xm4was.threadmon;singleton:=true
 Bundle-Version: 0.4.1.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: com.github.veithen.rbeans,
  com.googlecode.xm4was.commons,
  com.googlecode.xm4was.commons.deploy,
