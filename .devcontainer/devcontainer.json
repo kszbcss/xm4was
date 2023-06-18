@@ -1,0 +1,12 @@
+{
+	"image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
+	"features": {
+		"ghcr.io/devcontainers/features/java:1": {
+			"version": "11",
+			"installMaven": "true",
+			"installGradle": "false"
+		},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {}
+	},
+	"postCreateCommand": "./setup.sh && cp .ci-settings.xml ~/.m2/settings.xml"
+}

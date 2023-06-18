@@ -18,16 +18,7 @@ jobs:
       with:
         distribution: 'zulu'
         java-version: 11
-    - name: Populate P2 repository
-      run: mvn -B -f buildutils package
-    - name: Install WebSphere libraries
-      run: >
-        mkdir -p $HOME/was/libs &&
-        docker run --rm -u $(id -u $USER) -v $HOME/was:/was:z ibmcom/websphere-traditional:8.5.5.17 cp /opt/IBM/WebSphere/AppServer/lib/bootstrap.jar /opt/IBM/WebSphere/AppServer/lib/j2ee.jar /was/libs &&
-        cd buildutils &&
-        mvn -B install:install-file -DgroupId=websphere-library -DartifactId=bootstrap -Dversion=8.5.5.17 -Dpackaging=jar -Dfile=$HOME/was/libs/bootstrap.jar &&
-        mvn -B install:install-file -DgroupId=websphere-library -DartifactId=j2ee -Dversion=8.5.5.17 -Dpackaging=jar -Dfile=$HOME/was/libs/j2ee.jar
-    - name: Extract IBM JDK
-      run: mkdir -p $HOME/was && docker run --rm -u $(id -u $USER) -v $HOME/was:/was:z ibmcom/websphere-traditional:8.5.5.17 cp -R /opt/IBM/WebSphere/AppServer/java /was
+    - name: Set up build environment
+      run: ./setup.sh
     - name: Build
       run: JAVA_HOME=$HOME/was/java mvn -B -s .ci-settings.xml verify
