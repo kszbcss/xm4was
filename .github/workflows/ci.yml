@@ -18,6 +18,10 @@ jobs:
       with:
         distribution: 'zulu'
         java-version: 17
+    - name: Set up Maven
+      uses: stCarolas/setup-maven@v.4.5
+      with:
+        maven-version: 3.9.3
     - name: Set up build environment
       run: ./setup.sh
     - name: Build
