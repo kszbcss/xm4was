@@ -20,7 +20,7 @@
         <dependency>
             <groupId>com.github.veithen.cosmos</groupId>
             <artifactId>cosmos-equinox</artifactId>
-            <version>0.5.0</version>
+            <version>0.6.0</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
