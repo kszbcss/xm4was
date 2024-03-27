@@ -36,7 +36,7 @@
                                 <artifactItem>
                                     <groupId>org.osgi</groupId>
                                     <artifactId>org.osgi.compendium</artifactId>
-                                    <version>4.2.0</version>
+                                    <version>5.0.0</version>
                                 </artifactItem>
                             </artifactItems>
                             <includes>org/osgi/util/tracker/**</includes>
