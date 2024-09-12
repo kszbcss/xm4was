@@ -5,7 +5,7 @@
     <artifactId>plugin-importer</artifactId>
     <version>1-SNAPSHOT</version>
     <properties>
-        <groovy.version>4.0.22</groovy.version>
+        <groovy.version>4.0.23</groovy.version>
     </properties>
     <dependencyManagement>
         <dependencies>
