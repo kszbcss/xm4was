@@ -63,7 +63,7 @@
                                 <artifactItem>
                                     <groupId>net.java.dev.jna</groupId>
                                     <artifactId>jna</artifactId>
-                                    <version>5.14.0</version>
+                                    <version>5.15.0</version>
                                 </artifactItem>
                             </artifactItems>
                             <outputDirectory>${project.build.directory}/jna</outputDirectory>
