@@ -36,49 +36,7 @@
             <layout>p2</layout>
             <url>${was.p2.repo.url}</url>
         </repository>
-        <repository>
-            <id>github-veithen-releases</id>
-            <url>https://raw.githubusercontent.com/veithen/mvn-repo/master/releases/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>github-veithen-snapshots</id>
-            <url>https://raw.githubusercontent.com/veithen/mvn-repo/master/snapshots/</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
     </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>github-veithen-releases</id>
-            <url>https://raw.githubusercontent.com/veithen/mvn-repo/master/releases/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </pluginRepository>
-        <pluginRepository>
-            <id>github-veithen-snapshots</id>
-            <url>https://raw.githubusercontent.com/veithen/mvn-repo/master/snapshots/</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </pluginRepository>        
-    </pluginRepositories>
 	<distributionManagement>
 		<repository>
 		<id>bintray-pvdbosch-maven-xm4was</id>
@@ -87,13 +45,6 @@
 		</repository>
 	</distributionManagement>
     <build>
-        <extensions>
-            <extension>
-                <groupId>com.github.veithen.cosmos</groupId>
-                <artifactId>wagon-p2</artifactId>
-                <version>20180302</version>
-            </extension>
-        </extensions>
         <plugins>
             <plugin>
                 <groupId>com.github.veithen.alta</groupId>
@@ -117,13 +68,6 @@
                                     </artifact>
                                 </artifacts>
                             </artifactSet>
-                            <repositories>
-                                <repository>
-                                    <id>p2-was</id>
-                                    <name>WebSphere P2 Repository</name>
-                                    <url>p2:${was.p2.repo.url}</url>
-                                </repository>
-                            </repositories>
                         </configuration>
                     </execution>
                 </executions>
