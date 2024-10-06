@@ -2,7 +2,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,11 +23,9 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.equinox.internal.p2.artifact.repository.simple.SimpleArtifactRepository;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.core.IProvisioningAgentProvider;
 import org.eclipse.equinox.p2.metadata.IArtifactKey;
-import org.eclipse.equinox.p2.metadata.Version;
 import org.eclipse.equinox.p2.publisher.IPublisherAction;
 import org.eclipse.equinox.p2.publisher.IPublisherInfo;
 import org.eclipse.equinox.p2.publisher.Publisher;
@@ -53,11 +50,6 @@ public class Importer {
     private static final Set<String> ignore = new HashSet<String>(Arrays.asList("META-INF/ECLIPSEF.RSA", "META-INF/ECLIPSEF.SF"));
     // These bundles are required to run the unit tests
     private static String[] eclipsePlugins = { "org.eclipse.equinox.launcher", "org.junit", "org.hamcrest.core" };
-    
-    private static final String[][] mappingRules = {
-        { "(&(classifier=osgi.bundle))", "${repoUrl}/plugins/${id}_${version}.jar" },
-        { "(&(classifier=websphere-library))", "${repoUrl}/lib/${id}_${version}.jar" },
-    };
     
     public static void main(String[] args) throws Throwable {
         IStatus status = run(args);
@@ -97,16 +89,13 @@ public class Importer {
     
             // Create repository early so that we can fail early
             IArtifactRepository artifactRepository = artifactRepositoryManager.createRepository(repoURI, "WebSphere Artifact Repository", IArtifactRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
-            setRules(artifactRepository, mappingRules);
             IMetadataRepository metadataRepository = metadataRepositoryManager.createRepository(repoURI, "WebSphere Metadata Repository", IMetadataRepositoryManager.TYPE_SIMPLE_REPOSITORY, Collections.<String,String>emptyMap());
             
             List<IPublisherAction> actions = new ArrayList<IPublisherAction>();
             actions.add(new BundlesAction(new File[] { outputDir }));
             
             for (int i=0; i<args.length-1; i++) {
-                File wasDir = new File(args[i]);
-                String wasVersion = processWASPlugins(wasDir, outputDir);
-                actions.add(new JarAction("websphere-library", "bootstrap", Version.create(wasVersion), new File(wasDir, "lib/bootstrap.jar")));
+                processWASPlugins(new File(args[i]), outputDir);
             }
             
             IStatus status = downloadEclipsePlugins(artifactRepositoryManager, outputDir, monitor);
@@ -125,15 +114,7 @@ public class Importer {
         }
     }
     
-    private static void setRules(IArtifactRepository artifactRepository, String[][] mappingRules) throws Exception {
-        SimpleArtifactRepository simpleArtifactRepository = (SimpleArtifactRepository)artifactRepository;
-        simpleArtifactRepository.setRules(mappingRules);
-        Method initializeMapper = SimpleArtifactRepository.class.getDeclaredMethod("initializeMapper");
-        initializeMapper.setAccessible(true);
-        initializeMapper.invoke(simpleArtifactRepository);
-    }
-    
-    private static String processWASPlugins(final File wasDir, File outputDir) throws Exception {
+    private static void processWASPlugins(final File wasDir, File outputDir) throws Exception {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(false);
         dbf.setValidating(false);
@@ -185,7 +166,6 @@ public class Importer {
                 }
             }
         }
-        return wasVersion;
     }
     
     private static boolean transformJAR(File inputFile, File outputFile, ManifestTransformer manifestTransformer) throws Exception {
